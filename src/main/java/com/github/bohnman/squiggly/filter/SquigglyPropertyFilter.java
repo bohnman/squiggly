@@ -143,12 +143,18 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             return true;
         }
 
-        Path path = getPath(writer, streamContext);
         SquigglyContext context = contextProvider.getContext(streamContext.getCurrentValue());
+        String filter = context.getFilter();
+
+        if (SquigglyNode.ANY_DEEP.equals(filter)) {
+            return true;
+        }
+
+        Path path = getPath(writer, streamContext);
 
         if (path.isCachable()) {
             // cache the match result using the path and filter expression
-            Pair<Path, String> pair = Pair.of(path, context.getFilter());
+            Pair<Path, String> pair = Pair.of(path, filter);
             Boolean match = MATCH_CACHE.getIfPresent(pair);
 
             if (match == null) {
