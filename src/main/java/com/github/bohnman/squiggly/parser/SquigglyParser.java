@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.parser;
 
 import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +24,7 @@ public class SquigglyParser {
 
     static {
         int maxSize = SquigglyConfig.getParserNodeCacheMaxSize();
-        CACHE = CacheBuilder.newBuilder().maximumSize(maxSize).build();
+        CACHE = SquigglyUtils.cacheBuilderWithMaxSize(maxSize).build();
     }
 
     /**

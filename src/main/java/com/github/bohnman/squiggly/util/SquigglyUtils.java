@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
 
 /**
@@ -27,5 +28,24 @@ public class SquigglyUtils {
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    /**
+     * Creates a new @{@link CacheBuilder}, setting the max size if >= 0.
+     *
+     * @param maxSize max size of the cache
+     * @param <K> key
+     * @param <V> value
+     * @return builder
+     */
+    @SuppressWarnings("unchecked")
+    public static <K, V> CacheBuilder<K, V> cacheBuilderWithMaxSize(int maxSize) {
+        CacheBuilder<K, V> builder = (CacheBuilder<K, V>) CacheBuilder.newBuilder();
+
+        if (maxSize >= 0) {
+            builder = builder.maximumSize(maxSize);
+        }
+
+        return builder;
     }
 }
