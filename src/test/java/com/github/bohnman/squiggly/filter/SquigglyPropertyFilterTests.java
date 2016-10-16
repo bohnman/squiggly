@@ -1,14 +1,14 @@
 package com.github.bohnman.squiggly.filter;
 
-import com.github.bohnman.squiggly.config.SquigglyConfig;
-import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
-import com.github.bohnman.squiggly.parser.SquigglyParser;
-import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.model.Issue;
 import com.github.bohnman.squiggly.model.IssueAction;
 import com.github.bohnman.squiggly.model.User;
+import com.github.bohnman.squiggly.parser.SquigglyParser;
+import com.github.bohnman.squiggly.util.SquigglyUtils;
 import org.junit.Before;
 import org.junit.Test;
 

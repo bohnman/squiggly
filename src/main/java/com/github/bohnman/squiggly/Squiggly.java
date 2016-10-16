@@ -3,11 +3,11 @@ package com.github.bohnman.squiggly;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
+import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.filter.SquigglyPropertyFilterMixin;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
-import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
-import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
 
 /**
  * Provides various way of registering a {@link SquigglyPropertyFilter} with a Jackson ObjectMapper.
