@@ -47,13 +47,6 @@ if [ $? -gt 0 ]; then
     exit 1;
 fi
 
-echo "Pushing tags"
-git push origin --tags
-
-if [ $? -gt 0 ]; then
-    exit 1;
-fi
-
 echo "Setting next snapshot version ${nextVersion}"
 mvn versions:set -DnewVersion=${nextVersion}
 
@@ -66,6 +59,13 @@ git commit -a -m "Setting version to $nextVersion."
 
 echo "Tagging version ${nextVersion}"
 git tag ${nextVersion}
+
+if [ $? -gt 0 ]; then
+    exit 1;
+fi
+
+echo "Pushing commits"
+git push origin
 
 if [ $? -gt 0 ]; then
     exit 1;
