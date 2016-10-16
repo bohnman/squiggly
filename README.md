@@ -18,8 +18,9 @@
 
 ## <a name="what-is-it"></a>What is it?
 
-The Jackson Squiggly Filter is a PropertyFilter used for including/excluding properties of an object/list/map using a 
-subset of the [Facebook Graph  API filtering syntax](https://developers.facebook.com/docs/graph-api/using-graph-api/).
+The Squiggly Filter is a [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) PropertyFilter, which selects
+including/excluding properties of an object/list/map using a subset of the 
+[Facebook Graph  API filtering syntax](https://developers.facebook.com/docs/graph-api/using-graph-api/).
 
 ## <a name="prerequisites"></a>Prerequisites
 
@@ -32,8 +33,8 @@ This project requires Java 8, Commons Collections 3, and Google Guava, and the J
 ```xml
 <dependency>
     <groupId>bohnman</groupId>
-    <artifactId>jackson-squiggly-filter</artifactId>
-    <version>1.0.0</version>
+    <artifactId>squiggly-filter-jackson</artifactId>
+    <version>1.0.1</version>
 </dependency>
 ```
 

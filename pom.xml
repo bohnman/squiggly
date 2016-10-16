@@ -5,10 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>Jackson Squiggly Filter</name>
-    <url>https://github.com/bohnman/jackson-squiggly-filter</url>
-    <description>The Jackson Squiggly Filter is a PropertyFilter used for including/excluding properties of an object/list/map using a subset of the Facebook Graph API filtering syntax.</description>
+    <url>https://github.com/bohnman/squiggly-filter-jackson</url>
+    <description>The Squiggly Filter is a Jackson JSON PropertyFilter, which selects properties of an object/list/map using a subset of the Facebook Graph API filtering syntax.</description>
     <groupId>com.github.bohnman</groupId>
-    <artifactId>jackson-squiggly-filter</artifactId>
+    <artifactId>squiggly-filter-jackson</artifactId>
     <version>1.0.1-SNAPSHOT</version>
 
     <properties>
@@ -20,7 +20,7 @@
     <licenses>
         <license>
             <name>BSD License</name>
-            <url>https://raw.githubusercontent.com/bohnman/jackson-squiggly-filter/master/LICENSE.md</url>
+            <url>https://raw.githubusercontent.com/bohnman/squiggly-filter-jackson/master/LICENSE.md</url>
         </license>
     </licenses>
     <developers>
@@ -29,9 +29,9 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git://github.com/bohnman/jackson-squiggly-filter.git</connection>
-        <developerConnection>scm:git:ssh://github.com:bohnman/jackson-squiggly-filter.git</developerConnection>
-        <url>https://github.com/bohnman/jackson-squiggly-filter/tree/master</url>
+        <connection>scm:git:git://github.com/bohnman/squiggly-filter-jackson.git</connection>
+        <developerConnection>scm:git:ssh://github.com:bohnman/squiggly-filter-jackson.git</developerConnection>
+        <url>https://github.com/bohnman/squiggly-filter-jackson/tree/master</url>
     </scm>
 
     <distributionManagement>
