@@ -31,7 +31,7 @@ public class SquigglyPropertyFilterTests {
 
     @Before
     public void beforeEachTest() {
-         if (!init) {
+        if (!init) {
             issue = buildIssue();
             objectMapper = new ObjectMapper();
             filterProvider = new SimpleFilterProvider();

@@ -11,7 +11,6 @@ public class IssueAction extends BaseIssue {
     private User user;
 
 
-
     public IssueAction(String type, String text, User user) {
         this.text = text;
         this.type = type;

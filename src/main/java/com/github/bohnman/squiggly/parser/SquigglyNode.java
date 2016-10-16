@@ -25,11 +25,10 @@ public class SquigglyNode {
     /**
      * Constructor.
      *
-     * @param name      name of the node
-     * @param parent    parent node
-     * @param children  child nodes
-     * @param squiggly  whether or not a not is squiggly
-     *
+     * @param name     name of the node
+     * @param parent   parent node
+     * @param children child nodes
+     * @param squiggly whether or not a not is squiggly
      * @see #isSquiggly()
      */
     public SquigglyNode(String name, SquigglyNode parent, List<SquigglyNode> children, boolean squiggly) {
@@ -111,11 +110,11 @@ public class SquigglyNode {
 
     /**
      * A node is considered squiggly if it is comes right before a nested expression.
-     *
+     * <p>
      * <p>For example, given the filter expression:</p>
-     *
+     * <p>
      * <code>id,foo{bar}</code>
-     *
+     * <p>
      * <p>The foo node is squiggly, but the bar node is not.</p>
      *
      * @return true/false

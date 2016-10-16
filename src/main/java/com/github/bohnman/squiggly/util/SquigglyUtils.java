@@ -34,8 +34,8 @@ public class SquigglyUtils {
      * Creates a new @{@link CacheBuilder}, setting the max size if >= 0.
      *
      * @param maxSize max size of the cache
-     * @param <K> key
-     * @param <V> value
+     * @param <K>     key
+     * @param <V>     value
      * @return builder
      */
     @SuppressWarnings("unchecked")

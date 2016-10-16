@@ -13,7 +13,7 @@ public interface SquigglyContext {
     /**
      * Get the parsed nodes.
      *
-      * @return nodes
+     * @return nodes
      */
     List<SquigglyNode> getNodes();
 

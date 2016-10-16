@@ -91,12 +91,11 @@ public class SquigglyConfig {
 
     /**
      * Determines whether or not filters that specify a view also propagtes that view to nested filters.
-     *
+     * <p>
      * For example, given a view called "full", does the full view also apply to the nested objects or does the nested
      * object only include base fields.
      *
      * @return true if includes, false if not
-     *
      */
     public static boolean isFilterPropagateViewToNestedFilters() {
         return filterPropagateViewToNestedFilters;

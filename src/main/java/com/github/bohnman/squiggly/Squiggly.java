@@ -32,7 +32,7 @@ public class Squiggly {
     /**
      * Initialize a @{@link SquigglyPropertyFilter} with a specific context provider.
      *
-     * @param mapper the Jackson Object Mapper
+     * @param mapper          the Jackson Object Mapper
      * @param contextProvider the context provider to use
      * @return object mapper, mainly for convenience
      * @throws IllegalStateException if the filter was unable to be registered

@@ -46,7 +46,7 @@ public class PropertyViewIntrospector {
      * Get all the property (field) names of a given class and view name.
      *
      * @param beanClass the bean class
-     * @param viewName the view name
+     * @param viewName  the view name
      * @return a set of property names
      */
     public Set<String> getPropertyNames(Class beanClass, String viewName) {
