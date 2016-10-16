@@ -430,7 +430,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
     }
 
     @Override
-    protected String getFilter() {
+    protected String getFilter(Object object) {
         HttpServletRequest request = RequestHolder.getRequest();
 
         if (request == null) {

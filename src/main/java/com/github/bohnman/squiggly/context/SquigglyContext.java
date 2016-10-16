@@ -11,6 +11,13 @@ import java.util.List;
 public interface SquigglyContext {
 
     /**
+     * Get the object being filtered.
+     *
+     * @return object
+     */
+    Object getObject();
+
+    /**
      * Get the parsed nodes.
      *
      * @return nodes

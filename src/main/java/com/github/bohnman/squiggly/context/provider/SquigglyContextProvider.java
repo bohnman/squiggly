@@ -11,7 +11,8 @@ public interface SquigglyContextProvider {
     /**
      * Get the context.
      *
+     * @param object the object being filtered
      * @return context
      */
-    SquigglyContext getContext();
+    SquigglyContext getContext(Object object);
 }

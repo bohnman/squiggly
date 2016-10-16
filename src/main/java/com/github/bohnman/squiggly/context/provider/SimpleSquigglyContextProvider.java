@@ -17,7 +17,7 @@ public class SimpleSquigglyContextProvider extends AbstractSquigglyContextProvid
     }
 
     @Override
-    protected String getFilter() {
+    protected String getFilter(Object object) {
         return filter;
     }
 }

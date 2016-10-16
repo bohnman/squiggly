@@ -104,9 +104,8 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     // create a path structure representing the object graph
-    private Path getPath(final PropertyWriter writer, final JsonGenerator jgen) {
+    private Path getPath(PropertyWriter writer, JsonStreamContext sc) {
         LinkedList<PathElement> elements = new LinkedList<>();
-        JsonStreamContext sc = jgen.getOutputContext();
 
         if (sc != null) {
             elements.add(new PathElement(writer.getName(), sc.getCurrentValue()));
@@ -123,6 +122,10 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         return new Path(elements);
     }
 
+    private JsonStreamContext getStreamContext(JsonGenerator jgen) {
+        return jgen.getOutputContext();
+    }
+
     @Override
     protected boolean include(final BeanPropertyWriter writer) {
         throw new UnsupportedOperationException("Cannot call include without JsonGenerator");
@@ -135,8 +138,14 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     protected boolean include(final PropertyWriter writer, final JsonGenerator jgen) {
-        Path path = getPath(writer, jgen);
-        SquigglyContext context = contextProvider.getContext();
+        JsonStreamContext streamContext = getStreamContext(jgen);
+
+        if (streamContext == null) {
+            return true;
+        }
+
+        Path path = getPath(writer, streamContext);
+        SquigglyContext context = contextProvider.getContext(streamContext.getCurrentValue());
 
         if (path.isCachable()) {
             // cache the match result using the path and filter expression
