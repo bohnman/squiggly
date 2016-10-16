@@ -1,4 +1,4 @@
-# Jackson Squiggly Filter
+# Squiggly Filter For Jackson
 
 ## Contents
 
