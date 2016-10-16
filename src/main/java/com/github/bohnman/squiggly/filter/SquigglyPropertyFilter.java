@@ -137,20 +137,24 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     protected boolean include(final PropertyWriter writer, final JsonGenerator jgen) {
+        if (!contextProvider.isFilteringEnabled()) {
+            return true;
+        }
+
         JsonStreamContext streamContext = getStreamContext(jgen);
 
         if (streamContext == null) {
             return true;
         }
 
-        SquigglyContext context = contextProvider.getContext(streamContext.getCurrentValue());
+        Path path = getPath(writer, streamContext);
+        SquigglyContext context = contextProvider.getContext(path.getFirst().getBeanClass());
         String filter = context.getFilter();
+
 
         if (SquigglyNode.ANY_DEEP.equals(filter)) {
             return true;
         }
-
-        Path path = getPath(writer, streamContext);
 
         if (path.isCachable()) {
             // cache the match result using the path and filter expression

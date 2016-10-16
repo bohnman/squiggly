@@ -12,20 +12,20 @@ import java.util.List;
 @NotThreadSafe
 public class LazySquigglyContext implements SquigglyContext {
 
-    private final Object object;
+    private final Class beanClass;
     private final String filter;
     private List<SquigglyNode> nodes;
     private final SquigglyParser parser;
 
-    public LazySquigglyContext(Object object, SquigglyParser parser, String filter) {
-        this.object = object;
+    public LazySquigglyContext(Class beanClass, SquigglyParser parser, String filter) {
+        this.beanClass = beanClass;
         this.parser = parser;
         this.filter = filter;
     }
 
     @Override
-    public Object getObject() {
-        return object;
+    public Class getBeanClass() {
+        return beanClass;
     }
 
     @Override

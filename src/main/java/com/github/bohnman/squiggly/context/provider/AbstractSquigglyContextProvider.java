@@ -20,17 +20,22 @@ public abstract class AbstractSquigglyContextProvider implements SquigglyContext
     }
 
     @Override
-    public SquigglyContext getContext(Object object) {
-        return new LazySquigglyContext(object, parser, getFilter(object));
+    public SquigglyContext getContext(Class beanClass) {
+        return new LazySquigglyContext(beanClass, parser, getFilter(beanClass));
+    }
+
+    @Override
+    public boolean isFilteringEnabled() {
+        return true;
     }
 
     /**
      * Get the filter expression.
      *
-     * @param object object being filtered
+     * @param beanClass class of the top-level bean being filtered
      * @return filter expression
      */
-    protected abstract String getFilter(Object object);
+    protected abstract String getFilter(Class beanClass);
 
 
 }

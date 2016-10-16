@@ -11,8 +11,15 @@ public interface SquigglyContextProvider {
     /**
      * Get the context.
      *
-     * @param object the object being filtered
+     * @param beanClass the class of the top-level bean being filtered
      * @return context
      */
-    SquigglyContext getContext(Object object);
+    SquigglyContext getContext(Class beanClass);
+
+    /**
+     * Hook method to enable/disable filtering.
+     *
+     * @return ture if enabled, false if not
+     */
+    boolean isFilteringEnabled();
 }

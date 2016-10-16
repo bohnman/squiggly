@@ -418,32 +418,59 @@ public class RequestHolderFilter implements Filter {
 ```java
 public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvider {
 
+    private String filterParam;
     private final String defaultFields;
-    
+
     public RequestSquigglyContextProvider() {
-        this("base");
+        this("fields", null);
     }
 
-    public RequestSquigglyContextProvider(String defaultFields) {
+    public RequestSquigglyContextProvider(String filterParam, String defaultFields) {
+        this.filterParam = filterParam;
         this.defaultFields = defaultFields;
 
     }
 
     @Override
-    protected String getFilter(Object object) {
+    protected String getFilter(Class beanClass) {
         HttpServletRequest request = RequestHolder.getRequest();
 
-        if (request == null) {
-            return "**";
-        }
-
-        String fields = request.getParameter("fields");
+        String fields = request.getParameter(filterParam);
 
         if (fields == null) {
             fields = defaultFields;
         }
 
         return fields;
+    }
+
+    @Override
+    public boolean isFilteringEnabled() {
+        HttpServletRequest request = RequestHolder.getRequest();
+
+        if (request == null) {
+            return false;
+        }
+
+        String filter = request.getParameter(filterParam);
+
+        if ("**".equals(filter)) {
+            return false;
+        }
+
+        if (filter != null || "".equals(filter)) {
+            return true;
+        }
+
+        if ("**".equals(defaultFields)) {
+            return false;
+        }
+
+        if (defaultFields != null || "".equals(defaultFields)) {
+            return true;
+        }
+
+        return false;
     }
 }
 ```

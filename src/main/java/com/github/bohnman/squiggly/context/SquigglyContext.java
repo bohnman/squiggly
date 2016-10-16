@@ -11,11 +11,11 @@ import java.util.List;
 public interface SquigglyContext {
 
     /**
-     * Get the object being filtered.
+     * Get the top-level bean class being filtered.
      *
-     * @return object
+     * @return bean class
      */
-    Object getObject();
+    Class getBeanClass();
 
     /**
      * Get the parsed nodes.

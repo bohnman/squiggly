@@ -17,7 +17,20 @@ public class SimpleSquigglyContextProvider extends AbstractSquigglyContextProvid
     }
 
     @Override
-    protected String getFilter(Object object) {
+    public boolean isFilteringEnabled() {
+        if (filter == null) {
+            return false;
+        }
+
+        if ("**".equals(filter)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    protected String getFilter(Class beanClass) {
         return filter;
     }
 }
