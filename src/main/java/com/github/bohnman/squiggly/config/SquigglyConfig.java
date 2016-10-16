@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.config;
 
+import com.google.common.cache.CacheBuilderSpec;
 import net.jcip.annotations.ThreadSafe;
 
 import java.io.IOException;
@@ -15,12 +16,12 @@ import java.util.Properties;
 public class SquigglyConfig {
 
     private static final boolean filterImplicitlyIncludeBaseFields;
-    private static final int filterPathCacheMaxSize;
+    private static final CacheBuilderSpec filterPathCacheSpec;
     private static final boolean filterPropagateViewToNestedFilters;
 
-    private static final int parserNodeCacheMaxSize;
+    private static final CacheBuilderSpec parserNodeCacheSpec;
 
-    private static final int propertyDescriptorCacheMaxSize;
+    private static final CacheBuilderSpec propertyDescriptorCacheSpec;
 
     static {
         Map<String, String> props = new HashMap<>();
@@ -28,10 +29,20 @@ public class SquigglyConfig {
         loadProps(props, "squiggly.properties");
 
         filterImplicitlyIncludeBaseFields = getBool(props, "filter.implicitlyIncludeBaseFields");
-        filterPathCacheMaxSize = getInt(props, "filter.pathCache.maxSize");
+        filterPathCacheSpec = getCacheSpec(props, "filter.pathCache.spec");
         filterPropagateViewToNestedFilters = getBool(props, "filter.propagateViewToNestedFilters");
-        parserNodeCacheMaxSize = getInt(props, "parser.nodeCache.maxSize");
-        propertyDescriptorCacheMaxSize = getInt(props, "property.descriptorCache.maxSize");
+        parserNodeCacheSpec = getCacheSpec(props, "parser.nodeCache.spec");
+        propertyDescriptorCacheSpec = getCacheSpec(props, "property.descriptorCache.spec");
+    }
+
+    private static CacheBuilderSpec getCacheSpec(Map<String, String> props, String key) {
+        String value = props.get(key);
+
+        if (value == null) {
+            value = "";
+        }
+
+        return CacheBuilderSpec.parse(value);
     }
 
     private static boolean getBool(Map<String, String> props, String key) {
@@ -79,14 +90,13 @@ public class SquigglyConfig {
     }
 
     /**
-     * Get the max size of the path cache in the squiggly filter.  Use -1 to specify infinite caching or 0 to specify
-     * no caching.
+     * Get the {@link CacheBuilderSpec} of the path cache in the squiggly filter.
      *
-     * @return max size
+     * @return spec
      * @see com.github.bohnman.squiggly.filter.SquigglyPropertyFilter
      */
-    public static int getFilterPathCacheMaxSize() {
-        return filterPathCacheMaxSize;
+    public static CacheBuilderSpec getFilterPathCacheSpec() {
+        return filterPathCacheSpec;
     }
 
     /**
@@ -102,24 +112,22 @@ public class SquigglyConfig {
     }
 
     /**
-     * Get the max size of the node cache in the squiggly parser.  Use -1 to specify infinite caching or 0 to specify
-     * no caching.
+     * Get the {@link CacheBuilderSpec} of the node cache in the squiggly parser.
      *
-     * @return max size
+     * @return spec
      * @see com.github.bohnman.squiggly.parser.SquigglyParser
      */
-    public static int getParserNodeCacheMaxSize() {
-        return parserNodeCacheMaxSize;
+    public static CacheBuilderSpec getParserNodeCacheSpec() {
+        return parserNodeCacheSpec;
     }
 
     /**
-     * Get the max size of the descriptor cache in the property view introspector.  Use -1 to specify infinite caching
-     * or 0 to specify no caching.
+     * Get the {@link CacheBuilderSpec} of the descriptor cache in the property view introspector.
      *
-     * @return max size
+     * @return spec
      * @see com.github.bohnman.squiggly.view.PropertyViewIntrospector
      */
-    public static int getPropertyDescriptorCacheMaxSize() {
-        return propertyDescriptorCacheMaxSize;
+    public static CacheBuilderSpec getPropertyDescriptorCacheSpec() {
+        return propertyDescriptorCacheSpec;
     }
 }

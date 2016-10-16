@@ -1,9 +1,9 @@
 package com.github.bohnman.squiggly.view;
 
 import com.github.bohnman.squiggly.config.SquigglyConfig;
-import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
@@ -37,8 +37,7 @@ public class PropertyViewIntrospector {
     private static final Cache<Class, Map<String, Set<String>>> CACHE;
 
     static {
-        int maxSize = SquigglyConfig.getPropertyDescriptorCacheMaxSize();
-        CACHE = SquigglyUtils.cacheBuilderWithMaxSize(maxSize).build();
+        CACHE = CacheBuilder.from(SquigglyConfig.getPropertyDescriptorCacheSpec()).build();
     }
 
 

@@ -10,10 +10,10 @@ import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.context.SquigglyContext;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.parser.SquigglyNode;
-import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.github.bohnman.squiggly.view.PropertyView;
 import com.github.bohnman.squiggly.view.PropertyViewIntrospector;
 import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang3.StringUtils;
@@ -76,8 +76,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     private static final Cache<Pair<Path, String>, Boolean> MATCH_CACHE;
 
     static {
-        int maxSize = SquigglyConfig.getFilterPathCacheMaxSize();
-        MATCH_CACHE = SquigglyUtils.cacheBuilderWithMaxSize(maxSize).build();
+        MATCH_CACHE = CacheBuilder.from(SquigglyConfig.getFilterPathCacheSpec()).build();
     }
 
     private final PropertyViewIntrospector propertyViewIntrospector;

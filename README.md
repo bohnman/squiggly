@@ -462,11 +462,15 @@ NOTE: You may choose to implement this differently if you are using a specific f
 You have the ability to customize Squiggly by setting System properties.  These properties should be set before any 
 Squiggly code is called.
 
-### Cache Sizes
+### Cache Config
 
-- parser.nodeCache.maxSize=10000 (use -1 for unlimited)
-- filter.pathCache.maxSize=10000 (use -1 for unlimited)
-- property.descriptorCache.maxSize=-1
+The following properties get converted to a Guava 
+[CacheBuilderSpec](https://google.github.io/guava/releases/19.0/api/docs/index.html?com/google/common/cache/CacheBuilderSpec.html).
+Please refer to to the documentation to see all the values that are available.
+
+- parser.nodeCache.spec=maximumSize=10000
+- filter.pathCache.spec=maximumSize=10000
+- property.descriptorCache.spec=&lt;empty&gt;
 
 ### Enable/Disable implicit inclusion of base fields
 - filter.implicitlyIncludeBaseFields=true
