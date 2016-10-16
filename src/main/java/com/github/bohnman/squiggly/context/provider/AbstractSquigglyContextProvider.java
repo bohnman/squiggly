@@ -11,6 +11,10 @@ public abstract class AbstractSquigglyContextProvider implements SquigglyContext
 
     private final SquigglyParser parser;
 
+    public AbstractSquigglyContextProvider() {
+        this(new SquigglyParser());
+    }
+
     public AbstractSquigglyContextProvider(SquigglyParser parser) {
         this.parser = parser;
     }
