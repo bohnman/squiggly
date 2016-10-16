@@ -1,0 +1,27 @@
+package com.github.bohnman.squiggly.view;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+/**
+ * Annotation that marks that a field belongs to 1 ore more views.  This annotation can also be placed on other
+ * annotations in order to use your own annotations.
+ */
+@Target({FIELD, ANNOTATION_TYPE})
+@Retention(RUNTIME)
+@Documented
+public @interface PropertyView {
+    String BASE_VIEW = "base";
+
+    /**
+     * The views that the field will belong to.
+     *
+     * @return views
+     */
+    String[] value();
+}
