@@ -31,7 +31,6 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  * A Jackson @{@link com.fasterxml.jackson.databind.ser.PropertyFilter} that filters objects using squiggly syntax.
- * <p>
  * <p>Here are some examples of squiggly syntax:</p>
  * <pre>
  *    // grab the id and name fields
