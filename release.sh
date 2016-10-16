@@ -59,12 +59,6 @@ fi
 echo "Committing version ${nextVersion}"
 git commit -a -m "Setting version to $nextVersion."
 
-echo "Tagging version ${nextVersion}"
-git tag ${nextVersion}
-
-if [ $? -gt 0 ]; then
-    exit 1;
-fi
 
 echo "Pushing commits"
 git push origin
