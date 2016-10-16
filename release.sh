@@ -73,3 +73,5 @@ git push origin --tags
 if [ $? -gt 0 ]; then
     exit 1;
 fi
+
+echo "done."
