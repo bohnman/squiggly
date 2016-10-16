@@ -110,11 +110,8 @@ public class SquigglyNode {
 
     /**
      * A node is considered squiggly if it is comes right before a nested expression.
-     * <p>
      * <p>For example, given the filter expression:</p>
-     * <p>
      * <code>id,foo{bar}</code>
-     * <p>
      * <p>The foo node is squiggly, but the bar node is not.</p>
      *
      * @return true/false
