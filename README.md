@@ -33,7 +33,7 @@ This project requires Java 8, Commons Collections 3, and Google Guava, and the J
 <dependency>
     <groupId>bohnman</groupId>
     <artifactId>jackson-squiggly-filter</artifactId>
-    <version>1.0</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
