@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Helper script to create a new release.
+
 releaseVersion="$1"
 nextVersion="$2"
 
