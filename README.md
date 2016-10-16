@@ -418,13 +418,32 @@ public class RequestHolderFilter implements Filter {
 ```java
 public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvider {
 
-    public RequestSquigglyContextProvider(SquigglyParser parser) {
-        super(parser);
+    private final String defaultFields;
+    
+    public RequestSquigglyContextProvider() {
+        this("base");
+    }
+
+    public RequestSquigglyContextProvider(String defaultFields) {
+        this.defaultFields = defaultFields;
+
     }
 
     @Override
     protected String getFilter() {
-        return RequestHolder.getRequest().getParameter("fields");
+        HttpServletRequest request = RequestHolder.getRequest();
+
+        if (request == null) {
+            return "**";
+        }
+
+        String fields = request.getParameter("fields");
+
+        if (fields == null) {
+            fields = defaultFields;
+        }
+
+        return fields;
     }
 }
 ```
@@ -432,8 +451,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
 4) Use it
 
 ```java
-SquigglyContextProvider provider = new RequestSquigglyContextProvider();
-SquigglyPropertyFilter propertyFilter = new SquigglyPropertyFilter(provider);
+Squiggly.init(objectMapper, new RequestSquigglyContextProvider());
 ```
 
 NOTE: You may choose to implement this differently if you are using a specific framework (JEE, Spring, etc.)
