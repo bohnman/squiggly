@@ -18,13 +18,15 @@
 
 ## <a name="what-is-it"></a>What is it?
 
-The Squiggly Filter is a [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) PropertyFilter, which selects
-including/excluding properties of an object/list/map using a subset of the 
-[Facebook Graph  API filtering syntax](https://developers.facebook.com/docs/graph-api/using-graph-api/).
+The Squiggly Filter is a [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) PropertyFilter, which selects properties 
+of an object/list/map using a subset of the [Facebook Graph  API filtering syntax](https://developers.facebook.com/docs/graph-api/using-graph-api/).
 
 ## <a name="prerequisites"></a>Prerequisites
 
-This project requires Java 8, Commons Collections 3, and Google Guava, and the Jackson JSON library.
+- Java 8+
+- [Commons Lang 3](https://commons.apache.org/proper/commons-lang/)
+- [Google Guava](https://github.com/google/guava)
+- [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) (version 2.6+)
 
 ## <a name="installation"></a>Installation
 
@@ -63,7 +65,7 @@ System.out.println(SquigglyUtils.stringify(objectMapper, object));
 
 ## <a name="reference-object"></a>Reference Object
 
-For the filtering examples, let's an the example object of type Issue
+For the filtering examples, let's use an the example object of type Issue
 
 ```json
 {
@@ -228,8 +230,8 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 
 ### Selecting from Maps
 
-Selecting from maps is the same as selecting from objects.  However, instead of selecting from fields you are selecting
-from keys.  The main downside of selecting from maps that their lookups are unable to be cached.
+Selecting from maps is the same as selecting from objects.  Instead of selecting from fields you are selecting
+from keys.  The main downside of selecting from maps that their matches are unable to be cached.
 
 ```java
 Map<String, Object> map = new HashMap<>();
@@ -242,7 +244,8 @@ System.out.printlin(SquigglyUtils.stringify(mapper, map));
 ```
 
 ### Selecting from Collections (Lists/Arrays/Etc).
-Selecting from collection just assumes the top-level object is the element in the collection. 
+Selecting from collection just assumes the top-level objects are the elements in the collection, not the collection
+itself. 
 
 ```java
 List<User> list = Arrays.asList(
@@ -262,7 +265,7 @@ In addition to selecting fields by name, you can assign a name to a group of fie
 
 ### Reference Objects
 
-Let's use these reference objects for our base view
+Let's use these reference objects for the examples.
 
 ```java
 @Target(FIELD)
@@ -325,14 +328,14 @@ field.  This indicates that the phone field belongs to the "secret" view.
   ```
   
 **Wait a minute!**  Why was the firstName and lastName field included?  Even though we specified a certain view, the
-base fields are always included.
+base fields are always included.  See [Changing Defaults](#changing-the-defaults) to alter this behavior.
 
 Note that you can also specifiy multiple views in the annotation - @PropertyView({"one", "two", "three"})) 
 
 ### Using a Derived Annotation
 
 If you look at the address field of the User class, you'll notice the @SuperView annotation.  Looking at the @SuperView
-declaration, you'll notice a @PropertyView("super").  This is how you create a derived annotation
+declaration, you'll notice it is annotated with a @PropertyView("super").  This is how you create a derived annotation.
 
 Let's try it out.
 
@@ -345,17 +348,17 @@ System.out.printlin(SquigglyUtils.stringify(mapper, user));
  
 **Wait another minute!** The Address class has @SuperView annotations as well.  Why weren't they include?  Well, the 
 view only applies to the current level.  In order to get the super views of the address, you would have to specifiy a
- filter "super{super}".
+ filter "super{super}".  See [Changing Defaults](#changing-the-defaults) to alter this behavior.
  
 ## <a name="more-examples"></a>More Examples
  
-There are more examples in the test package 
+There are more examples in the test directory. 
  
 ## <a name="custom-integration"></a>Custom Integration
 
-Imagine you are building a web server where you want to specify the fields on the querystring.
+Imagine you are building a webapp where you want to specify the fields on the querystring.
  
-E.g. /some/path?fields=a|b{c} 
+E.g. /some/path?fields=a,b{c} 
 
 You'll notice in all of our examples, we passed in a filter expression that never changes.  This doesn't
 work well for the case of specifying filters on a querystring.
@@ -366,7 +369,7 @@ Let's see how we might implement it for webapps.
 
 ### Generic Servlet Webapp
 
-This library provides some convenience classes for working with the Servlet API.
+Squiggly Filter provides some convenience classes for integration with the Servlet API.
 
 NOTE: the servlet API is declared as an optional dependency in this project.  You will need to specify this dependency
 in your project's pom.xml.
@@ -391,14 +394,15 @@ In web.xml
 </filter-mapping>
 ```
 
-In the part of your code where you register the ObjectMapper:
+In the part of your code where you register the ObjectMapper that renders the JSON to the client:
 
 ```java
 Squiggly.init(objectMapper, new RequestSquigglyContextProvider());
 
 ```
 
-NOTE: You may choose to implement this differently if you are using a specific framework (JEE, Spring, etc.)
+NOTE: These classes are here purely for convenience.  You may choose to implement this differently if you are using a 
+specific framework (JEE, Spring, etc.)
 
 ### Spring Boot Web Application
 
@@ -431,7 +435,9 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 
     @Override
     public void run(HelloWorldConfiguration configuration, Environment environment) {
-        environment.servlets().addFilter("Squiggly-Filter", new SquigglyRequestFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+        environment.servlets()
+            .addFilter("Squiggly-Filter", new SquigglyRequestFilter())
+            .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
         Squiggly.init(environment.getObjectMapper(), new RequestSquigglyContextProvider());
     }
 }
@@ -440,12 +446,11 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 
 ## <a name="changing-the-defaults"></a>Changing Defaults
 
-You have the ability to customize Squiggly by setting System properties.  These properties should be set before any 
-Squiggly code is called.
-
+You have the ability to customize Squiggly by setting placing a file called squiggly.properties in your classpat.  
 ### Cache Config
 
-The following properties get converted to a Guava 
+The following properties are used to control various caches in Squiggly Filter.  Internally, these properties get 
+converted to a Guava 
 [CacheBuilderSpec](https://google.github.io/guava/releases/19.0/api/docs/index.html?com/google/common/cache/CacheBuilderSpec.html).
 Please refer to to the documentation to see all the values that are available.
 
