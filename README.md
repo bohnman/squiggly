@@ -304,7 +304,7 @@ class User {
 ### The Base View
 
 If nothing is annotated on a field, it is assumed to belong to the "base" view.  There is @BaseView convenience
-annotation, but it's not needed
+annotation, but it's not needed.  See [Changing Defaults](#changing-the-defaults) to alter this behavior.
 
 In the case of User, fields firstName and lastName belong to the "base" view.
 
@@ -458,7 +458,10 @@ Please refer to to the documentation to see all the values that are available.
 - filter.pathCache.spec=maximumSize=10000
 - property.descriptorCache.spec=&lt;empty&gt;
 
-### Enable/Disable implicit inclusion of base fields
+### Enable/Disable adding non-annotated fields to the "base" view
+- property.addNonAnnotatedFieldsToBaseView=true
+
+### Enable/Disable implicit inclusion of base fields when specify a view
 - filter.implicitlyIncludeBaseFields=true
 
 When set to false, base fields are not included when specifying a view

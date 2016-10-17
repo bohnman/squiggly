@@ -21,6 +21,7 @@ public class SquigglyConfig {
 
     private static final CacheBuilderSpec parserNodeCacheSpec;
 
+    private static boolean propertyAddNonAnnotatedFieldsToBaseView;
     private static final CacheBuilderSpec propertyDescriptorCacheSpec;
 
     static {
@@ -32,6 +33,7 @@ public class SquigglyConfig {
         filterPathCacheSpec = getCacheSpec(props, "filter.pathCache.spec");
         filterPropagateViewToNestedFilters = getBool(props, "filter.propagateViewToNestedFilters");
         parserNodeCacheSpec = getCacheSpec(props, "parser.nodeCache.spec");
+        propertyAddNonAnnotatedFieldsToBaseView = getBool(props, "property.addNonAnnotatedFieldsToBaseView");
         propertyDescriptorCacheSpec = getCacheSpec(props, "property.descriptorCache.spec");
     }
 
@@ -119,6 +121,16 @@ public class SquigglyConfig {
      */
     public static CacheBuilderSpec getParserNodeCacheSpec() {
         return parserNodeCacheSpec;
+    }
+
+    /**
+     * Determines whether or not non-annotated fields are added to the "base" view.
+     *
+     * @return true/false
+     * @see com.github.bohnman.squiggly.view.PropertyViewIntrospector
+     */
+    public static boolean isPropertyAddNonAnnotatedFieldsToBaseView() {
+        return propertyAddNonAnnotatedFieldsToBaseView;
     }
 
     /**

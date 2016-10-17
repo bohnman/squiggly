@@ -127,9 +127,8 @@ public class PropertyViewIntrospector {
                 })
                 .collect(toSet());
 
-        if (views.isEmpty()) {
-            String defaultView = PropertyView.BASE_VIEW;
-            return Collections.singleton(defaultView);
+        if (views.isEmpty() && SquigglyConfig.isPropertyAddNonAnnotatedFieldsToBaseView()) {
+            return Collections.singleton(PropertyView.BASE_VIEW);
         }
 
         return views;

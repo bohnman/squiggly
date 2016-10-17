@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 
+@SuppressWarnings("Duplicates")
 public class SquigglyPropertyFilterTests {
 
     private Issue issue;
@@ -191,6 +192,19 @@ public class SquigglyPropertyFilterTests {
             assertEquals(stringifyRaw(), stringify());
         } finally {
             setFieldValue(SquigglyConfig.class, fieldName, false);
+        }
+    }
+
+    @Test
+    public void testPropertyAddNonAnnotatedFieldsToBaseView() {
+        String fieldName = "propertyAddNonAnnotatedFieldsToBaseView";
+
+        try {
+            setFieldValue(SquigglyConfig.class, fieldName, false);
+            filter("base");
+            assertEquals("{}", stringify());
+        } finally {
+            setFieldValue(SquigglyConfig.class, fieldName, true);
         }
     }
 
