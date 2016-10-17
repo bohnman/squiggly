@@ -22,11 +22,11 @@ if [ $? -gt 0 ]; then
     exit 1;
 fi
 
-sed -i '' "s/<version>.*<\/version>/<version>$releaseVersion<\/version>/g" README.md
-
-if [ $? -gt 0 ]; then
-    exit 1;
-fi
+#sed -i '' "s/<version>.*<\/version>/<version>$releaseVersion<\/version>/g" README.md
+#
+#if [ $? -gt 0 ]; then
+#    exit 1;
+#fi
 
 echo "Performing release"
 mvn clean deploy
