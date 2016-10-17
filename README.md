@@ -373,8 +373,8 @@ in your project's pom.xml.
  
 In order to make this work, you need to:
 
-1) Register the SquigglyRequestFilter
-2) Register the RequestSquigglyContextProvide
+1. Register the SquigglyRequestFilter
+2. Register the RequestSquigglyContextProvide
 
 E.g.
 
