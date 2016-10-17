@@ -21,7 +21,7 @@
 The Squiggly Filter is a [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) PropertyFilter, which selects properties 
 of an object/list/map using a subset of the [Facebook Graph  API filtering syntax](https://developers.facebook.com/docs/graph-api/using-graph-api/).
 
-## <a name="prerequisites"></a>Prerequisites
+## <a name="prerequisites"></a>Requirements
 
 - Java 8+
 - [Commons Lang 3](https://commons.apache.org/proper/commons-lang/)
