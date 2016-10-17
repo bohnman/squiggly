@@ -364,124 +364,78 @@ Enter the SquigglyContextProvider.  This allows you to customize how to retrieve
 
 Let's see how we might implement it for webapps.
 
-1) Add a ThreadLocal
+### Generic Servlet Webapp
 
-```java
-public class RequestHolder {
+This library provides some convenience classes for working with the Servlet API.
 
-    private static final ThreadLocal<HttpServletRequest> HOLDER = new ThreadLocal<>();
+NOTE: the servlet API is declared as an optional dependency in this project.  You will need to specify this dependency
+in your project's pom.xml.
+ 
+In order to make this work, you need to:
 
-    public static HttpServletRequest getRequest() {
-        return HOLDER.get();
-    }
+1) Register the SquigglyRequestFilter
+2) Register the RequestSquigglyContextProvide
 
-    public static void setRequest(HttpServletRequest request) {
-        HOLDER.set(request);
-    }
+E.g.
 
-    public static void removeRequest() {
-        HOLDER.remove();
-    }
-}
+In web.xml
+
+```xml
+<filter> 
+    <filter-name>squigglyFilter</filter-name>
+    <filter-class>com.github.bohnman.squiggly.web.SquigglyRequestFilter</filter-class> 
+  </filter> 
+  <filter-mapping> 
+    <filter-name>squigglyFilter</filter-name>
+    <url-pattern>/**</url-pattern> 
+  </filter-mapping>
 ```
 
-2) Add a Servlet Filter to set the thread local
-
-```java
-public class RequestHolderFilter implements Filter {
-
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
-    }
-
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-        RequestHolder.setRequest((HttpServletRequest) request);
-
-        try {
-            filterChain.doFilter(request, response);
-        } finally {
-            RequestHolder.removeRequest();;
-        }
-    }
-
-    @Override
-    public void destroy() {
-
-    }
-}
-```
-
-3) Add a context provider
-
-```java
-public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvider {
-
-    private String filterParam;
-    private final String defaultFields;
-
-    public RequestSquigglyContextProvider() {
-        this("fields", null);
-    }
-
-    public RequestSquigglyContextProvider(String filterParam, String defaultFields) {
-        this.filterParam = filterParam;
-        this.defaultFields = defaultFields;
-
-    }
-
-    @Override
-    protected String getFilter(Class beanClass) {
-        HttpServletRequest request = RequestHolder.getRequest();
-
-        String fields = request.getParameter(filterParam);
-
-        if (fields == null) {
-            fields = defaultFields;
-        }
-
-        return fields;
-    }
-
-    @Override
-    public boolean isFilteringEnabled() {
-        HttpServletRequest request = RequestHolder.getRequest();
-
-        if (request == null) {
-            return false;
-        }
-
-        String filter = request.getParameter(filterParam);
-
-        if ("**".equals(filter)) {
-            return false;
-        }
-
-        if (filter != null || "".equals(filter)) {
-            return true;
-        }
-
-        if ("**".equals(defaultFields)) {
-            return false;
-        }
-
-        if (defaultFields != null || "".equals(defaultFields)) {
-            return true;
-        }
-
-        return false;
-    }
-}
-```
-
-4) Use it
+In the part of your code where you register the ObjectMapper:
 
 ```java
 Squiggly.init(objectMapper, new RequestSquigglyContextProvider());
+
 ```
 
 NOTE: You may choose to implement this differently if you are using a specific framework (JEE, Spring, etc.)
+
+### Spring Boot Web Application
+
+The following is an example of how to use the Squiggly Filter with a Spring Boot web application:
+ 
+ ```java
+ @SpringBootApplication
+ public class Application {
+     @Bean
+     public ObjectMapper objectMapper() {
+         return Squiggly.init(new ObjectMapper(), new RequestSquigglyContextProvider());
+     }
+ 
+     @Bean
+     public FilterRegistrationBean squigglyRequestFilter() {
+         FilterRegistrationBean filter = new FilterRegistrationBean();
+         filter.setFilter(new SquigglyRequestFilter());
+         filter.setOrder(1);
+         return filter;
+     }
+}     
+ ```
+
+### Dropwizard
+
+The following is an example of how to use the Squiggly Filter with Dropwizard:
+
+```java
+public class HelloWorldApplication extends Application<HelloWorldConfiguration> {
+
+    @Override
+    public void run(HelloWorldConfiguration configuration, Environment environment) {
+        environment.servlets().addFilter("Squiggly-Filter", new SquigglyRequestFilter()).addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+        Squiggly.init(environment.getObjectMapper(), new RequestSquigglyContextProvider());
+    }
+}
+```
 
 
 ## <a name="changing-the-defaults"></a>Changing Defaults

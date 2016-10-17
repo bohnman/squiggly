@@ -49,6 +49,7 @@ public class Squiggly {
      * @return object mapper, mainly for convenience
      * @throws IllegalStateException if the filter was unable to be registered
      */
+    @SuppressWarnings("deprecation")
     public static ObjectMapper init(ObjectMapper mapper, SquigglyPropertyFilter filter) throws IllegalStateException {
         FilterProvider filterProvider = mapper.getSerializationConfig().getFilterProvider();
         SimpleFilterProvider simpleFilterProvider;
@@ -57,7 +58,7 @@ public class Squiggly {
             simpleFilterProvider = (SimpleFilterProvider) filterProvider;
         } else if (filterProvider == null) {
             simpleFilterProvider = new SimpleFilterProvider();
-            mapper.setFilterProvider(simpleFilterProvider);
+            mapper.setFilters(simpleFilterProvider);
         } else {
             throw new IllegalStateException("Unable to register squiggly filter with FilterProvider of type " + filterProvider.getClass().getName() + ".  You'll have to register the filter manually");
 
