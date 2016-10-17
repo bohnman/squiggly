@@ -384,11 +384,11 @@ In web.xml
 <filter> 
     <filter-name>squigglyFilter</filter-name>
     <filter-class>com.github.bohnman.squiggly.web.SquigglyRequestFilter</filter-class> 
-  </filter> 
-  <filter-mapping> 
+</filter> 
+<filter-mapping> 
     <filter-name>squigglyFilter</filter-name>
     <url-pattern>/**</url-pattern> 
-  </filter-mapping>
+</filter-mapping>
 ```
 
 In the part of your code where you register the ObjectMapper:
