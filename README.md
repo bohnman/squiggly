@@ -36,7 +36,7 @@ of an object/list/map using a subset of the [Facebook Graph  API filtering synta
 <dependency>
     <groupId>com.github.bohnman</groupId>
     <artifactId>squiggly-filter-jackson</artifactId>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
 </dependency>
 ```
 
