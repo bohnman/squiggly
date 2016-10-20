@@ -1,3 +1,7 @@
+# 1.1.1 (2016-10-20)
+
+* if there are 2 exact matches, the latter is chosen.
+
 # 1.1.0 (2016-10-20)
 
 * Now supporting JDK6+
