@@ -25,7 +25,7 @@ of an object/list/map using a subset of the [Facebook Graph  API filtering synta
 
 ## <a name="prerequisites"></a>Requirements
 
-- Java 8+
+- Java 6+
 - [Commons Lang 3](https://commons.apache.org/proper/commons-lang/)
 - [Google Guava](https://github.com/google/guava)
 - [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) (version 2.6+)
