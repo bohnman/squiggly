@@ -212,6 +212,15 @@ public class SquigglyPropertyFilterTests {
     public void testFilterSpecificty() {
         filter("**,reporter{lastName}");
         assertEquals(stringifyRaw().replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
+
+        filter("**,repo*{lastName},repo*{firstName}");
+        assertEquals(stringifyRaw().replace(",\"lastName\":\"" + issue.getReporter().getLastName() + "\"", ""), stringify());
+
+        filter("**,reporter{lastName},repo*{firstName}");
+        assertEquals(stringifyRaw().replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
+
+        filter("**,repo*{firstName},rep*{lastName}");
+        assertEquals(stringifyRaw().replace(",\"lastName\":\"" + issue.getReporter().getLastName() + "\"", ""), stringify());
     }
 
     @Test

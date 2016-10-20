@@ -18,6 +18,7 @@ public class SquigglyNode {
     public static final String ANY_SHALLOW = "*";
 
     private final String name;
+    private final String rawName;
     private final SquigglyNode parent;
     private final List<SquigglyNode> children;
     private final boolean squiggly;
@@ -49,6 +50,12 @@ public class SquigglyNode {
         this.children = Collections.unmodifiableList(children);
         this.squiggly = squiggly;
         this.pattern = buildPattern();
+
+        if (this.pattern == null) {
+            this.rawName = this.name;
+        } else {
+            this.rawName = StringUtils.remove(this.name, '*');
+        }
     }
 
     private Pattern buildPattern() {
@@ -74,28 +81,28 @@ public class SquigglyNode {
      * Performs a match against the name of another node/element.
      *
      * @param otherName the name of the other node
-     * @return -1 if no match, 0 if exact match, or positive number for wildcards
+     * @return -1 if no match, MAX_INT if exact match, or positive number for wildcards
      */
     public int match(String otherName) {
 
         if (pattern != null) {
             if (pattern.matcher(otherName).matches()) {
-                return name.length();
+                return rawName.length() + 2;
             } else {
                 return -1;
             }
         }
 
         if (isAnyDeep()) {
-            return Integer.MAX_VALUE;
+            return 0;
         }
 
         if (isAnyShallow()) {
-            return Integer.MAX_VALUE - 1;
+            return 1;
         }
 
         if (name.equals(otherName)) {
-            return 0;
+            return Integer.MAX_VALUE;
         }
 
         return -1;
