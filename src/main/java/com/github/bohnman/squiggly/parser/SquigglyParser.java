@@ -121,10 +121,6 @@ public class SquigglyParser {
                 boolean nextTokenIsSquiggly = (currentIndex + 1 < tokens.size()) && StringUtils.equals(tokens.get(currentIndex + 1), "{");
 
                 for (String name : names) {
-                    if (StringUtils.isEmpty(name)) {
-                        throw new IllegalStateException("Empty name");
-                    }
-
                     List<SquigglyNode> currentChildren = Lists.newArrayList();
                     childrenStack.add(currentChildren);
                     SquigglyNode currentNode = new SquigglyNode(name, parent, currentChildren, nextTokenIsSquiggly);

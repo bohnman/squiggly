@@ -10,6 +10,8 @@
 * [Top-Level Filters](#top-level-filters)
 * [Nested Filters](#nested-filters)
 * [Other Filters](#other-filters)
+* [Resolving Conflicts](#resolving-conflicts)
+* [Excluding Fields](#exluding-fields)
 * [Property Views](#property-views)
 * [More Examples](#more-examples)
 * [Custom Integration](#custom-integration)
@@ -257,6 +259,67 @@ String filter = "firstName";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.printlin(SquigglyUtils.stringify(mapper, list));
 // prints [{"firstName":"Peter"}, {"firstName":"Lena"}]
+```
+
+## <a name="#resolving-conflicts"></a> Resolving Conflicts
+
+When a filter includes two criteria that match the same field, the one that is more specific wins.
+
+For example, if the filter is "**,reporter{firstName}", then all fields will be excluded. However, the reporter field 
+will only include the firstName field.
+
+
+## <a name="#exluding-fields"></a> Excluding Fields
+
+In order to exclude fields, you need to prefix the field name with a minus sign (-).
+
+Let's look at an example
+
+```java
+String filter = "-reporter";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+// prints {}
+```
+
+**Why didn't that work?**  Excluding fields only works if you have also included fields.  In this case,  we didn't include
+any fields to begin with.
+
+Let's try this again.
+
+```java
+String filter = "**,-reporter";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+// prints everything except the reporter field
+```
+
+That's better.  This "excluding only included fields" applies to nested filters as well.
+
+For example, this won't work:
+
+```java
+String filter = "**,reporter{-firstName}";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+// prints everything, however the reporter object will be empty
+```
+
+But this will:
+
+```java
+String filter = "**,reporter{**,-firstName}";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+// prints everything, the reporter object will only have the firstName excluded
+```
+
+One final note.  Excluded fields can't have nested filters
+```java
+String filter = "**,-reporter{firstName}";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+// throws an exception
 ```
 
 ## <a name="property-views"></a>Property Views

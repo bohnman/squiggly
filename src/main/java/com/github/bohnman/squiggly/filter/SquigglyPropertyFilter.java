@@ -175,88 +175,50 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     // perform the actual matching
     private boolean pathMatches(Path path, SquigglyContext context) {
         List<SquigglyNode> nodes = context.getNodes();
-        boolean parentIsView = false;
         Set<String> viewStack = null;
-
+        SquigglyNode viewNode = null;
 
         for (PathElement element : path.getElements()) {
-            SquigglyNode match = null;
-
-            if (parentIsView) {
+            if (viewNode != null && !viewNode.isSquiggly()) {
 
                 Class beanClass = element.getBeanClass();
 
                 if (beanClass != null && !Map.class.isAssignableFrom(beanClass)) {
-                    Set<String> propertyNames;
-
-                    if (viewStack == null) {
-                        propertyNames = getPropertyNames(element, PropertyView.BASE_VIEW);
-                    } else {
-                        propertyNames = viewStack.stream()
-                                .flatMap(viewName -> {
-                                    Set<String> names = getPropertyNames(element, viewName);
-
-                                    if (names.isEmpty() && SquigglyConfig.isFilterImplicitlyIncludeBaseFields()) {
-                                        names = getPropertyNames(element, PropertyView.BASE_VIEW);
-                                    }
-
-                                    return names.stream();
-                                })
-                                .collect(toSet());
-                    }
+                    Set<String> propertyNames = getPropertyNamesFromViewStack(element, viewStack);
 
                     if (!propertyNames.contains(element.getName())) {
                         return false;
                     }
                 }
 
+            } else if (nodes.isEmpty()) {
+                return false;
             } else {
 
-                SquigglyNode viewNode = null;
+                SquigglyNode match = findBestSimpleNode(element, nodes);
 
-                for (SquigglyNode node : nodes) {
+                if (match == null) {
+                    match = findBestViewNode(element, nodes);
 
-                    // handle **
-                    if (node.isAnyDeep()) {
-                        return true;
+                    if (match != null) {
+                        viewNode = match;
+                        viewStack = addToViewStack(viewStack, viewNode);
                     }
-
-                    // handle *
-                    if (node.isAnyShallow() && !node.isSquiggly()) {
-                        viewNode = node;
-                        break;
-                    }
-
-                    // handle exact match
-                    if (node.nameMatches(element.getName())) {
-                        viewNode = null;
-                        match = node;
-                        break;
-                    }
-
-                    // handle view
-                    Set<String> propertyNames = getPropertyNames(element, node.getName());
-
-                    if (propertyNames.contains(element.getName())) {
-                        viewNode = node;
-                    }
-                }
-
-                if (viewNode != null) {
-                    parentIsView = true;
-                    match = viewNode;
-                    //noinspection ConstantConditions
-                    viewStack = addToViewStack(viewStack, viewNode);
-
+                } else if (match.isAnyShallow()) {
+                    viewNode = match;
+                } else if (match.isAnyDeep()) {
+                    return true;
                 }
 
                 if (match == null) {
                     return false;
                 }
 
-                if (match.getChildren().isEmpty() && !match.isSquiggly()) {
-                    parentIsView = true;
-                    viewStack = addToViewStack(viewStack, viewNode);
+                if (match.isNegated()) {
+                    if (match.isSquiggly()) {
+                        throw new IllegalStateException("Illegal filter node [-" + match.getName() + "]: nodes that start with - must not have a nested filter");
+                    }
+                    return false;
                 }
 
                 nodes = match.getChildren();
@@ -264,6 +226,62 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
 
         return true;
+    }
+
+    private Set<String> getPropertyNamesFromViewStack(PathElement element, Set<String> viewStack) {
+        if (viewStack == null) {
+            return getPropertyNames(element, PropertyView.BASE_VIEW);
+        }
+
+        return viewStack.stream()
+                .flatMap(viewName -> {
+                    Set<String> names = getPropertyNames(element, viewName);
+
+                    if (names.isEmpty() && SquigglyConfig.isFilterImplicitlyIncludeBaseFields()) {
+                        names = getPropertyNames(element, PropertyView.BASE_VIEW);
+                    }
+
+                    return names.stream();
+                })
+                .collect(toSet());
+    }
+
+    private SquigglyNode findBestViewNode(PathElement element, List<SquigglyNode> nodes) {
+        for (SquigglyNode node : nodes) {
+            // handle view
+            Set<String> propertyNames = getPropertyNames(element, node.getName());
+
+            if (propertyNames.contains(element.getName())) {
+                return node;
+            }
+        }
+
+        return null;
+    }
+
+    private SquigglyNode findBestSimpleNode(PathElement element, List<SquigglyNode> nodes) {
+        SquigglyNode match = null;
+        int lastMatchStrength = -1;
+
+        for (SquigglyNode node : nodes) {
+            int matchStrength = node.match(element.getName());
+
+            if (matchStrength < 0) {
+                continue;
+            }
+
+            if (matchStrength == 0) {
+                return node;
+            }
+
+            if (lastMatchStrength < 0 || matchStrength < lastMatchStrength) {
+                match = node;
+                lastMatchStrength = matchStrength;
+            }
+
+        }
+
+        return match;
     }
 
     private Set<String> addToViewStack(Set<String> viewStack, SquigglyNode viewNode) {

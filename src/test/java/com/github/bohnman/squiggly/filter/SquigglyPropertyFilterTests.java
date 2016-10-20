@@ -147,7 +147,7 @@ public class SquigglyPropertyFilterTests {
 
     @Test
     public void testNestedMultiple() {
-        filter("actions{type|text}");
+        filter("actions{type,text}");
         assertEquals("{\"actions\":[{\"type\":\"" + issue.getActions().get(0).getType() + "\",\"text\":\"" + issue.getActions().get(0).getText() + "\"},{\"type\":\"" + issue.getActions().get(1).getType() + "\",\"text\":\"" + issue.getActions().get(1).getText() + "\"}]}", stringify());
     }
 
@@ -206,6 +206,18 @@ public class SquigglyPropertyFilterTests {
         } finally {
             setFieldValue(SquigglyConfig.class, fieldName, true);
         }
+    }
+
+    @Test
+    public void testFilterSpecificty() {
+        filter("**,reporter{lastName}");
+        assertEquals(stringifyRaw().replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
+    }
+
+    @Test
+    public void testFilterExclusion() {
+        filter("**,reporter{**,-firstName}");
+        assertEquals(stringifyRaw().replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
     }
 
     private void setFieldValue(Class<?> ownerClass, String fieldName, boolean value) {

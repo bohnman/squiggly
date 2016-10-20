@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.parser;
 
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,6 +22,7 @@ public class SquigglyNode {
     private final List<SquigglyNode> children;
     private final boolean squiggly;
     private final Pattern pattern;
+    private final boolean negated;
 
     /**
      * Constructor.
@@ -32,7 +34,17 @@ public class SquigglyNode {
      * @see #isSquiggly()
      */
     public SquigglyNode(String name, SquigglyNode parent, List<SquigglyNode> children, boolean squiggly) {
-        this.name = name;
+        Validate.isTrue(StringUtils.isNotEmpty(name), "Node names must not be empty");
+        Validate.isTrue(!name.equals("-"), "Illegal node name '-'");
+
+        if (name.charAt(0) == '-') {
+            this.name = name.substring(1);
+            this.negated = true;
+        } else {
+            this.name = name;
+            this.negated = false;
+        }
+
         this.parent = parent;
         this.children = Collections.unmodifiableList(children);
         this.squiggly = squiggly;
@@ -59,26 +71,34 @@ public class SquigglyNode {
     }
 
     /**
-     * Whether this node's name matches against another node's name.
+     * Performs a match against the name of another node/element.
      *
      * @param otherName the name of the other node
-     * @return true/false
+     * @return -1 if no match, 0 if exact match, or positive number for wildcards
      */
-    public boolean nameMatches(String otherName) {
+    public int match(String otherName) {
 
         if (pattern != null) {
-            return pattern.matcher(otherName).matches();
+            if (pattern.matcher(otherName).matches()) {
+                return name.length();
+            } else {
+                return -1;
+            }
         }
 
         if (isAnyDeep()) {
-            return true;
+            return Integer.MAX_VALUE;
         }
 
         if (isAnyShallow()) {
-            return true;
+            return Integer.MAX_VALUE - 1;
         }
 
-        return name.equals(otherName);
+        if (name.equals(otherName)) {
+            return 0;
+        }
+
+        return -1;
     }
 
     /**
@@ -120,11 +140,30 @@ public class SquigglyNode {
         return squiggly;
     }
 
+    /**
+     * Says whether this node is **
+     *
+     * @return true if **, false if not
+     */
     public boolean isAnyDeep() {
         return ANY_DEEP.equals(name);
     }
 
+    /**
+     * Says whehter this node is *
+     *
+     * @return true if *, false if not
+     */
     public boolean isAnyShallow() {
         return ANY_SHALLOW.equals(name);
+    }
+
+    /**
+     * Says whether the node started with '-'.
+     *
+     * @return true if negated false if not
+     */
+    public boolean isNegated() {
+        return negated;
     }
 }
