@@ -1,14 +1,14 @@
 package com.github.bohnman.squiggly.view;
 
 import com.github.bohnman.squiggly.config.SquigglyConfig;
-import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -17,13 +17,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.*;
 
 /**
  * Introspects bean classes, looking for @{@link PropertyView} annotations on fields.
@@ -67,17 +61,38 @@ public class PropertyViewIntrospector {
 
     private Map<String, Set<String>> introspect(Class beanClass) {
 
+        Map<String, Set<String>> viewToFieldNames = Maps.newHashMap();
         Set<String> resolved = Sets.newHashSet();
 
+        for (PropertyDescriptor propertyDescriptor : getPropertyDescriptors(beanClass)) {
+            if (propertyDescriptor.getReadMethod() == null) {
+                continue;
+            }
 
-        // grab all the descriptors of a class and convert it to a map of view names to property naems
-        return expand(Stream.of(getPropertyDescriptors(beanClass))
-                .filter(d -> d.getReadMethod() != null)
-                .map(d -> FieldUtils.getField(d.getReadMethod().getDeclaringClass(), d.getName(), true))
-                .filter(Objects::nonNull)
-                .flatMap(field -> introspectField(field).stream().map(viewName -> Pair.of(viewName, field.getName())))
-                .collect(groupingBy(Pair::getLeft, collectingAndThen(Collectors.toList(), pairs -> pairs.stream().map(Pair::getRight).collect(toSet())))));
+            Field field = FieldUtils.getField(propertyDescriptor.getReadMethod().getDeclaringClass(), propertyDescriptor.getName(), true);
 
+            if (field == null) {
+                continue;
+            }
+
+            Set<String> views = introspectField(field);
+
+            for (String view : views) {
+                Set<String> fieldNames = viewToFieldNames.get(view);
+
+                if (fieldNames == null) {
+                    fieldNames = Sets.newHashSet();
+                    viewToFieldNames.put(view, fieldNames);
+                }
+
+                fieldNames.add(field.getName());
+
+            }
+
+        }
+
+
+        return expand(viewToFieldNames);
     }
 
     private PropertyDescriptor[] getPropertyDescriptors(Class beanClass) {
@@ -95,13 +110,20 @@ public class PropertyViewIntrospector {
             return viewToPropNames;
         }
 
-        Set<String> baseProps = MoreObjects.firstNonNull(viewToPropNames.get(PropertyView.BASE_VIEW), Collections.emptySet());
+        Set<String> baseProps = viewToPropNames.get(PropertyView.BASE_VIEW);
 
-        viewToPropNames.forEach((viewName, propNames) -> {
+        if (baseProps == null) {
+            baseProps = ImmutableSet.of();
+        }
+
+        for (Map.Entry<String, Set<String>> entry : viewToPropNames.entrySet()) {
+            String viewName = entry.getKey();
+            Set<String> propNames = entry.getValue();
+
             if (!PropertyView.BASE_VIEW.equals(viewName)) {
                 propNames.addAll(baseProps);
             }
-        });
+        }
 
         return viewToPropNames;
     }
@@ -109,24 +131,19 @@ public class PropertyViewIntrospector {
     // grab all the PropertyView (or derived) annotations and return their view names.
     private Set<String> introspectField(Field field) {
 
-        Set<String> views = Stream.of(field.getAnnotations())
-                .flatMap(ann -> {
-                    if (ann instanceof PropertyView) {
-                        return Stream.of(((PropertyView) ann).value());
-                    }
+        Set<String> views = Sets.newHashSet();
 
-                    Optional<Annotation> classAnnOptional = Stream.of(ann.annotationType().getAnnotations())
-                            .filter(classAnn -> classAnn instanceof PropertyView)
-                            .findAny();
+        for (Annotation ann : field.getAnnotations()) {
+            if (ann instanceof PropertyView) {
+                views.addAll(Lists.newArrayList(((PropertyView) ann).value()));
+            }
 
-                    if (classAnnOptional.isPresent()) {
-                        return Stream.of(((PropertyView) classAnnOptional.get()).value());
-                    }
-
-                    return Stream.empty();
-                })
-                .collect(toSet());
-
+            for (Annotation classAnn : ann.annotationType().getAnnotations()) {
+                if (classAnn instanceof PropertyView) {
+                    views.addAll(Lists.newArrayList(((PropertyView) classAnn).value()));
+                }
+            }
+        }
         if (views.isEmpty() && SquigglyConfig.isPropertyAddNonAnnotatedFieldsToBaseView()) {
             return Collections.singleton(PropertyView.BASE_VIEW);
         }

@@ -16,7 +16,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
@@ -24,9 +23,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toSet;
 
 
 /**
@@ -104,7 +100,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     // create a path structure representing the object graph
     private Path getPath(PropertyWriter writer, JsonStreamContext sc) {
-        LinkedList<PathElement> elements = new LinkedList<>();
+        LinkedList<PathElement> elements = new LinkedList<PathElement>();
 
         if (sc != null) {
             elements.add(new PathElement(writer.getName(), sc.getCurrentValue()));
@@ -233,17 +229,19 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             return getPropertyNames(element, PropertyView.BASE_VIEW);
         }
 
-        return viewStack.stream()
-                .flatMap(viewName -> {
-                    Set<String> names = getPropertyNames(element, viewName);
+        Set<String> propertyNames = Sets.newHashSet();
 
-                    if (names.isEmpty() && SquigglyConfig.isFilterImplicitlyIncludeBaseFields()) {
-                        names = getPropertyNames(element, PropertyView.BASE_VIEW);
-                    }
+        for (String viewName : viewStack) {
+            Set<String> names = getPropertyNames(element, viewName);
 
-                    return names.stream();
-                })
-                .collect(toSet());
+            if (names.isEmpty() && SquigglyConfig.isFilterImplicitlyIncludeBaseFields()) {
+                names = getPropertyNames(element, PropertyView.BASE_VIEW);
+            }
+
+            propertyNames.addAll(names);
+        }
+
+        return propertyNames;
     }
 
     private SquigglyNode findBestViewNode(PathElement element, List<SquigglyNode> nodes) {
@@ -327,7 +325,19 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         private final LinkedList<PathElement> elements;
 
         public Path(LinkedList<PathElement> elements) {
-            id = StringUtils.join(elements.stream().map(PathElement::getName).collect(Collectors.toList()), '.');
+            StringBuilder idBuilder = new StringBuilder();
+
+            for (int i = 0; i < elements.size(); i++) {
+                PathElement element = elements.get(i);
+
+                if (i > 0) {
+                    idBuilder.append('.');
+                }
+
+                idBuilder.append(element.getName());
+            }
+
+            id = idBuilder.toString();
             this.elements = elements;
         }
 

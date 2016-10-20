@@ -59,7 +59,7 @@ public class SquigglyParser {
     // Break the filter expression into tokens
     private List<String> tokenize(String filter, String separators) {
         StringTokenizer tokenizer = new StringTokenizer(filter, separators, true);
-        List<String> tokens = new ArrayList<>();
+        List<String> tokens = new ArrayList<String>();
 
         while (tokenizer.hasMoreTokens()) {
             tokens.add(tokenizer.nextToken());

@@ -45,7 +45,7 @@ public class SquigglyPropertyFilterTests {
     }
 
     private Issue buildIssue() {
-        Map<String, Object> properties = new HashMap<>();
+        Map<String, Object> properties = new HashMap<String, Object>();
         properties.put("email", "motherofdragons@got.com");
         properties.put("priority", "1");
 

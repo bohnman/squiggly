@@ -25,7 +25,7 @@ public class SquigglyConfig {
     private static final CacheBuilderSpec propertyDescriptorCacheSpec;
 
     static {
-        Map<String, String> props = new HashMap<>();
+        Map<String, String> props = new HashMap<String, String>();
         loadProps(props, "squiggly.default.properties");
         loadProps(props, "squiggly.properties");
 
@@ -75,7 +75,9 @@ public class SquigglyConfig {
             throw new RuntimeException("Unable to load properties from classpath resource " + file, e);
         }
 
-        fileProps.forEach((key, val) -> props.put(key.toString(), val.toString()));
+        for (Map.Entry<Object, Object> entry : fileProps.entrySet()) {
+            props.put(entry.getKey().toString(), entry.getValue().toString());
+        }
     }
 
     private SquigglyConfig() {

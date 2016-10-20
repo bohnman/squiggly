@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @ThreadSafe
 public class SquigglyRequestHolder {
-    private static final ThreadLocal<HttpServletRequest> HOLDER = new ThreadLocal<>();
+    private static final ThreadLocal<HttpServletRequest> HOLDER = new ThreadLocal<HttpServletRequest>();
 
     public static HttpServletRequest getRequest() {
         return HOLDER.get();
