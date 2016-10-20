@@ -268,10 +268,6 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
                 continue;
             }
 
-            if (matchStrength == Integer.MAX_VALUE) {
-                return node;
-            }
-
             if (lastMatchStrength < 0 || matchStrength >= lastMatchStrength) {
                 match = node;
                 lastMatchStrength = matchStrength;

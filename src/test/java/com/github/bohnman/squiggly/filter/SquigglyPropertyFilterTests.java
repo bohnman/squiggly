@@ -221,6 +221,9 @@ public class SquigglyPropertyFilterTests {
 
         filter("**,repo*{firstName},rep*{lastName}");
         assertEquals(stringifyRaw().replace(",\"lastName\":\"" + issue.getReporter().getLastName() + "\"", ""), stringify());
+
+        filter("**,reporter{firstName},reporter{lastName}");
+        assertEquals(stringifyRaw().replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
     }
 
     @Test
