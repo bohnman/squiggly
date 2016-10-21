@@ -1,3 +1,8 @@
+# 1.1.2 (2016-10-20)
+
+* Adding ability to retrieve metrics - [Issue #2](https://github.com/bohnman/squiggly-filter-jackson/issues/2)
+* Adding ability to retrieve config and sources
+
 # 1.1.1 (2016-10-20)
 
 * if there are 2 exact matches, the latter is chosen.
