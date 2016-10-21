@@ -24,6 +24,14 @@
 The Squiggly Filter is a [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) PropertyFilter, which selects properties 
 of an object/list/map using a subset of the [Facebook Graph  API filtering syntax](https://developers.facebook.com/docs/graph-api/using-graph-api/).
 
+Probably the most common use of this library is to filter fields on the querystring like so:
+
+```
+?fields=id,reporter{firstName}
+```
+
+Integrating Squiggly into your webapp is covered in [Custom Integration](#custom-integration).
+
 ## <a name="prerequisites"></a>Requirements
 
 - Java 6+
@@ -510,7 +518,7 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
 
 ## <a name="changing-the-defaults"></a>Changing Defaults
 
-You have the ability to customize Squiggly by setting placing a file called squiggly.properties in your classpat.  
+You have the ability to customize Squiggly by creating a file called squiggly.properties in the root of the classpath.  
 ### Cache Config
 
 The following properties are used to control various caches in Squiggly Filter.  Internally, these properties get 
