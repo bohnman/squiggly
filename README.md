@@ -379,7 +379,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, user));
 // prints {"firstName":"Peter","lastName","Dinklage"}
 ```
 
-### Using the @PropertyView Annottion
+### Using the @PropertyView Annotation
 
 If you look at the phone field of the User class, you'll notice the @PropertyView("secret") annotation on the phone
 field.  This indicates that the phone field belongs to the "secret" view.
