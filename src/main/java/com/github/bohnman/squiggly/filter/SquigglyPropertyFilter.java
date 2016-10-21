@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.context.SquigglyContext;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
+import com.github.bohnman.squiggly.metric.source.SquigglyMetricsSource;
 import com.github.bohnman.squiggly.parser.SquigglyNode;
 import com.github.bohnman.squiggly.view.PropertyView;
 import com.github.bohnman.squiggly.view.PropertyViewIntrospector;
@@ -67,12 +69,14 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     public static final String FILTER_ID = "squigglyFilter";
 
     /**
-     *
+     * Cache that stores previous evalulated matches.
      */
     private static final Cache<Pair<Path, String>, Boolean> MATCH_CACHE;
+    private static final SquigglyMetricsSource METRICS_SOURCE;
 
     static {
         MATCH_CACHE = CacheBuilder.from(SquigglyConfig.getFilterPathCacheSpec()).build();
+        METRICS_SOURCE = new GuavaCacheSquigglyMetricsSource("squiggly.filter.pathCache.", MATCH_CACHE);
     }
 
     private final PropertyViewIntrospector propertyViewIntrospector;
@@ -312,9 +316,13 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
     }
 
+    public static SquigglyMetricsSource getMetricsSource() {
+        return METRICS_SOURCE;
+    }
+
     /*
-        Represents the path structuore in the object graph
-     */
+            Represents the path structuore in the object graph
+         */
     private static class Path {
 
         private final String id;

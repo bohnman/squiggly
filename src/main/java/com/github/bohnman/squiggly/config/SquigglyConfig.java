@@ -1,19 +1,29 @@
 package com.github.bohnman.squiggly.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.google.common.cache.CacheBuilderSpec;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
+import java.util.SortedMap;
 
 /**
  * Provides access to various configuration values that the Squiggly library uses.
+ * <p>
+ * Users can override the default configuration by putting a squiggly.properties in their classpath.
  */
 @ThreadSafe
 public class SquigglyConfig {
+
+    private static final SortedMap<String, String> PROPS_MAP;
+    private static final SortedMap<String, String> SOURCE_MAP;
 
     private static final boolean filterImplicitlyIncludeBaseFields;
     private static final CacheBuilderSpec filterPathCacheSpec;
@@ -25,16 +35,21 @@ public class SquigglyConfig {
     private static final CacheBuilderSpec propertyDescriptorCacheSpec;
 
     static {
-        Map<String, String> props = new HashMap<String, String>();
-        loadProps(props, "squiggly.default.properties");
-        loadProps(props, "squiggly.properties");
+        Map<String, String> propsMap = Maps.newHashMap();
+        Map<String, String> sourceMap = Maps.newHashMap();
 
-        filterImplicitlyIncludeBaseFields = getBool(props, "filter.implicitlyIncludeBaseFields");
-        filterPathCacheSpec = getCacheSpec(props, "filter.pathCache.spec");
-        filterPropagateViewToNestedFilters = getBool(props, "filter.propagateViewToNestedFilters");
-        parserNodeCacheSpec = getCacheSpec(props, "parser.nodeCache.spec");
-        propertyAddNonAnnotatedFieldsToBaseView = getBool(props, "property.addNonAnnotatedFieldsToBaseView");
-        propertyDescriptorCacheSpec = getCacheSpec(props, "property.descriptorCache.spec");
+        loadProps(propsMap, sourceMap, "squiggly.default.properties");
+        loadProps(propsMap, sourceMap, "squiggly.properties");
+
+        PROPS_MAP = ImmutableSortedMap.copyOf(propsMap);
+        SOURCE_MAP = ImmutableSortedMap.copyOf(sourceMap);
+
+        filterImplicitlyIncludeBaseFields = getBool(PROPS_MAP, "filter.implicitlyIncludeBaseFields");
+        filterPathCacheSpec = getCacheSpec(PROPS_MAP, "filter.pathCache.spec");
+        filterPropagateViewToNestedFilters = getBool(PROPS_MAP, "filter.propagateViewToNestedFilters");
+        parserNodeCacheSpec = getCacheSpec(PROPS_MAP, "parser.nodeCache.spec");
+        propertyAddNonAnnotatedFieldsToBaseView = getBool(PROPS_MAP, "property.addNonAnnotatedFieldsToBaseView");
+        propertyDescriptorCacheSpec = getCacheSpec(PROPS_MAP, "property.descriptorCache.spec");
     }
 
     private static CacheBuilderSpec getCacheSpec(Map<String, String> props, String key) {
@@ -59,24 +74,36 @@ public class SquigglyConfig {
         }
     }
 
-    private static void loadProps(Map<String, String> props, String file) {
+    private static void loadProps(Map<String, String> propsMap, Map<String, String> sourceMap, String file) {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        InputStream inputStream = classLoader.getResourceAsStream(file);
+        URL url = classLoader.getResource(file);
 
-        if (inputStream == null) {
+        if (url == null) {
             return;
         }
 
         Properties fileProps = new Properties();
+        InputStream inputStream = null;
+
 
         try {
+            inputStream = url.openStream();
             fileProps.load(inputStream);
         } catch (IOException e) {
             throw new RuntimeException("Unable to load properties from classpath resource " + file, e);
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (Exception eat) {
+                // ignore
+            }
         }
 
         for (Map.Entry<Object, Object> entry : fileProps.entrySet()) {
-            props.put(entry.getKey().toString(), entry.getValue().toString());
+            propsMap.put(entry.getKey().toString(), entry.getValue().toString());
+            sourceMap.put(entry.getKey().toString(), url.toString());
         }
     }
 
@@ -143,5 +170,27 @@ public class SquigglyConfig {
      */
     public static CacheBuilderSpec getPropertyDescriptorCacheSpec() {
         return propertyDescriptorCacheSpec;
+    }
+
+    /**
+     * Gets all the config as a map.
+     *
+     * @return map
+     */
+    public static SortedMap<String, String> asMap() {
+        return PROPS_MAP;
+    }
+
+    /**
+     * Gets a map of all the config keys and whose values are the location where that key was read from.
+     *
+     * @return source map
+     */
+    public static SortedMap<String, String> asSourceMap() {
+        return SOURCE_MAP;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(SquigglyUtils.stringify(new ObjectMapper(), asMap()));
     }
 }

@@ -1,6 +1,8 @@
 package com.github.bohnman.squiggly.parser;
 
 import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
+import com.github.bohnman.squiggly.metric.source.SquigglyMetricsSource;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
@@ -21,9 +23,11 @@ public class SquigglyParser {
 
     // Caches parsed filter expressions
     private static final Cache<String, List<SquigglyNode>> CACHE;
+    private static final SquigglyMetricsSource METRICS_SOURCE;
 
     static {
         CACHE = CacheBuilder.from(SquigglyConfig.getParserNodeCacheSpec()).build();
+        METRICS_SOURCE = new GuavaCacheSquigglyMetricsSource("squiggly.parser.nodeCache.", CACHE);
     }
 
     /**
@@ -132,4 +136,9 @@ public class SquigglyParser {
 
         return currentIndex;
     }
+
+    public static SquigglyMetricsSource getMetricsSource() {
+        return METRICS_SOURCE;
+    }
+
 }

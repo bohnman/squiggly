@@ -16,6 +16,7 @@
 * [More Examples](#more-examples)
 * [Custom Integration](#custom-integration)
 * [Changing the Defaults](#changing-the-defaults)
+* [Metrics](#metrics)
 
 
 ## <a name="what-is-it"></a>What is it?
@@ -534,4 +535,87 @@ When set to false, base fields are not included when specifying a view
 
 When set to true, views are propagated to nested filters
 
+## Getting Config Info
+
+Squiggly Filter provides 2 methods to get information about configuration.
+
+`SquigglyConfig.asMap()` will return a map of the merged config like that looks like the following:
+
+```json
+{
+  "filter.implicitlyIncludeBaseFields": "true",
+  "filter.pathCache.spec": "maximumSize=10000",
+  "filter.propagateViewToNestedFilters": "false",
+  "parser.nodeCache.spec": "maximumSize=10000",
+  "property.addNonAnnotatedFieldsToBaseView": "true",
+  "property.descriptorCache.spec": ""
+}
+```
+
+`SquigglyConfig.asSourceMap()` will return a map of the config keys and paths where the key was retrieved like the
+following:
+
+```json
+{
+  "filter.implicitlyIncludeBaseFields": "file:/path/one/squiggly.default.properties",
+  "filter.pathCache.spec": "file:/path/one/squiggly.default.properties",
+  "filter.propagateViewToNestedFilters": "file:/path/one/squiggly.default.properties",
+  "parser.nodeCache.spec": "file:/path/two/squiggly.properties",
+  "property.addNonAnnotatedFieldsToBaseView": "file:/path/two/squiggly.properties",
+  "property.descriptorCache.spec": "file:/path/two/squiggly.properties"
+}
+```
+
+
+## <a name="metrics"></a>Metrics
+
+Squiggly Filter provides an API for obtaining various metrics about the library, such as cache statistics.  This allows
+users to monitor and adjust configuration as needed.
+
+To use the metrics, you can do something the like following:
+
+```java
+Map<String, Object> metrics = SquigglyMetrics.asMap();
+System.out.println(SquigglyUtils.stringify(new ObjectMapper(), metrics));
+```
+
+This will print the following:
+
+```json
+{
+  "squiggly.filter.pathCache.averageLoadPenalty": 0,
+  "squiggly.filter.pathCache.evictionCount": 0,
+  "squiggly.filter.pathCache.hitCount": 0,
+  "squiggly.filter.pathCache.hitRate": 1,
+  "squiggly.filter.pathCache.loadExceptionCount": 0,
+  "squiggly.filter.pathCache.loadExceptionRate": 0,
+  "squiggly.filter.pathCache.loadSuccessCount": 0,
+  "squiggly.filter.pathCache.missCount": 0,
+  "squiggly.filter.pathCache.missRate": 0,
+  "squiggly.filter.pathCache.requestCount": 0,
+  "squiggly.filter.pathCache.totalLoadTime": 0,
+  "squiggly.parser.nodeCache.averageLoadPenalty": 0,
+  "squiggly.parser.nodeCache.evictionCount": 0,
+  "squiggly.parser.nodeCache.hitCount": 0,
+  "squiggly.parser.nodeCache.hitRate": 1,
+  "squiggly.parser.nodeCache.loadExceptionCount": 0,
+  "squiggly.parser.nodeCache.loadExceptionRate": 0,
+  "squiggly.parser.nodeCache.loadSuccessCount": 0,
+  "squiggly.parser.nodeCache.missCount": 0,
+  "squiggly.parser.nodeCache.missRate": 0,
+  "squiggly.parser.nodeCache.requestCount": 0,
+  "squiggly.parser.nodeCache.totalLoadTime": 0,
+  "squiggly.property.descriptorCache.averageLoadPenalty": 0,
+  "squiggly.property.descriptorCache.evictionCount": 0,
+  "squiggly.property.descriptorCache.hitCount": 0,
+  "squiggly.property.descriptorCache.hitRate": 1,
+  "squiggly.property.descriptorCache.loadExceptionCount": 0,
+  "squiggly.property.descriptorCache.loadExceptionRate": 0,
+  "squiggly.property.descriptorCache.loadSuccessCount": 0,
+  "squiggly.property.descriptorCache.missCount": 0,
+  "squiggly.property.descriptorCache.missRate": 0,
+  "squiggly.property.descriptorCache.requestCount": 0,
+  "squiggly.property.descriptorCache.totalLoadTime": 0
+}
+```
  

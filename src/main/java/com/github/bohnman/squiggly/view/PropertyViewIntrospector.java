@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.view;
 
 import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableSet;
@@ -29,9 +30,11 @@ public class PropertyViewIntrospector {
      * Caches bean class to a map of views to property views.
      */
     private static final Cache<Class, Map<String, Set<String>>> CACHE;
+    private static final GuavaCacheSquigglyMetricsSource METRICS_SOURCE;
 
     static {
         CACHE = CacheBuilder.from(SquigglyConfig.getPropertyDescriptorCacheSpec()).build();
+        METRICS_SOURCE = new GuavaCacheSquigglyMetricsSource("squiggly.property.descriptorCache.", CACHE);
     }
 
 
@@ -149,5 +152,9 @@ public class PropertyViewIntrospector {
         }
 
         return views;
+    }
+
+    public static GuavaCacheSquigglyMetricsSource getMetricsSource() {
+        return METRICS_SOURCE;
     }
 }
