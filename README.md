@@ -11,7 +11,7 @@
 * [Nested Filters](#nested-filters)
 * [Other Filters](#other-filters)
 * [Resolving Conflicts](#resolving-conflicts)
-* [Excluding Fields](#exluding-fields)
+* [Excluding Fields](#excluding-fields)
 * [Property Views](#property-views)
 * [More Examples](#more-examples)
 * [Custom Integration](#custom-integration)
@@ -241,7 +241,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 
 ### Selecting from Maps
 
-Selecting from maps is the same as selecting from objects.  Instead of selecting from fields you are selecting
+Selecting from maps is the same as selecting from objects.  Instead of selecting from fields, you are selecting
 from keys.  The main downside of selecting from maps that their matches are unable to be cached.
 
 ```java
@@ -270,15 +270,23 @@ System.out.printlin(SquigglyUtils.stringify(mapper, list));
 // prints [{"firstName":"Peter"}, {"firstName":"Lena"}]
 ```
 
-## <a name="#resolving-conflicts"></a> Resolving Conflicts
+## <a name="resolving-conflicts"></a> Resolving Conflicts
 
 When a filter includes two criteria that match the same field, the one that is more specific wins.
 
 For example, if the filter is "**,reporter{firstName}", then all fields will be excluded. However, the reporter field 
 will only include the firstName field.
 
+Specificity is determined using the following logic:
 
-## <a name="#exluding-fields"></a> Excluding Fields
+- an exact name is the most specific
+- a ** is the least specific
+- a * is the second to least specific
+- otherwise, the number of non-wildcard characters is counted, the higher the number, the more specific
+- if two filters have the same specificity, the latter one is chosen
+
+
+## <a name="excluding-fields"></a> Excluding Fields
 
 In order to exclude fields, you need to prefix the field name with a minus sign (-).
 
@@ -303,7 +311,10 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 // prints everything except the reporter field
 ```
 
-That's better.  This "excluding only included fields" applies to nested filters as well.
+That's better.  
+
+
+This "excluding only included fields" rules also applies to nested filters.
 
 For example, this won't work:
 
@@ -389,7 +400,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, user));
 
 ### Using the @PropertyView Annotation
 
-If you look at the phone field of the User class, you'll notice the @PropertyView("secret") annotation on the phone
+If you look at the phone field of the User class, you'll notice the `@PropertyView("secret")` annotation on the phone
 field.  This indicates that the phone field belongs to the "secret" view.
  
  ```java
@@ -402,7 +413,7 @@ field.  This indicates that the phone field belongs to the "secret" view.
 **Wait a minute!**  Why was the firstName and lastName field included?  Even though we specified a certain view, the
 base fields are always included.  See [Changing Defaults](#changing-the-defaults) to alter this behavior.
 
-Note that you can also specifiy multiple views in the annotation - @PropertyView({"one", "two", "three"})) 
+Note that you can also specifiy multiple views in the annotation - `@PropertyView({"one", "two", "three"}))` 
 
 ### Using a Derived Annotation
 
@@ -430,12 +441,12 @@ There are more examples in the test directory.
 
 Imagine you are building a webapp where you want to specify the fields on the querystring.
  
-E.g. /some/path?fields=a,b{c} 
+E.g. `/some/path?fields=a,b{c} ``
 
 You'll notice in all of our examples, we passed in a filter expression that never changes.  This doesn't
 work well for the case of specifying filters on a querystring.
 
-Enter the SquigglyContextProvider.  This allows you to customize how to retrieve the fields.
+Enter the SquigglyContextProvider.  This interface allows you to customize how to retrieve the fields.
 
 Let's see how we might implement it for webapps.
 
@@ -462,7 +473,7 @@ In web.xml
 </filter> 
 <filter-mapping> 
     <filter-name>squigglyFilter</filter-name>
-    <url-pattern>/**</url-pattern> 
+    <url-pattern>/*</url-pattern> 
 </filter-mapping>
 ```
 
@@ -547,7 +558,7 @@ When set to true, views are propagated to nested filters
 
 Squiggly Filter provides 2 methods to get information about configuration.
 
-`SquigglyConfig.asMap()` will return a map of the merged config like that looks like the following:
+`SquigglyConfig.asMap()` will return a map of the merged config that looks like the following:
 
 ```json
 {
@@ -560,8 +571,8 @@ Squiggly Filter provides 2 methods to get information about configuration.
 }
 ```
 
-`SquigglyConfig.asSourceMap()` will return a map of the config keys and paths where the key was retrieved like the
-following:
+`SquigglyConfig.asSourceMap()` will return a map of the config keys and paths where the entry was retrieved  that looks 
+like the following:
 
 ```json
 {
