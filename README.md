@@ -124,7 +124,7 @@ For the filtering examples, let's use an the example object of type Issue
 ```java
 String filter = "";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {}
 ```
 
@@ -132,7 +132,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 ```java
 filter = "id";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"id":"ISSUE-1"}
 ```
 
@@ -140,7 +140,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 ```java
 filter = "id,issueSummary"
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"id":"ISSUE-1", "issueSummary":"Dragons Need Fed"}
 ```
 
@@ -148,7 +148,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 ```java
 filter = "issue*";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"issueSummary":"Dragons Need Fed", "issueDetails": "I need my dragons fed pronto."}
 ```
 
@@ -156,7 +156,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 ```java
 filter = "**";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints the same json as our example object
 ```
 
@@ -164,7 +164,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 ```java
 filter = "*";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 /* prints the following:
 {
   "id": "ISSUE-1",
@@ -205,7 +205,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 ```java
 String filter = "assignee{firstName}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"assignee":{"firstName":"Jorah"}}
 ```
 
@@ -214,7 +214,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 ```java
 String filter = "actions{text,type}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"actions":[{"type":"COMMENT","text":"I'm going to let Daario get this one.."},{"type":"CLOSE","text":"All set."}]}
 // NOTE: use can also use wildcards (e.g. actions{t*})
 ```
@@ -224,7 +224,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 ```java
 String filter = "assignee|reporter{firstName}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"reporter":{"firstName":"Daenerys"},"assignee":{"firstName":"Jorah"}}
 ```
 
@@ -233,7 +233,7 @@ System.out.printlin(SquigglyUtils.stringify(mapper, issue));
 ```java
 String filter = "actions{user{lastName}}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"actions":[{"user":{"lastName":"Mormont"}},{"user":{"lastName":"Naharis"}}]}
 ```
 
@@ -250,7 +250,7 @@ map.put("foo", "bar");
 map.put("bear", "baz");
 String filter = "foo";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, map));
+System.out.println(SquigglyUtils.stringify(mapper, map));
 // prints {"foo":"bar"}
 ```
 
@@ -266,7 +266,7 @@ List<User> list = Arrays.asList(
 
 String filter = "firstName";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, list));
+System.out.println(SquigglyUtils.stringify(mapper, list));
 // prints [{"firstName":"Peter"}, {"firstName":"Lena"}]
 ```
 
@@ -295,7 +295,7 @@ Let's look at an example
 ```java
 String filter = "-reporter";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {}
 ```
 
@@ -307,7 +307,7 @@ Let's try this again.
 ```java
 String filter = "**,-reporter";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints everything except the reporter field
 ```
 
@@ -321,7 +321,7 @@ For example, this won't work:
 ```java
 String filter = "**,reporter{-firstName}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints everything, however the reporter object will be empty
 ```
 
@@ -330,7 +330,7 @@ But this will:
 ```java
 String filter = "**,reporter{**,-firstName}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints everything, the reporter object will only have the firstName excluded
 ```
 
@@ -338,7 +338,7 @@ One final note.  Excluded fields can't have nested filters
 ```java
 String filter = "**,-reporter{firstName}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, issue));
+System.out.println(SquigglyUtils.stringify(mapper, issue));
 // throws an exception
 ```
 
@@ -394,7 +394,7 @@ In the case of User, fields firstName and lastName belong to the "base" view.
 ```java
 String filter = "base";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, user));
+System.out.println(SquigglyUtils.stringify(mapper, user));
 // prints {"firstName":"Peter","lastName","Dinklage"}
 ```
 
@@ -406,7 +406,7 @@ field.  This indicates that the phone field belongs to the "secret" view.
  ```java
  String filter = "secret";
  ObjectMapper mapper = Squiggly.init(mapper, filter);
- System.out.printlin(SquigglyUtils.stringify(mapper, user));
+ System.out.println(SquigglyUtils.stringify(mapper, user));
  // prints {"firstName":"Peter","lastName","Dinklage", "phone":"555-555-1212"}
   ```
   
@@ -425,7 +425,7 @@ Let's try it out.
 ```java
 String filter = "super";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.printlin(SquigglyUtils.stringify(mapper, user));
+System.out.println(SquigglyUtils.stringify(mapper, user));
 // prints {"firstName":"Peter","lastName","Dinklage", "address":{"line1":"55 Hollywood Blvd.","line2":"","city":"Hollywood","state":"CA"}}
 ```
  
