@@ -2,8 +2,11 @@ package com.github.bohnman.squiggly.web;
 
 import com.github.bohnman.squiggly.context.provider.AbstractSquigglyContextProvider;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
+import com.google.common.base.MoreObjects;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Custom context provider that gets the filter expression from the request.
@@ -32,13 +35,16 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
     protected String getFilter(Class beanClass) {
         HttpServletRequest request = getRequest();
 
-        String filter = getFilter(request);
+        FilterCache cache = FilterCache.getOrCreate(request);
+        String filter = cache.get(beanClass);
 
         if (filter == null) {
-            filter = defaultFilter;
+            filter = MoreObjects.firstNonNull(getFilter(request), defaultFilter);
+            filter = customizeFilter(filter, request, beanClass);
+            cache.put(beanClass, filter);
         }
 
-        return customizeFilter(filter, request, beanClass);
+        return filter;
     }
 
     @Override
@@ -68,6 +74,52 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         }
 
         return false;
+    }
+
+    private static class FilterCache {
+        @SuppressWarnings("RedundantStringConstructorCall")
+        private static final String NULL = new String();
+        public static final String REQUEST_KEY = FilterCache.class.getName();
+        private final Map<Class, String> map = new HashMap<Class, String>();
+
+        public static FilterCache getOrCreate(HttpServletRequest request) {
+            FilterCache cache = (FilterCache) request.getAttribute(REQUEST_KEY);
+
+            if (cache == null) {
+                cache = new FilterCache();
+                request.setAttribute(REQUEST_KEY, cache);
+            }
+
+            return cache;
+        }
+
+        @SuppressWarnings("StringEquality")
+        public String get(Class key) {
+            String value = map.get(key);
+
+            if (value == NULL) {
+                value = null;
+            }
+
+            return value;
+        }
+
+        public void put(Class key, String value) {
+            if (value == null) {
+                value = NULL;
+            }
+
+            map.put(key, value);
+        }
+
+        public void remove(Class key) {
+            map.remove(key);
+        }
+
+        public void clear() {
+            map.clear();
+        }
+
     }
 
     protected String getFilter(HttpServletRequest request) {
