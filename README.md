@@ -448,7 +448,82 @@ work well for the case of specifying filters on a querystring.
 
 Enter the SquigglyContextProvider.  This interface allows you to customize how to retrieve the fields.
 
-Let's see how we might implement it for webapps.
+### The RequestSquigglyContextProvider
+
+All servlet-based integrations use the RequestSquigglyContextProvider, which has the general initialization in the form of:
+
+```java
+Squiggly.init(objectMapper, new RequestSquigglyContextProvider());
+```
+
+### Automatically wrapping fields with an outer filter
+
+Let's say you have the following class called Page that looks like this:
+
+```java
+public class Page<T> {
+
+    private final int pageNumber;
+    private final int pageSize;
+    private final List<T> items;
+
+    public ListResponse(List<T> items, int pageNumber, int pageSize) {
+        this.items = checkNotNull(items);
+        this.pageNumber = pageNumber;
+        this.pageSize = pageSize;
+    }
+
+    public List<T> getItems() {
+        return items;
+    }
+    
+    public int getPageNumber() {
+        return pageNumber;
+    }
+    
+    public int getPageSize() {
+        return pageSize;
+    }
+}
+```
+
+Let's say you have an endpoint called /issues that looks like this:
+
+```java
+public Page<Issue> findIssues(String query, int pageNumber, int pageSize) {
+    List<Issue> issues = issueService.findIssues(query, pageNumber, pageSize);
+    return new Page<Issue>(issues, pageNumber, pageSize);
+}
+```
+
+In order to get specify the issue property, you now have to wrap all filters with items{} like so:
+ 
+```
+GET /issues?fields=items{id}&query=some-query&&pageNumber=1&pageSize=10
+``` 
+
+This is kind of annoying.  Fortunately, we can avoid this inconvenience by using a hook method in RequestSquigglyContextProvider.
+
+Here's how it would look:
+
+```java
+Squiggly.init(objectMapper, new RequestSquigglyContextProvider() {
+    @Override
+    protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
+        if (filter != null && Page.class.isAssignableFrom(beanClass)) {
+            filter = "items{" + filter + "}";
+        }
+
+        return filter;
+    }
+});
+```
+
+Now you can do this:
+
+```
+GET /issues?fields=id&query=some-query&&pageNumber=1&pageSize=10
+```
 
 ### Generic Servlet Webapp
 
