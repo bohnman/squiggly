@@ -34,18 +34,12 @@ public class SquigglyNode {
      * @param squiggly whether or not a not is squiggly
      * @see #isSquiggly()
      */
-    public SquigglyNode(String name, SquigglyNode parent, List<SquigglyNode> children, boolean squiggly) {
+    public SquigglyNode(String name, SquigglyNode parent, List<SquigglyNode> children, boolean negated, boolean squiggly) {
         Validate.isTrue(StringUtils.isNotEmpty(name), "Node names must not be empty");
         Validate.isTrue(!name.equals("-"), "Illegal node name '-'");
 
-        if (name.charAt(0) == '-') {
-            this.name = name.substring(1);
-            this.negated = true;
-        } else {
-            this.name = name;
-            this.negated = false;
-        }
-
+        this.name = name;
+        this.negated = negated;
         this.parent = parent;
         this.children = Collections.unmodifiableList(children);
         this.squiggly = squiggly;

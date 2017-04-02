@@ -3,10 +3,16 @@ package com.github.bohnman.squiggly.parser;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.metric.source.SquigglyMetricsSource;
+import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionBaseListener;
+import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionLexer;
+import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionParser;
+import com.github.bohnman.squiggly.util.antlr4.ThrowingErrorListener;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -50,14 +56,18 @@ public class SquigglyParser {
             return cachedNodes;
         }
 
-        // do the actual parsing
-        List<SquigglyNode> nodes = Lists.newArrayList();
-        parse(tokenize(filter, "{},"), 0, null, nodes, false);
 
-        List<SquigglyNode> unmodifiableNodes = Collections.unmodifiableList(nodes);
-        CACHE.put(filter, unmodifiableNodes);
+        SquigglyExpressionLexer lexer = ThrowingErrorListener.overwrite(new SquigglyExpressionLexer(new ANTLRInputStream(filter)));
+        SquigglyExpressionParser parser = ThrowingErrorListener.overwrite(new SquigglyExpressionParser(new CommonTokenStream(lexer)));
 
-        return unmodifiableNodes;
+        ParseTreeWalker walker = new ParseTreeWalker();
+        Listener listener = new Listener();
+        walker.walk(listener, parser.parse());
+
+        List<SquigglyNode> nodes = Collections.unmodifiableList(listener.getNodes());
+
+        CACHE.put(filter, nodes);
+        return nodes;
     }
 
     // Break the filter expression into tokens
@@ -72,73 +82,143 @@ public class SquigglyParser {
         return tokens;
     }
 
-    // Do the parsing.
-    @SuppressWarnings({"IfCanBeSwitch", "StatementWithEmptyBody"})
-    private int parse(List<String> tokens, int startIndex, SquigglyNode parent, List<SquigglyNode> nodes, boolean parentSquiggly) {
-        List<SquigglyNode> nodeStack = Lists.newArrayList();
-        List<List<SquigglyNode>> childrenStack = Lists.newArrayList();
-        int currentIndex;
-
-
-        // Loop through the tokens, creating squiggly nodes
-        for (currentIndex = startIndex; currentIndex < tokens.size(); currentIndex++) {
-            String token = tokens.get(currentIndex);
-
-            if (token.equals("{")) {
-                if (nodeStack.isEmpty()) {
-                    throw new IllegalStateException("Can't start { when there's no current node");
-                }
-
-                // parse the nexted filter
-                if (nodeStack.size() >= 1) {
-                    int newIndex = parse(tokens, currentIndex + 1, nodeStack.get(0), childrenStack.get(0), true);
-
-                    if (nodeStack.size() > 1) {
-                        for (int i = 1; i < nodeStack.size(); i++) {
-                            parse(tokens, currentIndex + 1, nodeStack.get(i), childrenStack.get(i), true);
-                        }
-                    }
-
-                    currentIndex = newIndex;
-                }
-
-
-            } else if (token.equals("}")) {
-                // end the nested squiggly
-
-                if (!parentSquiggly) {
-                    throw new IllegalStateException("found '}' without a starting '{'.");
-                }
-
-                break;
-            } else if (token.equals(",")) {
-                // start another node
-            } else {
-
-                // clear out the old stacks
-                nodeStack.clear();
-                childrenStack.clear();
-
-                // handle the case of an OR expression
-                String[] names = StringUtils.split(token, '|');
-
-                boolean nextTokenIsSquiggly = (currentIndex + 1 < tokens.size()) && StringUtils.equals(tokens.get(currentIndex + 1), "{");
-
-                for (String name : names) {
-                    List<SquigglyNode> currentChildren = Lists.newArrayList();
-                    childrenStack.add(currentChildren);
-                    SquigglyNode currentNode = new SquigglyNode(name, parent, currentChildren, nextTokenIsSquiggly);
-                    nodeStack.add(currentNode);
-                    nodes.add(currentNode);
-                }
-            }
-        }
-
-        return currentIndex;
-    }
-
     public static SquigglyMetricsSource getMetricsSource() {
         return METRICS_SOURCE;
     }
+
+    private class Listener extends SquigglyExpressionBaseListener {
+
+        MutableNode parent = new MutableNode();
+        MutableNode current;
+
+        @Override
+        public void enterExpression(SquigglyExpressionParser.ExpressionContext ctx) {
+            current = parent.newChild();
+        }
+
+        @Override
+        public void enterNested_expression(SquigglyExpressionParser.Nested_expressionContext ctx) {
+            current.squiggly = true;
+            parent = current;
+        }
+
+        @Override
+        public void exitNested_expression(SquigglyExpressionParser.Nested_expressionContext ctx) {
+            parent = parent.parent;
+        }
+
+        @Override
+        public void enterNegated_expression(SquigglyExpressionParser.Negated_expressionContext ctx) {
+            current.negated = true;
+        }
+
+        @Override
+        public void enterField(SquigglyExpressionParser.FieldContext ctx) {
+            current.addName(ctx.getText());
+        }
+
+        @Override
+        public void enterDeep(SquigglyExpressionParser.DeepContext ctx) {
+            current.addName(SquigglyNode.ANY_DEEP);
+        }
+
+        public List<SquigglyNode> getNodes() {
+            return parent.getSquigglyChildNodes(null);
+        }
+    }
+
+    private class MutableNode {
+        private List<String> names;
+        private boolean negated;
+        private boolean squiggly;
+        private List<MutableNode> children;
+        private MutableNode parent;
+
+        public List<SquigglyNode> toSquigglyNodes(SquigglyNode parentNode) {
+            if (names == null || names.isEmpty()) {
+                throw new IllegalArgumentException("No Names specified");
+            }
+
+            List<SquigglyNode> nodes;
+
+            if (names.size() == 1) {
+                nodes = Collections.singletonList(toSquigglyNode(names.get(0), parentNode));
+            } else {
+                nodes = new ArrayList<SquigglyNode>(names.size());
+
+                for (String name : names) {
+                    nodes.add(toSquigglyNode(name, parentNode));
+                }
+            }
+
+            return nodes;
+        }
+
+        public SquigglyNode toSquigglyNode(String name, SquigglyNode parentNode) {
+            SquigglyNode node;
+
+            if (children == null || children.isEmpty()) {
+                node = newSquigglyNode(name, parentNode, Collections.<SquigglyNode>emptyList());
+            } else {
+                List<SquigglyNode> childNodes = new ArrayList<SquigglyNode>(children.size());
+                node = newSquigglyNode(name, parentNode, childNodes);
+                addSquigglyChildNodes(node, childNodes);
+            }
+
+            return node;
+
+        }
+
+        private SquigglyNode newSquigglyNode(String name, SquigglyNode parentNode, List<SquigglyNode> childNodes) {
+            return new SquigglyNode(name, parentNode, childNodes, negated, squiggly);
+        }
+
+        @SuppressWarnings("SameParameterValue")
+        private List<SquigglyNode> getSquigglyChildNodes(SquigglyNode parentNode) {
+            if (children == null || children.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            List<SquigglyNode> childNodes = new ArrayList<SquigglyNode>();
+            addSquigglyChildNodes(parentNode, childNodes);
+
+            return childNodes;
+        }
+
+        private void addSquigglyChildNodes(SquigglyNode parentNode, List<SquigglyNode> childNodes) {
+            for (MutableNode child : children) {
+                childNodes.addAll(child.toSquigglyNodes(parentNode));
+            }
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        public MutableNode addName(String name) {
+            if (names == null) {
+                names = new ArrayList<String>();
+            }
+
+            names.add(name);
+            return this;
+        }
+
+        public MutableNode withParent(MutableNode parent) {
+            this.parent = parent;
+            return this;
+        }
+
+        public MutableNode newChild() {
+            MutableNode child = new MutableNode()
+                    .withParent(this);
+
+            if (children == null) {
+                children = new ArrayList<MutableNode>();
+            }
+
+            children.add(child);
+
+            return child;
+        }
+    }
+
 
 }

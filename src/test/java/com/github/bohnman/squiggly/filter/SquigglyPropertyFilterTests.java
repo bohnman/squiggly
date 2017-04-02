@@ -138,7 +138,6 @@ public class SquigglyPropertyFilterTests {
         assertEquals(raw, stringify());
     }
 
-
     @Test
     public void testNestedSingle() {
         filter("assignee{firstName}");
@@ -278,6 +277,7 @@ public class SquigglyPropertyFilterTests {
         return pattern.matcher(input);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private String filter(String filter) {
         SquigglyParser parser = new SquigglyParser();
         SimpleSquigglyContextProvider provider = new SimpleSquigglyContextProvider(parser, filter);
