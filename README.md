@@ -34,7 +34,8 @@ Integrating Squiggly into your webapp is covered in [Custom Integration](#custom
 
 ## <a name="prerequisites"></a>Requirements
 
-- Java 6+
+- Java 7+
+- [ANTLR](http://www.antlr.org/)
 - [Commons Lang 3](https://commons.apache.org/proper/commons-lang/)
 - [Google Guava](https://github.com/google/guava)
 - [Jackson JSON](http://wiki.fasterxml.com/JacksonHome) (version 2.6+)
@@ -47,7 +48,7 @@ Integrating Squiggly into your webapp is covered in [Custom Integration](#custom
 <dependency>
     <groupId>com.github.bohnman</groupId>
     <artifactId>squiggly-filter-jackson</artifactId>
-    <version>1.1.2</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -296,36 +297,10 @@ Let's look at an example
 String filter = "-reporter";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
-// prints {}
-```
-
-**Why didn't that work?**  Excluding fields only works if you have also included fields.  In this case,  we didn't include
-any fields to begin with.
-
-Let's try this again.
-
-```java
-String filter = "**,-reporter";
-ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints everything except the reporter field
-```
+``` 
 
-That's better.  
-
-
-This "excluding only included fields" rules also applies to nested filters.
-
-For example, this won't work:
-
-```java
-String filter = "**,reporter{-firstName}";
-ObjectMapper mapper = Squiggly.init(mapper, filter);
-System.out.println(SquigglyUtils.stringify(mapper, issue));
-// prints everything, however the reporter object will be empty
-```
-
-But this will:
+Here's an example excluding a nested field:
 
 ```java
 String filter = "**,reporter{**,-firstName}";
@@ -334,7 +309,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints everything, the reporter object will only have the firstName excluded
 ```
 
-One final note.  Excluded fields can't have nested filters
+NOTE:  Excluded fields can't have nested filters
 ```java
 String filter = "**,-reporter{firstName}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
