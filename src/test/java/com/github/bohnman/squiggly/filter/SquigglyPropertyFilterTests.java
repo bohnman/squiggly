@@ -45,7 +45,7 @@ public class SquigglyPropertyFilterTests {
     }
 
     private Issue buildIssue() {
-        Map<String, Object> properties = new HashMap<String, Object>();
+        Map<String, Object> properties = new HashMap<>();
         properties.put("email", "motherofdragons@got.com");
         properties.put("priority", "1");
 
@@ -227,7 +227,7 @@ public class SquigglyPropertyFilterTests {
 
     @Test
     public void testFilterExclusion() {
-        filter("**,reporter{**,-firstName}");
+        filter("**,reporter{-firstName}");
         assertEquals(stringifyRaw().replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
     }
 

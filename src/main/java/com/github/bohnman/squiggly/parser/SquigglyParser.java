@@ -73,7 +73,7 @@ public class SquigglyParser {
     // Break the filter expression into tokens
     private List<String> tokenize(String filter, String separators) {
         StringTokenizer tokenizer = new StringTokenizer(filter, separators, true);
-        List<String> tokens = new ArrayList<String>();
+        List<String> tokens = new ArrayList<>();
 
         while (tokenizer.hasMoreTokens()) {
             tokens.add(tokenizer.nextToken());
@@ -144,7 +144,7 @@ public class SquigglyParser {
             if (names.size() == 1) {
                 nodes = Collections.singletonList(toSquigglyNode(names.get(0), parentNode));
             } else {
-                nodes = new ArrayList<SquigglyNode>(names.size());
+                nodes = new ArrayList<>(names.size());
 
                 for (String name : names) {
                     nodes.add(toSquigglyNode(name, parentNode));
@@ -160,7 +160,7 @@ public class SquigglyParser {
             if (children == null || children.isEmpty()) {
                 node = newSquigglyNode(name, parentNode, Collections.<SquigglyNode>emptyList());
             } else {
-                List<SquigglyNode> childNodes = new ArrayList<SquigglyNode>(children.size());
+                List<SquigglyNode> childNodes = new ArrayList<>(children.size());
                 node = newSquigglyNode(name, parentNode, childNodes);
                 addSquigglyChildNodes(node, childNodes);
             }
@@ -179,22 +179,32 @@ public class SquigglyParser {
                 return Collections.emptyList();
             }
 
-            List<SquigglyNode> childNodes = new ArrayList<SquigglyNode>();
+            List<SquigglyNode> childNodes = new ArrayList<>();
             addSquigglyChildNodes(parentNode, childNodes);
 
             return childNodes;
         }
 
         private void addSquigglyChildNodes(SquigglyNode parentNode, List<SquigglyNode> childNodes) {
+            boolean allNegated = true;
+
             for (MutableNode child : children) {
                 childNodes.addAll(child.toSquigglyNodes(parentNode));
+
+                if (allNegated && !child.negated) {
+                    allNegated = false;
+                }
+            }
+
+            if (allNegated) {
+                childNodes.add(newSquigglyNode(SquigglyNode.ANY_DEEP, parentNode, Collections.<SquigglyNode>emptyList()));
             }
         }
 
         @SuppressWarnings("UnusedReturnValue")
         public MutableNode addName(String name) {
             if (names == null) {
-                names = new ArrayList<String>();
+                names = new ArrayList<>();
             }
 
             names.add(name);
@@ -211,7 +221,7 @@ public class SquigglyParser {
                     .withParent(this);
 
             if (children == null) {
-                children = new ArrayList<MutableNode>();
+                children = new ArrayList<>();
             }
 
             children.add(child);
