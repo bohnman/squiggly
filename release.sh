@@ -5,6 +5,15 @@
 releaseVersion="$1"
 nextVersion="$2"
 
+function releaseVersionReplace() {
+    file=$1
+    perl -i -0777 -pe "s/(<artifactId>squiggly-filter-jackson<\/artifactId>.*?<version>).*?(<\/version>)/\${1}${releaseVersion}\${2}/smg" ${file}
+
+    if [ $? -gt 0 ]; then
+        exit 1;
+    fi
+}
+
 if [ "$releaseVersion" == "" ]; then
     echo "Usage: ./release.sh release-version next-snapshot-version"
     exit 1
@@ -22,11 +31,17 @@ if [ $? -gt 0 ]; then
     exit 1;
 fi
 
-#sed -i '' "s/<version>.*<\/version>/<version>$releaseVersion<\/version>/g" README.md
-#
-#if [ $? -gt 0 ]; then
-#    exit 1;
-#fi
+readmeFiles=$(find . -name README.md)
+
+for readmeFile in ${readmeFiles}; do
+    releaseVersionReplace ${readmeFile}
+done
+
+pomFiles=$(find . -name pom.xml)
+
+for pomFile in ${pomFiles}; do
+    releaseVersionReplace ${pomFile}
+done
 
 echo "Performing release"
 mvn clean deploy
