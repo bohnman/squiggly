@@ -125,6 +125,12 @@ public class SquigglyPropertyFilterTests {
     }
 
     @Test
+    public void testWildCardSingle() {
+        filter("issueSummar?");
+        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
+    }
+
+    @Test
     public void testWildCardStart() {
         filter("issue*");
         assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());

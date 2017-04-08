@@ -55,10 +55,15 @@ regex_flag
     ;
 
 wildcard_field
-   : IDENTIFIER WILDCARD_SHALLOW
-   | IDENTIFIER (WILDCARD_SHALLOW IDENTIFIER)+ WILDCARD_SHALLOW?
-   | WILDCARD_SHALLOW IDENTIFIER
-   | WILDCARD_SHALLOW (IDENTIFIER WILDCARD_SHALLOW)+ IDENTIFIER?
+   : IDENTIFIER wildcard_char
+   | IDENTIFIER (wildcard_char IDENTIFIER)+ wildcard_char?
+   | wildcard_char IDENTIFIER
+   | wildcard_char (IDENTIFIER wildcard_char)+ IDENTIFIER?
+   ;
+
+wildcard_char
+   : WILDCARD_SHALLOW
+   | '?'
    ;
 
 wildcard_shallow_field
