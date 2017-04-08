@@ -44,6 +44,7 @@ exact_field
 
 regex_field
     : '~' regex_pattern '~' regex_flag*
+    | '/' regex_pattern '/' regex_flag*
     ;
 
 regex_pattern
@@ -106,5 +107,5 @@ WILDCARD_DEEP
     ;
 
 REGEX_CHAR
-    : ~('~')
+    : ~('~' | '/')
     ;

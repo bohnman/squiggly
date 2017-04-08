@@ -125,6 +125,12 @@ public class SquigglyPropertyFilterTests {
     }
 
     @Test
+    public void testRegexTraditional() {
+        filter("/iss[a-z]e.*/");
+        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
+    }
+
+    @Test
     public void testWildCardSingle() {
         filter("issueSummar?");
         assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
