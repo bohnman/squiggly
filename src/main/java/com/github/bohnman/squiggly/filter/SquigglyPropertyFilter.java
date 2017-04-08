@@ -73,6 +73,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
      */
     private static final Cache<Pair<Path, String>, Boolean> MATCH_CACHE;
     private static final SquigglyMetricsSource METRICS_SOURCE;
+    private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(new SquigglyNode(PropertyView.BASE_VIEW, null, Collections.<SquigglyNode>emptyList(), false, true, false));
 
     static {
         MATCH_CACHE = CacheBuilder.from(SquigglyConfig.getFilterPathCacheSpec()).build();
@@ -104,7 +105,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     // create a path structure representing the object graph
     private Path getPath(PropertyWriter writer, JsonStreamContext sc) {
-        LinkedList<PathElement> elements = new LinkedList<PathElement>();
+        LinkedList<PathElement> elements = new LinkedList<>();
 
         if (sc != null) {
             elements.add(new PathElement(writer.getName(), sc.getCurrentValue()));
@@ -178,7 +179,12 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         Set<String> viewStack = null;
         SquigglyNode viewNode = null;
 
-        for (PathElement element : path.getElements()) {
+        int pathSize = path.getElements().size();
+        int lastIdx = pathSize - 1;
+
+        for (int i = 0; i < pathSize; i++) {
+            PathElement element = path.getElements().get(i);
+
             if (viewNode != null && !viewNode.isSquiggly()) {
 
                 Class beanClass = element.getBeanClass();
@@ -215,13 +221,14 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
                 }
 
                 if (match.isNegated()) {
-                    if (match.isSquiggly()) {
-                        throw new IllegalStateException("Illegal filter node [-" + match.getName() + "]: nodes that start with - must not have a nested filter");
-                    }
                     return false;
                 }
 
                 nodes = match.getChildren();
+
+                if (i < lastIdx && nodes.isEmpty() && !match.isEmptyNested()) {
+                    nodes = BASE_VIEW_NODES;
+                }
             }
         }
 
@@ -249,12 +256,20 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     private SquigglyNode findBestViewNode(PathElement element, List<SquigglyNode> nodes) {
-        for (SquigglyNode node : nodes) {
-            // handle view
-            Set<String> propertyNames = getPropertyNames(element, node.getName());
+        if (Map.class.isAssignableFrom(element.getBeanClass())) {
+            for (SquigglyNode node : nodes) {
+                if (PropertyView.BASE_VIEW.equals(node.getName())) {
+                    return node;
+                }
+            }
+        } else {
+            for (SquigglyNode node : nodes) {
+                // handle view
+                Set<String> propertyNames = getPropertyNames(element, node.getName());
 
-            if (propertyNames.contains(element.getName())) {
-                return node;
+                if (propertyNames.contains(element.getName())) {
+                    return node;
+                }
             }
         }
 

@@ -90,10 +90,21 @@ public class SquigglyParser {
 
         MutableNode parent = new MutableNode();
         MutableNode current;
+        boolean emptyNested = false;
 
         @Override
         public void enterExpression(SquigglyExpressionParser.ExpressionContext ctx) {
             current = parent.newChild();
+        }
+
+        @Override
+        public void enterEmpty_nested_expression(SquigglyExpressionParser.Empty_nested_expressionContext ctx) {
+            current.emptyNested = true;
+        }
+
+        @Override
+        public void enterParse(SquigglyExpressionParser.ParseContext ctx) {
+            super.enterParse(ctx);
         }
 
         @Override
@@ -131,6 +142,7 @@ public class SquigglyParser {
         private List<String> names;
         private boolean negated;
         private boolean squiggly;
+        private boolean emptyNested;
         private List<MutableNode> children;
         private MutableNode parent;
 
@@ -170,7 +182,7 @@ public class SquigglyParser {
         }
 
         private SquigglyNode newSquigglyNode(String name, SquigglyNode parentNode, List<SquigglyNode> childNodes) {
-            return new SquigglyNode(name, parentNode, childNodes, negated, squiggly);
+            return new SquigglyNode(name, parentNode, childNodes, negated, squiggly, emptyNested);
         }
 
         @SuppressWarnings("SameParameterValue")

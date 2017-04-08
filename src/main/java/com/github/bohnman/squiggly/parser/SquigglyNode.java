@@ -24,6 +24,7 @@ public class SquigglyNode {
     private final boolean squiggly;
     private final Pattern pattern;
     private final boolean negated;
+    private final boolean emptyNested;
 
     /**
      * Constructor.
@@ -34,7 +35,7 @@ public class SquigglyNode {
      * @param squiggly whether or not a not is squiggly
      * @see #isSquiggly()
      */
-    public SquigglyNode(String name, SquigglyNode parent, List<SquigglyNode> children, boolean negated, boolean squiggly) {
+    public SquigglyNode(String name, SquigglyNode parent, List<SquigglyNode> children, boolean negated, boolean squiggly, boolean emptyNested) {
         Validate.isTrue(StringUtils.isNotEmpty(name), "Node names must not be empty");
         Validate.isTrue(!name.equals("-"), "Illegal node name '-'");
 
@@ -43,6 +44,7 @@ public class SquigglyNode {
         this.parent = parent;
         this.children = Collections.unmodifiableList(children);
         this.squiggly = squiggly;
+        this.emptyNested = emptyNested;
         this.pattern = buildPattern();
 
         if (this.pattern == null) {
@@ -157,6 +159,15 @@ public class SquigglyNode {
      */
     public boolean isAnyShallow() {
         return ANY_SHALLOW.equals(name);
+    }
+
+    /**
+     * Says whether this node  explicity specified no children.  (eg. assignee{})
+     *
+     * @return true if empty nested, false otherwise
+     */
+    public boolean isEmptyNested() {
+        return emptyNested;
     }
 
     /**

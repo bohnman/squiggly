@@ -139,6 +139,18 @@ public class SquigglyPropertyFilterTests {
     }
 
     @Test
+    public void testNestedEmpty() {
+        filter("assignee{}");
+        assertEquals("{\"assignee\":{}}", stringify());
+    }
+
+    @Test
+    public void testAssignee() {
+        filter("assignee");
+        assertEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
+    }
+
+    @Test
     public void testNestedSingle() {
         filter("assignee{firstName}");
         assertEquals("{\"assignee\":{\"firstName\":\"" + issue.getAssignee().getFirstName() + "\"}}", stringify());

@@ -9,6 +9,7 @@ parse
 expression
     : negated_expression
     | nested_expression
+    | empty_nested_expression
     | field
     | deep
     ;
@@ -19,6 +20,10 @@ negated_expression
 
 nested_expression
     : field ('|' field)* LSQUIGGLY expression (',' expression)* RSQUIGGLY
+    ;
+
+empty_nested_expression
+    : field ('|' field)* LSQUIGGLY RSQUIGGLY
     ;
 
 deep
