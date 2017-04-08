@@ -32,12 +32,37 @@ deep
 
 
 field
+    : exact_field
+    | regex_field
+    | wildcard_shallow_field
+    | wildcard_field
+    ;
+
+exact_field
     : IDENTIFIER
-    | IDENTIFIER WILDCARD_SHALLOW
-    | IDENTIFIER (WILDCARD_SHALLOW IDENTIFIER)+ WILDCARD_SHALLOW?
-    | WILDCARD_SHALLOW IDENTIFIER
-    | WILDCARD_SHALLOW (IDENTIFIER WILDCARD_SHALLOW)+ IDENTIFIER?
-    | WILDCARD_SHALLOW
+    ;
+
+regex_field
+    : '~' regex_pattern '~' regex_flag*
+    ;
+
+regex_pattern
+    : ('|' | ',' | LSQUIGGLY | RSQUIGGLY | '-' | REGEX_CHAR  | IDENTIFIER | WILDCARD_SHALLOW)+
+    ;
+
+regex_flag
+    : 'i'
+    ;
+
+wildcard_field
+   : IDENTIFIER WILDCARD_SHALLOW
+   | IDENTIFIER (WILDCARD_SHALLOW IDENTIFIER)+ WILDCARD_SHALLOW?
+   | WILDCARD_SHALLOW IDENTIFIER
+   | WILDCARD_SHALLOW (IDENTIFIER WILDCARD_SHALLOW)+ IDENTIFIER?
+   ;
+
+wildcard_shallow_field
+    : WILDCARD_SHALLOW
     ;
 
 
@@ -75,3 +100,6 @@ WILDCARD_DEEP
     : '**'
     ;
 
+REGEX_CHAR
+    : ~('~')
+    ;

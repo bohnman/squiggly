@@ -113,6 +113,18 @@ public class SquigglyPropertyFilterTests {
     }
 
     @Test
+    public void testRegex() {
+        filter("~iss[a-z]e.*~");
+        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
+    }
+
+    @Test
+    public void testRegexCaseInsensitive() {
+        filter("~iss[a-z]esumm.*~i");
+        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
+    }
+
+    @Test
     public void testWildCardStart() {
         filter("issue*");
         assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());

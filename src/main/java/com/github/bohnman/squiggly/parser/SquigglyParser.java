@@ -3,6 +3,12 @@ package com.github.bohnman.squiggly.parser;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.metric.source.SquigglyMetricsSource;
+import com.github.bohnman.squiggly.name.AnyDeepName;
+import com.github.bohnman.squiggly.name.AnyShallowName;
+import com.github.bohnman.squiggly.name.ExactName;
+import com.github.bohnman.squiggly.name.RegexName;
+import com.github.bohnman.squiggly.name.SquigglyName;
+import com.github.bohnman.squiggly.name.WildcardName;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionBaseListener;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionLexer;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionParser;
@@ -17,7 +23,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 /**
@@ -91,6 +99,8 @@ public class SquigglyParser {
         MutableNode parent = new MutableNode();
         MutableNode current;
         boolean emptyNested = false;
+        String regexPattern;
+        Set<String> regexFlags;
 
         @Override
         public void enterExpression(SquigglyExpressionParser.ExpressionContext ctx) {
@@ -124,13 +134,44 @@ public class SquigglyParser {
         }
 
         @Override
-        public void enterField(SquigglyExpressionParser.FieldContext ctx) {
-            current.addName(ctx.getText());
+        public void enterExact_field(SquigglyExpressionParser.Exact_fieldContext ctx) {
+            current.addName(new ExactName(ctx.getText()));
+        }
+
+        @Override
+        public void enterRegex_flag(SquigglyExpressionParser.Regex_flagContext ctx) {
+            if (regexFlags == null) {
+                regexFlags = new HashSet<>(10);
+            }
+
+            regexFlags.add(ctx.getText());
+        }
+
+        @Override
+        public void enterRegex_pattern(SquigglyExpressionParser.Regex_patternContext ctx) {
+            regexPattern = ctx.getText();
+        }
+
+        @Override
+        public void exitRegex_field(SquigglyExpressionParser.Regex_fieldContext ctx) {
+            current.addName(new RegexName(regexPattern, regexFlags));
+            regexPattern = null;
+            regexFlags = null;
+        }
+
+        @Override
+        public void enterWildcard_field(SquigglyExpressionParser.Wildcard_fieldContext ctx) {
+            current.addName(new WildcardName(ctx.getText()));
+        }
+
+        @Override
+        public void enterWildcard_shallow_field(SquigglyExpressionParser.Wildcard_shallow_fieldContext ctx) {
+            current.addName(AnyShallowName.get());
         }
 
         @Override
         public void enterDeep(SquigglyExpressionParser.DeepContext ctx) {
-            current.addName(SquigglyNode.ANY_DEEP);
+            current.addName(AnyDeepName.get());
         }
 
         public List<SquigglyNode> getNodes() {
@@ -139,7 +180,7 @@ public class SquigglyParser {
     }
 
     private class MutableNode {
-        private List<String> names;
+        private List<SquigglyName> names;
         private boolean negated;
         private boolean squiggly;
         private boolean emptyNested;
@@ -158,7 +199,7 @@ public class SquigglyParser {
             } else {
                 nodes = new ArrayList<>(names.size());
 
-                for (String name : names) {
+                for (SquigglyName name : names) {
                     nodes.add(toSquigglyNode(name, parentNode));
                 }
             }
@@ -166,7 +207,7 @@ public class SquigglyParser {
             return nodes;
         }
 
-        public SquigglyNode toSquigglyNode(String name, SquigglyNode parentNode) {
+        public SquigglyNode toSquigglyNode(SquigglyName name, SquigglyNode parentNode) {
             SquigglyNode node;
 
             if (children == null || children.isEmpty()) {
@@ -181,7 +222,7 @@ public class SquigglyParser {
 
         }
 
-        private SquigglyNode newSquigglyNode(String name, SquigglyNode parentNode, List<SquigglyNode> childNodes) {
+        private SquigglyNode newSquigglyNode(SquigglyName name, SquigglyNode parentNode, List<SquigglyNode> childNodes) {
             return new SquigglyNode(name, parentNode, childNodes, negated, squiggly, emptyNested);
         }
 
@@ -209,12 +250,12 @@ public class SquigglyParser {
             }
 
             if (allNegated) {
-                childNodes.add(newSquigglyNode(SquigglyNode.ANY_DEEP, parentNode, Collections.<SquigglyNode>emptyList()));
+                childNodes.add(newSquigglyNode(AnyDeepName.get(), parentNode, Collections.<SquigglyNode>emptyList()));
             }
         }
 
         @SuppressWarnings("UnusedReturnValue")
-        public MutableNode addName(String name) {
+        public MutableNode addName(SquigglyName name) {
             if (names == null) {
                 names = new ArrayList<>();
             }

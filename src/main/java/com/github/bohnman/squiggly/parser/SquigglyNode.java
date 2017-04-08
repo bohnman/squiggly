@@ -1,12 +1,12 @@
 package com.github.bohnman.squiggly.parser;
 
+import com.github.bohnman.squiggly.name.AnyDeepName;
+import com.github.bohnman.squiggly.name.AnyShallowName;
+import com.github.bohnman.squiggly.name.SquigglyName;
 import net.jcip.annotations.ThreadSafe;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * A squiggly node represents a component of a filter expression.
@@ -14,15 +14,10 @@ import java.util.regex.Pattern;
 @ThreadSafe
 public class SquigglyNode {
 
-    public static final String ANY_DEEP = "**";
-    public static final String ANY_SHALLOW = "*";
-
-    private final String name;
-    private final String rawName;
+    private final SquigglyName name;
     private final SquigglyNode parent;
     private final List<SquigglyNode> children;
     private final boolean squiggly;
-    private final Pattern pattern;
     private final boolean negated;
     private final boolean emptyNested;
 
@@ -37,42 +32,13 @@ public class SquigglyNode {
      * @param emptyNested whether of not filter specified {}
      * @see #isSquiggly()
      */
-    public SquigglyNode(String name, SquigglyNode parent, List<SquigglyNode> children, boolean negated, boolean squiggly, boolean emptyNested) {
-        Validate.isTrue(StringUtils.isNotEmpty(name), "Node names must not be empty");
-        Validate.isTrue(!name.equals("-"), "Illegal node name '-'");
-
+    public SquigglyNode(SquigglyName name, SquigglyNode parent, List<SquigglyNode> children, boolean negated, boolean squiggly, boolean emptyNested) {
         this.name = name;
         this.negated = negated;
         this.parent = parent;
         this.children = Collections.unmodifiableList(children);
         this.squiggly = squiggly;
         this.emptyNested = emptyNested;
-        this.pattern = buildPattern();
-
-        if (this.pattern == null) {
-            this.rawName = this.name;
-        } else {
-            this.rawName = StringUtils.remove(this.name, '*');
-        }
-    }
-
-    private Pattern buildPattern() {
-        if (isAnyShallow()) {
-            return null;
-        }
-
-        if (isAnyDeep()) {
-            return null;
-        }
-
-        if (!StringUtils.containsAny(name, "*?")) {
-            return null;
-        }
-
-        String[] search = {"*", "?"};
-        String[] replace = {".*", ".?"};
-
-        return Pattern.compile("^" + StringUtils.replaceEach(name, search, replace) + "$");
     }
 
     /**
@@ -82,28 +48,7 @@ public class SquigglyNode {
      * @return -1 if no match, MAX_INT if exact match, or positive number for wildcards
      */
     public int match(String otherName) {
-
-        if (pattern != null) {
-            if (pattern.matcher(otherName).matches()) {
-                return rawName.length() + 2;
-            } else {
-                return -1;
-            }
-        }
-
-        if (isAnyDeep()) {
-            return 0;
-        }
-
-        if (isAnyShallow()) {
-            return 1;
-        }
-
-        if (name.equals(otherName)) {
-            return Integer.MAX_VALUE;
-        }
-
-        return -1;
+        return name.match(otherName);
     }
 
     /**
@@ -112,7 +57,7 @@ public class SquigglyNode {
      * @return name
      */
     public String getName() {
-        return name;
+        return name.getName();
     }
 
     /**
@@ -151,7 +96,7 @@ public class SquigglyNode {
      * @return true if **, false if not
      */
     public boolean isAnyDeep() {
-        return ANY_DEEP.equals(name);
+        return AnyDeepName.ID.equals(name.getName());
     }
 
     /**
@@ -160,7 +105,7 @@ public class SquigglyNode {
      * @return true if *, false if not
      */
     public boolean isAnyShallow() {
-        return ANY_SHALLOW.equals(name);
+        return AnyShallowName.ID.equals(name.getName());
     }
 
     /**

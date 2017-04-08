@@ -11,6 +11,8 @@ import com.github.bohnman.squiggly.context.SquigglyContext;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.metric.source.SquigglyMetricsSource;
+import com.github.bohnman.squiggly.name.AnyDeepName;
+import com.github.bohnman.squiggly.name.ExactName;
 import com.github.bohnman.squiggly.parser.SquigglyNode;
 import com.github.bohnman.squiggly.view.PropertyView;
 import com.github.bohnman.squiggly.view.PropertyViewIntrospector;
@@ -73,7 +75,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
      */
     private static final Cache<Pair<Path, String>, Boolean> MATCH_CACHE;
     private static final SquigglyMetricsSource METRICS_SOURCE;
-    private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(new SquigglyNode(PropertyView.BASE_VIEW, null, Collections.<SquigglyNode>emptyList(), false, true, false));
+    private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(new SquigglyNode(new ExactName(PropertyView.BASE_VIEW), null, Collections.<SquigglyNode>emptyList(), false, true, false));
 
     static {
         MATCH_CACHE = CacheBuilder.from(SquigglyConfig.getFilterPathCacheSpec()).build();
@@ -153,7 +155,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         String filter = context.getFilter();
 
 
-        if (SquigglyNode.ANY_DEEP.equals(filter)) {
+        if (AnyDeepName.ID.equals(filter)) {
             return true;
         }
 
