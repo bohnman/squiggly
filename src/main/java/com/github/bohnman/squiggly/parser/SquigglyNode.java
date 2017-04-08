@@ -32,7 +32,9 @@ public class SquigglyNode {
      * @param name     name of the node
      * @param parent   parent node
      * @param children child nodes
+     * @param negated whether or not the node has been negated
      * @param squiggly whether or not a not is squiggly
+     * @param emptyNested whether of not filter specified {}
      * @see #isSquiggly()
      */
     public SquigglyNode(String name, SquigglyNode parent, List<SquigglyNode> children, boolean negated, boolean squiggly, boolean emptyNested) {
