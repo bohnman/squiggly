@@ -10,26 +10,33 @@ expression
     : negated_expression
     | nested_expression
     | empty_nested_expression
+    | dot_path
     | field
     | deep
     ;
 
 negated_expression
     : '-' field
+    | '-' dot_path
     ;
 
 nested_expression
     : field ('|' field)* LSQUIGGLY expression (',' expression)* RSQUIGGLY
+    | dot_path LSQUIGGLY expression (',' expression)* RSQUIGGLY
     ;
 
 empty_nested_expression
     : field ('|' field)* LSQUIGGLY RSQUIGGLY
+    | dot_path LSQUIGGLY RSQUIGGLY
     ;
 
 deep
     : WILDCARD_DEEP
     ;
 
+dot_path
+    : field ('.' field)+
+    ;
 
 field
     : exact_field
@@ -48,7 +55,7 @@ regex_field
     ;
 
 regex_pattern
-    : ('|' | ',' | LSQUIGGLY | RSQUIGGLY | '-' | REGEX_CHAR  | IDENTIFIER | WILDCARD_SHALLOW)+
+    : ('.' | '|' | ',' | LSQUIGGLY | RSQUIGGLY | '-' | REGEX_CHAR  | IDENTIFIER | WILDCARD_SHALLOW)+
     ;
 
 regex_flag

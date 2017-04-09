@@ -1,9 +1,14 @@
 package com.github.bohnman.squiggly.model;
 
+import com.github.bohnman.squiggly.view.FullView;
+
 public class User {
 
     private String firstName;
     private String lastName;
+
+    @FullView
+    private String entityType = "User";
 
     public User() {
     }
@@ -28,5 +33,13 @@ public class User {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getEntityType() {
+        return entityType;
+    }
+
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
     }
 }

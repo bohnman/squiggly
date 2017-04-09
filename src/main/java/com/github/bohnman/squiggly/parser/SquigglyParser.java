@@ -13,6 +13,7 @@ import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionBaseListener;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionLexer;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionParser;
 import com.github.bohnman.squiggly.util.antlr4.ThrowingErrorListener;
+import com.github.bohnman.squiggly.view.PropertyView;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
@@ -96,11 +97,16 @@ public class SquigglyParser {
 
     private class Listener extends SquigglyExpressionBaseListener {
 
-        MutableNode parent = new MutableNode();
+        MutableNode root = new MutableNode();
+        MutableNode parent = root;
         MutableNode current;
         boolean emptyNested = false;
+        boolean negated = false;
         String regexPattern;
         Set<String> regexFlags;
+        int dotPath = 0;
+        MutableNode dotCurrent;
+        SquigglyName name;
 
         @Override
         public void enterExpression(SquigglyExpressionParser.ExpressionContext ctx) {
@@ -117,25 +123,88 @@ public class SquigglyParser {
             super.enterParse(ctx);
         }
 
+
+        @Override
+        public void enterDot_path(SquigglyExpressionParser.Dot_pathContext ctx) {
+            dotPath = 1;
+            dotCurrent = current;
+        }
+
+        @Override
+        public void exitDot_path(SquigglyExpressionParser.Dot_pathContext ctx) {
+            dotPath = 0;
+            current.negated = negated;
+            negated = false;
+
+            if (dotCurrent.emptyNested && dotCurrent != current) {
+                current.emptyNested = true;
+                dotCurrent.emptyNested = false;
+            }
+
+            if (dotCurrent.nested) {
+                current.returnParent = dotCurrent;
+                parent = current;
+            } else {
+                current = dotCurrent;
+            }
+
+            dotCurrent = null;
+        }
+
         @Override
         public void enterNested_expression(SquigglyExpressionParser.Nested_expressionContext ctx) {
             current.squiggly = true;
+            current.nested = true;
             parent = current;
         }
 
         @Override
         public void exitNested_expression(SquigglyExpressionParser.Nested_expressionContext ctx) {
-            parent = parent.parent;
+            if (parent.returnParent == null) {
+                parent = parent.parent;
+            }  else {
+                parent = parent.returnParent.parent;
+            }
+
+
         }
 
         @Override
         public void enterNegated_expression(SquigglyExpressionParser.Negated_expressionContext ctx) {
-            current.negated = true;
+            negated = true;
+        }
+
+        @Override
+        public void exitNegated_expression(SquigglyExpressionParser.Negated_expressionContext ctx) {
+            if (negated) {
+                current.negated = true;
+            }
+            negated = false;
+        }
+
+        @Override
+        public void enterField(SquigglyExpressionParser.FieldContext ctx) {
+            super.enterField(ctx);
+        }
+
+        @Override
+        public void exitField(SquigglyExpressionParser.FieldContext ctx) {
+            if (dotPath > 1) {
+                current.squiggly = true;
+                current = current.newChild();
+            }
+
+            if (dotPath > 0) {
+                dotPath++;
+            }
+
+
+            current.addName(name);
         }
 
         @Override
         public void enterExact_field(SquigglyExpressionParser.Exact_fieldContext ctx) {
-            current.addName(new ExactName(ctx.getText()));
+            name = new ExactName(ctx.getText());
         }
 
         @Override
@@ -154,19 +223,19 @@ public class SquigglyParser {
 
         @Override
         public void exitRegex_field(SquigglyExpressionParser.Regex_fieldContext ctx) {
-            current.addName(new RegexName(regexPattern, regexFlags));
+            name = new RegexName(regexPattern, regexFlags);
             regexPattern = null;
             regexFlags = null;
         }
 
         @Override
         public void enterWildcard_field(SquigglyExpressionParser.Wildcard_fieldContext ctx) {
-            current.addName(new WildcardName(ctx.getText()));
+            name = new WildcardName(ctx.getText());
         }
 
         @Override
         public void enterWildcard_shallow_field(SquigglyExpressionParser.Wildcard_shallow_fieldContext ctx) {
-            current.addName(AnyShallowName.get());
+            name = AnyShallowName.get();
         }
 
         @Override
@@ -186,6 +255,8 @@ public class SquigglyParser {
         private boolean emptyNested;
         private List<MutableNode> children;
         private MutableNode parent;
+        private MutableNode returnParent;
+        public boolean nested;
 
         public List<SquigglyNode> toSquigglyNodes(SquigglyNode parentNode) {
             if (names == null || names.isEmpty()) {
@@ -250,7 +321,7 @@ public class SquigglyParser {
             }
 
             if (allNegated) {
-                childNodes.add(newSquigglyNode(AnyDeepName.get(), parentNode, Collections.<SquigglyNode>emptyList()));
+                childNodes.add(newSquigglyNode(new ExactName(PropertyView.BASE_VIEW), parentNode, Collections.<SquigglyNode>emptyList()));
             }
         }
 
