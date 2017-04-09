@@ -9,6 +9,8 @@
 * [Reference Object](#reference-object)
 * [Top-Level Filters](#top-level-filters)
 * [Nested Filters](#nested-filters)
+* [Dot Syntax](#dot-syntax)
+* [Regex Filters](#regex-filters)
 * [Other Filters](#other-filters)
 * [Resolving Conflicts](#resolving-conflicts)
 * [Excluding Fields](#excluding-fields)
@@ -236,6 +238,82 @@ String filter = "actions{user{lastName}}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"actions":[{"user":{"lastName":"Mormont"}},{"user":{"lastName":"Naharis"}}]}
+```
+
+
+## <a name="dot-syntax"></a>Dot Syntax
+
+As an alternative to using the squiggly syntax for nested filter, you can use the dot syntax
+
+```java
+String filter = "assignee.firstName";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.println(SquigglyUtils.stringify(mapper, issue));
+// prints {"assignee":{"firstName":"Jorah"}}
+
+```
+
+You can exclude fields using the dot syntax.  Note that the exclusion applies to the last field.
+
+```java
+String filter = "-assignee.firstName";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.println(SquigglyUtils.stringify(mapper, issue));
+// prints {"assignee":{"lastName":"Mormont"}}
+```
+
+You can also combine the dot syntax with the squiggly syntax.
+
+```java
+String filter = "actions.user{firstName}";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.println(SquigglyUtils.stringify(mapper, issue));
+// prints {"actions":[{"user":{"firstName":"Jorah"}},{"user":{"firstName":"Daario"}}]}
+```
+
+One limitation is that you cannot use the | syntax with the dot syntax
+
+```java
+String filter = "actions.user|assignee{firstName}";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.println(SquigglyUtils.stringify(mapper, issue));
+// throws exception
+```
+
+## <a name="regex-filters"></a>Regex Filters
+
+In addition to using wildcards, you can also use regular expressions.
+
+Here's an example:
+
+```java
+String filter = "~iss[a-z]e.*~";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.println(SquigglyUtils.stringify(mapper, issue));
+// prints {"issueSummary":"Dragons Need Fed","issueDetails":"I need my dragons fed pronto."}
+```
+
+Notice the tildes mark the begin and of the regex pattern.
+
+You can also specifiy a case insensitive match.
+
+```java
+String filter = "~iss[a-z]esumm.*~i";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.println(SquigglyUtils.stringify(mapper, issue));
+// prints {"issueSummary":"Dragons Need Fed"}
+```
+
+Why use tildes and not forward slashes for regular expressions?  Tildes are query string friendly and forward slashes 
+are not.
+  
+However, you may use forward slashes if you like.
+
+```java
+String filter = "/iss[a-z]esumm.*/i";
+ObjectMapper mapper = Squiggly.init(mapper, filter);
+System.out.println(SquigglyUtils.stringify(mapper, issue));
+// prints {"issueSummary":"Dragons Need Fed"}
 ```
 
 ## <a name="other-filters"></a>Other Filters
