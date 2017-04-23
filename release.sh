@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export GPG_TTY=$(tty)
+
 # Helper script to create a new release.
 
 releaseVersion="$1"
