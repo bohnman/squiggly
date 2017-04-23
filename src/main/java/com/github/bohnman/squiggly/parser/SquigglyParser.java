@@ -9,7 +9,7 @@ import com.github.bohnman.squiggly.name.ExactName;
 import com.github.bohnman.squiggly.name.RegexName;
 import com.github.bohnman.squiggly.name.SquigglyName;
 import com.github.bohnman.squiggly.name.WildcardName;
-import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionBaseListener;
+import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionBaseVisitor;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionLexer;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionParser;
 import com.github.bohnman.squiggly.util.antlr4.ThrowingErrorListener;
@@ -19,13 +19,14 @@ import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -69,11 +70,8 @@ public class SquigglyParser {
         SquigglyExpressionLexer lexer = ThrowingErrorListener.overwrite(new SquigglyExpressionLexer(new ANTLRInputStream(filter)));
         SquigglyExpressionParser parser = ThrowingErrorListener.overwrite(new SquigglyExpressionParser(new CommonTokenStream(lexer)));
 
-        ParseTreeWalker walker = new ParseTreeWalker();
-        Listener listener = new Listener();
-        walker.walk(listener, parser.parse());
-
-        List<SquigglyNode> nodes = Collections.unmodifiableList(listener.getNodes());
+        Visiter visiter = new Visiter();
+        List<SquigglyNode> nodes = visiter.visit(parser.parse());
 
         CACHE.put(filter, nodes);
         return nodes;
@@ -95,190 +93,129 @@ public class SquigglyParser {
         return METRICS_SOURCE;
     }
 
-    private class Listener extends SquigglyExpressionBaseListener {
-
-        MutableNode root = new MutableNode();
-        MutableNode parent = root;
-        MutableNode current;
-        boolean emptyNested = false;
-        boolean negated = false;
-        String regexPattern;
-        Set<String> regexFlags;
-        int dotPath = 0;
-        MutableNode dotCurrent;
-        SquigglyName name;
+    private class Visiter extends SquigglyExpressionBaseVisitor<List<SquigglyNode>> {
+        MutableNode root = new MutableNode(new ExactName("root"));
 
         @Override
-        public void enterExpression(SquigglyExpressionParser.ExpressionContext ctx) {
-            current = parent.newChild();
+        public List<SquigglyNode> visitParse(SquigglyExpressionParser.ParseContext ctx) {
+            handleExpressionList(ctx.expression_list(), root);
+            return root.getSquigglyChildNodes(null);
         }
 
-        @Override
-        public void enterEmpty_nested_expression(SquigglyExpressionParser.Empty_nested_expressionContext ctx) {
-            current.emptyNested = true;
+        private void handleExpressionList(SquigglyExpressionParser.Expression_listContext ctx, MutableNode parent) {
+            for (SquigglyExpressionParser.ExpressionContext expressionContext : ctx.expression()) {
+                handleExpression(expressionContext, parent);
+            }
         }
 
-        @Override
-        public void enterParse(SquigglyExpressionParser.ParseContext ctx) {
-            super.enterParse(ctx);
-        }
+        private void handleExpression(SquigglyExpressionParser.ExpressionContext ctx, MutableNode parent) {
 
-
-        @Override
-        public void enterDot_path(SquigglyExpressionParser.Dot_pathContext ctx) {
-            dotPath = 1;
-            dotCurrent = current;
-        }
-
-        @Override
-        public void exitDot_path(SquigglyExpressionParser.Dot_pathContext ctx) {
-            dotPath = 0;
-            current.negated = negated;
-            negated = false;
-
-            if (dotCurrent.emptyNested && dotCurrent != current) {
-                current.emptyNested = true;
-                dotCurrent.emptyNested = false;
+            if (ctx.negated_expression() != null) {
+                handleNegatedExpression(ctx.negated_expression(), parent);
+                return;
             }
 
-            if (dotCurrent.nested) {
-                current.returnParent = dotCurrent;
-                parent = current;
+            List<SquigglyName> names;
+
+            if (ctx.field() != null) {
+                names = Collections.singletonList(createName(ctx.field()));
+            } else if (ctx.dot_path() != null) {
+                parent.squiggly = true;
+                for (int i = 0; i < ctx.dot_path().field().size() - 1; i++) {
+                    parent = parent.addChild(new MutableNode(createName(ctx.dot_path().field(i))));
+                    parent.squiggly = true;
+                }
+                names = Collections.singletonList(createName(ctx.dot_path().field().get(ctx.dot_path().field().size() - 1)));
+            } else if (ctx.field_list() != null) {
+                names = new ArrayList<>(ctx.field_list().field().size());
+                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.field_list().field()) {
+                    names.add(createName(fieldContext));
+                }
+            } else if (ctx.deep() != null) {
+                names = Collections.singletonList((SquigglyName) AnyDeepName.get());
             } else {
-                current = dotCurrent;
-            }
-
-            dotCurrent = null;
-        }
-
-        @Override
-        public void enterNested_expression(SquigglyExpressionParser.Nested_expressionContext ctx) {
-            current.squiggly = true;
-            current.nested = true;
-            parent = current;
-        }
-
-        @Override
-        public void exitNested_expression(SquigglyExpressionParser.Nested_expressionContext ctx) {
-            if (parent.returnParent == null) {
-                parent = parent.parent;
-            }  else {
-                parent = parent.returnParent.parent;
+                names = Collections.emptyList();
             }
 
 
-        }
+            for (SquigglyName name : names) {
+                MutableNode node = parent.addChild(new MutableNode(name));
 
-        @Override
-        public void enterNegated_expression(SquigglyExpressionParser.Negated_expressionContext ctx) {
-            negated = true;
-        }
-
-        @Override
-        public void exitNegated_expression(SquigglyExpressionParser.Negated_expressionContext ctx) {
-            if (negated) {
-                current.negated = true;
-            }
-            negated = false;
-        }
-
-        @Override
-        public void enterField(SquigglyExpressionParser.FieldContext ctx) {
-            super.enterField(ctx);
-        }
-
-        @Override
-        public void exitField(SquigglyExpressionParser.FieldContext ctx) {
-            if (dotPath > 1) {
-                current.squiggly = true;
-                current = current.newChild();
+                if (ctx.empty_nested_expression() != null) {
+                    node.emptyNested = true;
+                } else if (ctx.nested_expression() != null) {
+                    node.squiggly = true;
+                    handleExpressionList(ctx.nested_expression().expression_list(), node);
+                }
             }
 
-            if (dotPath > 0) {
-                dotPath++;
+        }
+
+        private SquigglyName createName(SquigglyExpressionParser.FieldContext ctx) {
+            SquigglyName name;
+
+            if (ctx.exact_field() != null) {
+                name = new ExactName(ctx.getText());
+            } else if (ctx.wildcard_field() != null) {
+                name = new WildcardName(ctx.getText());
+            } else if (ctx.regex_field() != null) {
+                String regexPattern = ctx.regex_field().regex_pattern().getText();
+                Set<String> regexFlags = new HashSet<>(ctx.regex_field().regex_flag().size());
+
+                for (SquigglyExpressionParser.Regex_flagContext regex_flagContext : ctx.regex_field().regex_flag()) {
+                    regexFlags.add(regex_flagContext.getText());
+                }
+
+                name = new RegexName(regexPattern, regexFlags);
+            } else if (ctx.wildcard_shallow_field() != null) {
+                name = AnyShallowName.get();
+            } else {
+                throw new IllegalArgumentException("Unhandle field: " + ctx.getText());
             }
 
-
-            current.addName(name);
+            return name;
         }
 
-        @Override
-        public void enterExact_field(SquigglyExpressionParser.Exact_fieldContext ctx) {
-            name = new ExactName(ctx.getText());
-        }
 
-        @Override
-        public void enterRegex_flag(SquigglyExpressionParser.Regex_flagContext ctx) {
-            if (regexFlags == null) {
-                regexFlags = new HashSet<>(10);
+        private void handleNegatedExpression(SquigglyExpressionParser.Negated_expressionContext ctx, MutableNode parent) {
+            if (ctx.field() != null) {
+                parent.addChild(new MutableNode(createName(ctx.field()), true));
+            } else if (ctx.dot_path() != null) {
+                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.dot_path().field()) {
+                    parent.squiggly = true;
+                    parent = parent.addChild(new MutableNode(createName(fieldContext)));
+                }
+
+                parent.negated = true;
             }
-
-            regexFlags.add(ctx.getText());
         }
 
-        @Override
-        public void enterRegex_pattern(SquigglyExpressionParser.Regex_patternContext ctx) {
-            regexPattern = ctx.getText();
-        }
-
-        @Override
-        public void exitRegex_field(SquigglyExpressionParser.Regex_fieldContext ctx) {
-            name = new RegexName(regexPattern, regexFlags);
-            regexPattern = null;
-            regexFlags = null;
-        }
-
-        @Override
-        public void enterWildcard_field(SquigglyExpressionParser.Wildcard_fieldContext ctx) {
-            name = new WildcardName(ctx.getText());
-        }
-
-        @Override
-        public void enterWildcard_shallow_field(SquigglyExpressionParser.Wildcard_shallow_fieldContext ctx) {
-            name = AnyShallowName.get();
-        }
-
-        @Override
-        public void enterDeep(SquigglyExpressionParser.DeepContext ctx) {
-            current.addName(AnyDeepName.get());
-        }
-
-        public List<SquigglyNode> getNodes() {
-            return parent.getSquigglyChildNodes(null);
-        }
     }
 
     private class MutableNode {
-        private List<SquigglyName> names;
+        private SquigglyName name;
         private boolean negated;
         private boolean squiggly;
         private boolean emptyNested;
-        private List<MutableNode> children;
+        private Map<String, MutableNode> children;
         private MutableNode parent;
         private MutableNode returnParent;
         public boolean nested;
 
-        public List<SquigglyNode> toSquigglyNodes(SquigglyNode parentNode) {
-            if (names == null || names.isEmpty()) {
+        public MutableNode(SquigglyName name) {
+            this.name = name;
+        }
+
+        public MutableNode(SquigglyName name, boolean negated) {
+            this.name = name;
+            this.negated = negated;
+        }
+
+        public SquigglyNode toSquigglyNode(SquigglyNode parentNode) {
+            if (name == null) {
                 throw new IllegalArgumentException("No Names specified");
             }
 
-            List<SquigglyNode> nodes;
-
-            if (names.size() == 1) {
-                nodes = Collections.singletonList(toSquigglyNode(names.get(0), parentNode));
-            } else {
-                nodes = new ArrayList<>(names.size());
-
-                for (SquigglyName name : names) {
-                    nodes.add(toSquigglyNode(name, parentNode));
-                }
-            }
-
-            return nodes;
-        }
-
-        public SquigglyNode toSquigglyNode(SquigglyName name, SquigglyNode parentNode) {
             SquigglyNode node;
 
             if (children == null || children.isEmpty()) {
@@ -312,8 +249,8 @@ public class SquigglyParser {
         private void addSquigglyChildNodes(SquigglyNode parentNode, List<SquigglyNode> childNodes) {
             boolean allNegated = true;
 
-            for (MutableNode child : children) {
-                childNodes.addAll(child.toSquigglyNodes(parentNode));
+            for (MutableNode child : children.values()) {
+                childNodes.add(child.toSquigglyNode(parentNode));
 
                 if (allNegated && !child.negated) {
                     allNegated = false;
@@ -326,12 +263,8 @@ public class SquigglyParser {
         }
 
         @SuppressWarnings("UnusedReturnValue")
-        public MutableNode addName(SquigglyName name) {
-            if (names == null) {
-                names = new ArrayList<>();
-            }
-
-            names.add(name);
+        public MutableNode withName(SquigglyName name) {
+            this.name = name;
             return this;
         }
 
@@ -340,15 +273,38 @@ public class SquigglyParser {
             return this;
         }
 
-        public MutableNode newChild() {
-            MutableNode child = new MutableNode()
-                    .withParent(this);
+        public MutableNode addChild(MutableNode child) {
+            child.parent = this;
 
             if (children == null) {
-                children = new ArrayList<>();
+                children = new LinkedHashMap<>();
             }
 
-            children.add(child);
+            String name = child.name.getName();
+            MutableNode existing = children.get(name);
+
+            if (existing != null) {
+                if (child.children != null) {
+                    for (MutableNode otherChild : child.children.values()) {
+                        otherChild.parent = this;
+                    }
+
+                    if (existing.children == null) {
+                        existing.children = child.children;
+                    } else {
+                        existing.children.putAll(child.children);
+                    }
+
+                    existing.children.putAll(child.children);
+                }
+
+
+                existing.squiggly = existing.squiggly || child.squiggly;
+                existing.emptyNested = existing.emptyNested && child.emptyNested;
+                return existing;
+            }
+
+            children.put(name, child);
 
             return child;
         }

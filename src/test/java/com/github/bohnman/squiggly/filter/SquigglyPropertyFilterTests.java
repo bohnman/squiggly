@@ -228,7 +228,7 @@ public class SquigglyPropertyFilterTests {
 
     @Test
     public void testMultipleNestedSingle() {
-        filter("reporter|assignee{lastName}");
+        filter("(reporter|assignee){lastName}");
         assertEquals("{\"reporter\":{\"lastName\":\"" + issue.getReporter().getLastName() + "\"},\"assignee\":{\"lastName\":\"" + issue.getAssignee().getLastName() + "\"}}", stringify());
     }
 
@@ -242,6 +242,18 @@ public class SquigglyPropertyFilterTests {
     public void testDeepNested() {
         filter("actions{user{lastName}}");
         assertEquals("{\"actions\":[{\"user\":{\"lastName\":\"" + issue.getActions().get(0).getUser().getLastName() + "\"}},{\"user\":{\"lastName\":\"" + issue.getActions().get(1).getUser().getLastName() + "\"}}]}", stringify());
+    }
+
+    @Test
+    public void testSameParent() {
+        filter("assignee{firstName},assignee{lastName}");
+        assertEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
+
+        filter("assignee.firstName,assignee.lastName");
+        assertEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
+
+        filter("actions.user{firstName},actions.user{lastName}");
+        assertEquals("{\"actions\":[{\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}},{\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\"}}]}", stringify());
     }
 
     @Test
@@ -290,7 +302,7 @@ public class SquigglyPropertyFilterTests {
         assertEquals(raw.replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
 
         filter("**,repo*{lastName,entityType},repo*{firstName,entityType}");
-        assertEquals(raw.replace(",\"lastName\":\"" + issue.getReporter().getLastName() + "\"", ""), stringify());
+        assertEquals(raw, stringify());
 
         filter("**,reporter{lastName,entityType},repo*{firstName,entityType}");
         assertEquals(raw.replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
@@ -299,7 +311,7 @@ public class SquigglyPropertyFilterTests {
         assertEquals(raw.replace(",\"lastName\":\"" + issue.getReporter().getLastName() + "\"", ""), stringify());
 
         filter("**,reporter{firstName,entityType},reporter{lastName,entityType}");
-        assertEquals(raw.replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
+        assertEquals(raw, stringify());
     }
 
     @Test

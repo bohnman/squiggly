@@ -3,16 +3,25 @@ grammar SquigglyExpression;
 // Parser Rules ---------------------------------------------------------------
 
 parse
-    : expression (',' expression)* EOF
+    : expression_list EOF
+    ;
+
+expression_list
+    : expression (',' expression)*
     ;
 
 expression
     : negated_expression
-    | nested_expression
-    | empty_nested_expression
+    | field_list (nested_expression|empty_nested_expression)
+    | dot_path (nested_expression|empty_nested_expression)
     | dot_path
     | field
     | deep
+    ;
+
+field_list
+    : '(' field ('|' field)* ')'
+    | field
     ;
 
 negated_expression
@@ -21,13 +30,11 @@ negated_expression
     ;
 
 nested_expression
-    : field ('|' field)* LSQUIGGLY expression (',' expression)* RSQUIGGLY
-    | dot_path LSQUIGGLY expression (',' expression)* RSQUIGGLY
+    : LSQUIGGLY expression_list RSQUIGGLY
     ;
 
 empty_nested_expression
-    : field ('|' field)* LSQUIGGLY RSQUIGGLY
-    | dot_path LSQUIGGLY RSQUIGGLY
+    : LSQUIGGLY RSQUIGGLY
     ;
 
 deep

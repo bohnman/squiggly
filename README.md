@@ -225,7 +225,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 ### Select Same Field From Different Nested Objects
 
 ```java
-String filter = "assignee|reporter{firstName}";
+String filter = "(assignee|reporter){firstName}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"reporter":{"firstName":"Daenerys"},"assignee":{"firstName":"Jorah"}}
@@ -274,7 +274,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 One limitation is that you cannot use the | syntax with the dot syntax
 
 ```java
-String filter = "actions.user|assignee{firstName}";
+String filter = "(actions.user|assignee){firstName}";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // throws exception
