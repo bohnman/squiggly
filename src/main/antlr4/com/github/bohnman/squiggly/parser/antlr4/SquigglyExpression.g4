@@ -20,7 +20,7 @@ expression
     ;
 
 field_list
-    : '(' field ('|' field)* ')'
+    : '(' field (('|'|',') field)* ')'
     | field
     ;
 
@@ -31,10 +31,12 @@ negated_expression
 
 nested_expression
     : LSQUIGGLY expression_list RSQUIGGLY
+    | LBRACE expression_list RBRACE
     ;
 
 empty_nested_expression
     : LSQUIGGLY RSQUIGGLY
+    | LBRACE RBRACE
     ;
 
 deep
@@ -62,7 +64,7 @@ regex_field
     ;
 
 regex_pattern
-    : ('.' | '|' | ',' | LSQUIGGLY | RSQUIGGLY | '-' | REGEX_CHAR  | IDENTIFIER | WILDCARD_SHALLOW)+
+    : ('.' | '|' | ',' | LSQUIGGLY | RSQUIGGLY | LBRACE | RBRACE | '-' | REGEX_CHAR  | IDENTIFIER | WILDCARD_SHALLOW)+
     ;
 
 regex_flag
@@ -98,6 +100,14 @@ fragment LETTER
 
 fragment VALID_FIELD_CHAR
     : (LETTER | DIGIT | '$' | '_')
+    ;
+
+LBRACE
+    : '['
+    ;
+
+RBRACE
+    : ']'
     ;
 
 LSQUIGGLY
