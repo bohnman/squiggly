@@ -17,22 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 public class Application {
 
     @Bean
-    public ObjectMapper objectMapper() {
-        return Squiggly.init(new ObjectMapper(), new RequestSquigglyContextProvider() {
-            @Override
-            protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
-
-                // OPTIONAL: automatically wrap filter expressions in items{} when the object is a ListResponse
-                if (filter != null && ListResponse.class.isAssignableFrom(beanClass)) {
-                    filter = "items{" + filter + "}";
-                }
-
-                return filter;
-            }
-        });
-    }
-
-    @Bean
     public FilterRegistrationBean squigglyRequestFilter() {
         FilterRegistrationBean filter = new FilterRegistrationBean();
         filter.setFilter(new SquigglyRequestFilter());
