@@ -41,7 +41,22 @@ public class Application {
     }
 
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(Application.class, args);
+        Iterable<ObjectMapper> objectMappers = SpringApplication.run(Application.class, args)
+            .getBeansOfType(ObjectMapper.class)
+            .values();
+
+        Squiggly.init(objectMappers, new RequestSquigglyContextProvider() {
+            @Override
+            protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
+
+                // OPTIONAL: automatically wrap filter expressions in items{} when the object is a ListResponse
+                if (filter != null && ListResponse.class.isAssignableFrom(beanClass)) {
+                    filter = "items{" + filter + "}";
+                }
+
+                return filter;
+            }
+        });
     }
 
 }
