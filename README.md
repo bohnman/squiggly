@@ -50,7 +50,7 @@ Integrating Squiggly into your webapp is covered in [Custom Integration](#custom
 <dependency>
     <groupId>com.github.bohnman</groupId>
     <artifactId>squiggly-filter-jackson</artifactId>
-    <version>1.3.1</version>
+    <version>1.3.2</version>
 </dependency>
 ```
 
