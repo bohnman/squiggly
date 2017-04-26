@@ -30,6 +30,17 @@ public class Squiggly {
     }
 
     /**
+     * Initialize a @{@link SquigglyPropertyFilter} with a static filter expression.
+     *
+     * @param mappers the Jackson Object Mappers to init
+     * @param filter the filter expressions
+     * @throws IllegalStateException if the filter was unable to be registered
+     */
+    public static void init(Iterable<ObjectMapper> mappers, String filter) throws IllegalStateException {
+        init(mappers, new SimpleSquigglyContextProvider(new SquigglyParser(), filter));
+    }
+
+    /**
      * Initialize a @{@link SquigglyPropertyFilter} with a specific context provider.
      *
      * @param mapper          the Jackson Object Mapper
@@ -42,10 +53,21 @@ public class Squiggly {
     }
 
     /**
+     * Initialize a @{@link SquigglyPropertyFilter} with a specific context provider.
+     *
+     * @param mappers          the Jackson Object Mappers to init
+     * @param contextProvider the context provider to use
+     * @throws IllegalStateException if the filter was unable to be registered
+     */
+    public static void init(Iterable<ObjectMapper> mappers, SquigglyContextProvider contextProvider) {
+        init(mappers, new SquigglyPropertyFilter(contextProvider));
+    }
+
+    /**
      * Initialize a @{@link SquigglyPropertyFilter} with a specific property filter.
      *
      * @param mapper the Jackson Object Mapper
-     * @param filter the proeprty filter
+     * @param filter the property filter
      * @return object mapper, mainly for convenience
      * @throws IllegalStateException if the filter was unable to be registered
      */
@@ -68,6 +90,19 @@ public class Squiggly {
         mapper.addMixIn(Object.class, SquigglyPropertyFilterMixin.class);
 
         return mapper;
+    }
+
+    /**
+     * Initialize a @{@link SquigglyPropertyFilter} with a specific property filter.
+     *
+     * @param mappers the Jackson Object Mappers to init
+     * @param filter the property filter
+     * @throws IllegalStateException if the filter was unable to be registered
+     */
+    public static void init(Iterable<ObjectMapper> mappers, SquigglyPropertyFilter filter) {
+        for (ObjectMapper mapper : mappers) {
+            init(mapper, filter);
+        }
     }
 
 }
