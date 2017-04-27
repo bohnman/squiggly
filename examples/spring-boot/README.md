@@ -19,5 +19,5 @@ curl -s -g 'http://localhost:8080/issues'
 
 2) To filter the raw json
 ```bash
-curl -s -g 'http://localhost:8080/issues?fields=id,assignee{firstName}'
+curl -s -g 'http://localhost:8080/issues?fields=id,assignee[firstName]'
 ```

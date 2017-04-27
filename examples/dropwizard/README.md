@@ -9,7 +9,7 @@ NOTE: Unlike the other examples and the main project, this example requires Java
 To run the example, cd to the examples/dropwizard directory on the command line type the following:
 
 ```bash
-mvn exec:java
+mvn compile exec:java
 ```
 
 In another terminal, you can request the issue json by doing the following:
@@ -21,5 +21,5 @@ curl -s -g 'http://localhost:8080/issues'
 
 2) To filter the raw json
 ```bash
-curl -s -g 'http://localhost:8080/issues?fields=id,assignee{firstName}'
+curl -s -g 'http://localhost:8080/issues?fields=id,assignee[firstName]'
 ```

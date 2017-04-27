@@ -174,22 +174,22 @@ public class SquigglyPropertyFilterTests {
 
     @Test
     public void testNestedDotPath() {
-        filter("id,actions.user{firstName},issueSummary");
+        filter("id,actions.user[firstName],issueSummary");
         assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"actions\":[{\"user\":{\"firstName\":\"Jorah\"}},{\"user\":{\"firstName\":\"Daario\"}}]}", stringify());
 
-        filter("id,actions.user{}");
+        filter("id,actions.user[]");
         assertEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"user\":{}},{\"user\":{}}]}", stringify());
     }
 
     @Test
     public void testDeepNestedDotPath() {
-        filter("id,items.items{items.id}");
+        filter("id,items.items[items.id]");
         assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"items\":[{\"id\":\"ITEM-4\"}]}]}]}", stringify(Item.testItem()));
 
-        filter("id,items.items{items.items{id}}");
+        filter("id,items.items[items.items[id]]");
         assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"items\":[{\"items\":[{\"id\":\"ITEM-5\"}]}]}]}]}", stringify(Item.testItem()));
 
-        filter("id,items.items{-items.id}");
+        filter("id,items.items[-items.id]");
         assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"items\":[{\"name\":\"Hoverboard\",\"items\":[{\"id\":\"ITEM-5\",\"name\":\"Binoculars\",\"items\":[]}]}]}]}]}", stringify(Item.testItem()));
     }
 
@@ -204,7 +204,7 @@ public class SquigglyPropertyFilterTests {
 
     @Test
     public void testNestedEmpty() {
-        filter("assignee{}");
+        filter("assignee[]");
         assertEquals("{\"assignee\":{}}", stringify());
     }
 
@@ -216,43 +216,43 @@ public class SquigglyPropertyFilterTests {
 
     @Test
     public void testNestedSingle() {
-        filter("assignee{firstName}");
+        filter("assignee[firstName]");
         assertEquals("{\"assignee\":{\"firstName\":\"" + issue.getAssignee().getFirstName() + "\"}}", stringify());
     }
 
     @Test
     public void testNestedMultiple() {
-        filter("actions{type,text}");
+        filter("actions[type,text]");
         assertEquals("{\"actions\":[{\"type\":\"" + issue.getActions().get(0).getType() + "\",\"text\":\"" + issue.getActions().get(0).getText() + "\"},{\"type\":\"" + issue.getActions().get(1).getType() + "\",\"text\":\"" + issue.getActions().get(1).getText() + "\"}]}", stringify());
     }
 
     @Test
     public void testMultipleNestedSingle() {
-        filter("(reporter|assignee){lastName}");
+        filter("(reporter,assignee)[lastName]");
         assertEquals("{\"reporter\":{\"lastName\":\"" + issue.getReporter().getLastName() + "\"},\"assignee\":{\"lastName\":\"" + issue.getAssignee().getLastName() + "\"}}", stringify());
     }
 
     @Test
     public void testNestedMap() {
-        filter("properties{priority}");
+        filter("properties[priority]");
         assertEquals("{\"properties\":{\"priority\":\"" + issue.getProperties().get("priority") + "\"}}", stringify());
     }
 
     @Test
     public void testDeepNested() {
-        filter("actions{user{lastName}}");
+        filter("actions[user[lastName]]");
         assertEquals("{\"actions\":[{\"user\":{\"lastName\":\"" + issue.getActions().get(0).getUser().getLastName() + "\"}},{\"user\":{\"lastName\":\"" + issue.getActions().get(1).getUser().getLastName() + "\"}}]}", stringify());
     }
 
     @Test
     public void testSameParent() {
-        filter("assignee{firstName},assignee{lastName}");
+        filter("assignee[firstName],assignee[lastName]");
         assertEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
 
         filter("assignee.firstName,assignee.lastName");
         assertEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
 
-        filter("actions.user{firstName},actions.user{lastName}");
+        filter("actions.user[firstName],actions.user[lastName]");
         assertEquals("{\"actions\":[{\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}},{\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\"}}]}", stringify());
     }
 
@@ -297,26 +297,26 @@ public class SquigglyPropertyFilterTests {
 
     @Test
     public void testFilterSpecificty() {
-        filter("**,reporter{lastName,entityType}");
+        filter("**,reporter[lastName,entityType]");
         String raw = stringifyRaw();
         assertEquals(raw.replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
 
-        filter("**,repo*{lastName,entityType},repo*{firstName,entityType}");
+        filter("**,repo*[lastName,entityType],repo*[firstName,entityType]");
         assertEquals(raw, stringify());
 
-        filter("**,reporter{lastName,entityType},repo*{firstName,entityType}");
+        filter("**,reporter[lastName,entityType],repo*[firstName,entityType]");
         assertEquals(raw.replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
 
-        filter("**,repo*{firstName,entityType},rep*{lastName,entityType}");
+        filter("**,repo*[firstName,entityType],rep*[lastName,entityType]");
         assertEquals(raw.replace(",\"lastName\":\"" + issue.getReporter().getLastName() + "\"", ""), stringify());
 
-        filter("**,reporter{firstName,entityType},reporter{lastName,entityType}");
+        filter("**,reporter[firstName,entityType],reporter[lastName,entityType]");
         assertEquals(raw, stringify());
     }
 
     @Test
     public void testFilterExclusion() {
-        filter("**,reporter{-firstName}");
+        filter("**,reporter[-firstName]");
         assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\",\"reporter\":{\"lastName\":\"Targaryen\"},\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"},\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\",\"entityType\":\"User\"}}],\"properties\":{\"email\":\"motherofdragons@got.com\",\"priority\":\"1\"}}", stringify());
     }
 

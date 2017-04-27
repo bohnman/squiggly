@@ -35,7 +35,7 @@ public class Application {
 
                 // OPTIONAL: automatically wrap filter expressions in items{} when the object is a ListResponse
                 if (filter != null && ListResponse.class.isAssignableFrom(beanClass)) {
-                    filter = "items{" + filter + "}";
+                    filter = "items[" + filter + "]";
                 }
 
                 return filter;

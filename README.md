@@ -1,3 +1,14 @@
+## Important Note
+
+As of version 1.3.2, the preferred way to specify nested filters is to use square brackets intead of braces.
+
+Preferred: `assignee[firstName]`
+
+No longer Preferred but will still work: `assignee{firstName}`
+
+The reason for this is that newer versions of Tomcat no longer allow braces to be specified on the url without being
+escaped.  Square brackets are still permitted in the url and it is preferred to make the syntax url friendly.
+
 # Squiggly Filter For Jackson
 
 ## Contents
@@ -29,7 +40,7 @@ of an object/list/map using a subset of the [Facebook Graph  API filtering synta
 Probably the most common use of this library is to filter fields on the querystring like so:
 
 ```
-?fields=id,reporter{firstName}
+?fields=id,reporter[firstName]
 ```
 
 Integrating Squiggly into your webapp is covered in [Custom Integration](#custom-integration).
@@ -66,7 +77,7 @@ Alternatively, if you need more control over configuring the ObjectMapper, you c
 
 ```java
 String filterId = SquigglyPropertyFilter.FILTER_ID;
-SquigglyPropertyFilter propertyFilter = new SquigglyPropertyFilter("assignee{firstName}");  // replace with your filter here
+SquigglyPropertyFilter propertyFilter = new SquigglyPropertyFilter("assignee[firstName]");  // replace with your filter here
 SimpleFilterProvider filterProvider = new SimpleFilterProvider().addFilter(filterId, propertyFilter);
 
 ObjectMapper objectMapper = new ObjectMapper();
@@ -206,7 +217,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 ### Select Single Nested Field
 
 ```java
-String filter = "assignee{firstName}";
+String filter = "assignee[firstName]";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"assignee":{"firstName":"Jorah"}}
@@ -215,7 +226,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 ### Select Multiple Nested Fields
 
 ```java
-String filter = "actions{text,type}";
+String filter = "actions[text,type]";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"actions":[{"type":"COMMENT","text":"I'm going to let Daario get this one.."},{"type":"CLOSE","text":"All set."}]}
@@ -225,7 +236,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 ### Select Same Field From Different Nested Objects
 
 ```java
-String filter = "(assignee|reporter){firstName}";
+String filter = "(assignee,reporter)[firstName]";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"reporter":{"firstName":"Daenerys"},"assignee":{"firstName":"Jorah"}}
@@ -234,7 +245,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 ### Select Deeply Nested Field
 
 ```java
-String filter = "actions{user{lastName}}";
+String filter = "actions[user[lastName]]";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"actions":[{"user":{"lastName":"Mormont"}},{"user":{"lastName":"Naharis"}}]}
@@ -243,7 +254,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 
 ## <a name="dot-syntax"></a>Dot Syntax
 
-As an alternative to using the squiggly syntax for nested filter, you can use the dot syntax
+As an alternative to using the braces syntax for nested filter, you can use the dot syntax
 
 ```java
 String filter = "assignee.firstName";
@@ -262,10 +273,10 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"assignee":{"lastName":"Mormont"}}
 ```
 
-You can also combine the dot syntax with the squiggly syntax.
+You can also combine the dot syntax with the nested syntax.
 
 ```java
-String filter = "actions.user{firstName}";
+String filter = "actions.user[firstName]";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints {"actions":[{"user":{"firstName":"Jorah"}},{"user":{"firstName":"Daario"}}]}
@@ -274,7 +285,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 One limitation is that you cannot use the | syntax with the dot syntax
 
 ```java
-String filter = "(actions.user|assignee){firstName}";
+String filter = "(actions.user,assignee)[firstName]";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // throws exception
@@ -353,7 +364,7 @@ System.out.println(SquigglyUtils.stringify(mapper, list));
 
 When a filter includes two criteria that match the same field, the one that is more specific wins.
 
-For example, if the filter is "**,reporter{firstName}", then all fields will be excluded. However, the reporter field 
+For example, if the filter is "**,reporter[firstName]", then all fields will be excluded. However, the reporter field 
 will only include the firstName field.
 
 Specificity is determined using the following logic:
@@ -381,7 +392,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 Here's an example excluding a nested field:
 
 ```java
-String filter = "**,reporter{**,-firstName}";
+String filter = "**,reporter[-firstName]";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // prints everything, the reporter object will only have the firstName excluded
@@ -389,7 +400,7 @@ System.out.println(SquigglyUtils.stringify(mapper, issue));
 
 NOTE:  Excluded fields can't have nested filters
 ```java
-String filter = "**,-reporter{firstName}";
+String filter = "**,-reporter[firstName]";
 ObjectMapper mapper = Squiggly.init(mapper, filter);
 System.out.println(SquigglyUtils.stringify(mapper, issue));
 // throws an exception
@@ -484,7 +495,7 @@ System.out.println(SquigglyUtils.stringify(mapper, user));
  
 **Wait another minute!** The Address class has @SuperView annotations as well.  Why weren't they include?  Well, the 
 view only applies to the current level.  In order to get the super views of the address, you would have to specifiy a
- filter "super{super}".  See [Changing Defaults](#changing-the-defaults) to alter this behavior.
+ filter "super[super]".  See [Changing Defaults](#changing-the-defaults) to alter this behavior.
  
 ## <a name="more-examples"></a>More Examples
  
@@ -549,7 +560,7 @@ public Page<Issue> findIssues(String query, int pageNumber, int pageSize) {
 }
 ```
 
-In order to get specify the issue property, you now have to wrap all filters with items{} like so:
+In order to get specify the issue property, you now have to wrap all filters with items[] like so:
  
 ```
 GET /issues?fields=items{id}&query=some-query&&pageNumber=1&pageSize=10
@@ -564,7 +575,7 @@ Squiggly.init(objectMapper, new RequestSquigglyContextProvider() {
     @Override
     protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
         if (filter != null && Page.class.isAssignableFrom(beanClass)) {
-            filter = "items{" + filter + "}";
+            filter = "items[" + filter + "]";
         }
 
         return filter;
