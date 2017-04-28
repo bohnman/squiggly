@@ -7,6 +7,7 @@ import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvide
 import com.github.bohnman.squiggly.model.Issue;
 import com.github.bohnman.squiggly.model.IssueAction;
 import com.github.bohnman.squiggly.model.Item;
+import com.github.bohnman.squiggly.model.Outer;
 import com.github.bohnman.squiggly.model.User;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
@@ -318,6 +319,12 @@ public class SquigglyPropertyFilterTests {
     public void testFilterExclusion() {
         filter("**,reporter[-firstName]");
         assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\",\"reporter\":{\"lastName\":\"Targaryen\"},\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"},\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\",\"entityType\":\"User\"}}],\"properties\":{\"email\":\"motherofdragons@got.com\",\"priority\":\"1\"}}", stringify());
+    }
+
+    @Test
+    public void testJsonUnwrapped() {
+        filter("innerText");
+        assertEquals("{\"innerText\":\"innerValue\"}", stringify(new Outer("outerValue", "innerValue")));
     }
 
     private void setFieldValue(Class<?> ownerClass, String fieldName, boolean value) {

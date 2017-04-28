@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.github.bohnman.squiggly.bean.BeanInfo;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.context.SquigglyContext;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
@@ -15,7 +16,7 @@ import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.name.ExactName;
 import com.github.bohnman.squiggly.parser.SquigglyNode;
 import com.github.bohnman.squiggly.view.PropertyView;
-import com.github.bohnman.squiggly.view.PropertyViewIntrospector;
+import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
@@ -82,7 +83,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         METRICS_SOURCE = new GuavaCacheSquigglyMetricsSource("squiggly.filter.pathCache.", MATCH_CACHE);
     }
 
-    private final PropertyViewIntrospector propertyViewIntrospector;
+    private final BeanInfoIntrospector beanInfoIntrospector;
     private final SquigglyContextProvider contextProvider;
 
     /**
@@ -91,18 +92,18 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
      * @param contextProvider context provider
      */
     public SquigglyPropertyFilter(SquigglyContextProvider contextProvider) {
-        this(contextProvider, new PropertyViewIntrospector());
+        this(contextProvider, new BeanInfoIntrospector());
     }
 
     /**
      * Construct with a context provider and an introspector
      *
      * @param contextProvider          context provider
-     * @param propertyViewIntrospector introspector
+     * @param beanInfoIntrospector introspector
      */
-    public SquigglyPropertyFilter(SquigglyContextProvider contextProvider, PropertyViewIntrospector propertyViewIntrospector) {
+    public SquigglyPropertyFilter(SquigglyContextProvider contextProvider, BeanInfoIntrospector beanInfoIntrospector) {
         this.contextProvider = contextProvider;
-        this.propertyViewIntrospector = propertyViewIntrospector;
+        this.beanInfoIntrospector = beanInfoIntrospector;
     }
 
     // create a path structure representing the object graph
@@ -188,7 +189,6 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             PathElement element = path.getElements().get(i);
 
             if (viewNode != null && !viewNode.isSquiggly()) {
-
                 Class beanClass = element.getBeanClass();
 
                 if (beanClass != null && !Map.class.isAssignableFrom(beanClass)) {
@@ -219,6 +219,10 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
                 }
 
                 if (match == null) {
+                    if (isJsonUnwrapped(element)) {
+                        continue;
+                    }
+
                     return false;
                 }
 
@@ -235,6 +239,11 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
 
         return true;
+    }
+
+    private boolean isJsonUnwrapped(PathElement element) {
+        BeanInfo info = beanInfoIntrospector.introspect(element.getBeanClass());
+        return info.isUnwrapped(element.getName());
     }
 
     private Set<String> getPropertyNamesFromViewStack(PathElement element, Set<String> viewStack) {
@@ -320,7 +329,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             return Collections.emptySet();
         }
 
-        return propertyViewIntrospector.getPropertyNames(beanClass, viewName);
+        return beanInfoIntrospector.introspect(beanClass).getPropertyNamesForView(viewName);
     }
 
     @Override

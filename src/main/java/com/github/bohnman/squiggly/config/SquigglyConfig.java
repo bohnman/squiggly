@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
+import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.google.common.cache.CacheBuilderSpec;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
@@ -156,7 +157,7 @@ public class SquigglyConfig {
      * Determines whether or not non-annotated fields are added to the "base" view.
      *
      * @return true/false
-     * @see com.github.bohnman.squiggly.view.PropertyViewIntrospector
+     * @see BeanInfoIntrospector
      */
     public static boolean isPropertyAddNonAnnotatedFieldsToBaseView() {
         return propertyAddNonAnnotatedFieldsToBaseView;
@@ -166,7 +167,7 @@ public class SquigglyConfig {
      * Get the {@link CacheBuilderSpec} of the descriptor cache in the property view introspector.
      *
      * @return spec
-     * @see com.github.bohnman.squiggly.view.PropertyViewIntrospector
+     * @see BeanInfoIntrospector
      */
     public static CacheBuilderSpec getPropertyDescriptorCacheSpec() {
         return propertyDescriptorCacheSpec;

@@ -4,7 +4,7 @@ import com.github.bohnman.squiggly.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.metric.source.CompositeSquigglyMetricsSource;
 import com.github.bohnman.squiggly.metric.source.SquigglyMetricsSource;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
-import com.github.bohnman.squiggly.view.PropertyViewIntrospector;
+import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
 
@@ -22,7 +22,7 @@ public class SquigglyMetrics {
         METRICS_SOURCE = new CompositeSquigglyMetricsSource(
                 SquigglyParser.getMetricsSource(),
                 SquigglyPropertyFilter.getMetricsSource(),
-                PropertyViewIntrospector.getMetricsSource()
+                BeanInfoIntrospector.getMetricsSource()
         );
     }
 
