@@ -116,7 +116,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
 
         while (sc != null) {
-            if (sc.getCurrentName() != null) {
+            if (sc.getCurrentName() != null && sc.getCurrentValue() != null) {
                 elements.addFirst(new PathElement(sc.getCurrentName(), sc.getCurrentValue()));
             }
             sc = sc.getParent();
