@@ -1,3 +1,7 @@
+# 1.3.4 (2017-05-01)
+
+* Fixed NullPointerException when using @JsonView
+
 # 1.3.3 (2017-04-28)
 
 * Added support for @JsonUnwrapped
