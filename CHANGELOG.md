@@ -1,6 +1,6 @@
 # 1.3.5 (2017-09-14)
 
-* Change dependency from antlr to antlr-runtime, which saves about 11 MB
+* Changed dependency from antlr to antlr-runtime, which saves about 11 MB
 
 # 1.3.4 (2017-05-01)
 
