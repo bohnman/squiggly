@@ -27,6 +27,7 @@ public class SquigglyConfig {
     private static final SortedMap<String, String> SOURCE_MAP;
 
     private static final boolean filterImplicitlyIncludeBaseFields;
+    private static final boolean filterImplicitlyIncludeBaseFieldsInView;
     private static final CacheBuilderSpec filterPathCacheSpec;
     private static final boolean filterPropagateViewToNestedFilters;
 
@@ -46,6 +47,7 @@ public class SquigglyConfig {
         SOURCE_MAP = ImmutableSortedMap.copyOf(sourceMap);
 
         filterImplicitlyIncludeBaseFields = getBool(PROPS_MAP, "filter.implicitlyIncludeBaseFields");
+        filterImplicitlyIncludeBaseFieldsInView = getBool(PROPS_MAP, "filter.implicitlyIncludeBaseFieldsInView");
         filterPathCacheSpec = getCacheSpec(PROPS_MAP, "filter.pathCache.spec");
         filterPropagateViewToNestedFilters = getBool(PROPS_MAP, "filter.propagateViewToNestedFilters");
         parserNodeCacheSpec = getCacheSpec(PROPS_MAP, "parser.nodeCache.spec");
@@ -112,13 +114,22 @@ public class SquigglyConfig {
     }
 
     /**
-     * Determines whether or not filters that specify a view also include "base" fields.
+     * Determines whether or not to include base fields for nested objects
      *
      * @return true if includes, false if not
      * @see com.github.bohnman.squiggly.view.PropertyView
      */
     public static boolean isFilterImplicitlyIncludeBaseFields() {
         return filterImplicitlyIncludeBaseFields;
+    }
+
+    /**
+     * Determines whether or not filters that specify a view also include "base" fields.
+     *
+     * @return true if includes, false if not
+     */
+    public static boolean isFilterImplicitlyIncludeBaseFieldsInView() {
+        return filterImplicitlyIncludeBaseFieldsInView;
     }
 
     /**
@@ -192,6 +203,6 @@ public class SquigglyConfig {
     }
 
     public static void main(String[] args) {
-        System.out.println(SquigglyUtils.stringify(new ObjectMapper(), asMap()));
+        System.out.println(SquigglyConfig.asMap());
     }
 }

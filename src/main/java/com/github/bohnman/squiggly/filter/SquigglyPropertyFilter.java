@@ -232,7 +232,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
                 nodes = match.getChildren();
 
-                if (i < lastIdx && nodes.isEmpty() && !match.isEmptyNested()) {
+                if (i < lastIdx && nodes.isEmpty() && !match.isEmptyNested() && SquigglyConfig.isFilterImplicitlyIncludeBaseFields()) {
                     nodes = BASE_VIEW_NODES;
                 }
             }

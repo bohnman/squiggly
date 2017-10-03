@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.bean;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
@@ -12,6 +13,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
 import java.beans.IntrospectionException;
@@ -54,7 +56,7 @@ public class BeanInfoIntrospector {
 
     private static BeanInfo introspectClass(Class beanClass) {
 
-        Map<String, Set<String>> viewToFieldNames = Maps.newHashMap();
+        Map<String, Set<String>> viewToPropertyNames = Maps.newHashMap();
         Set<String> resolved = Sets.newHashSet();
         Set<String> unwrapped = Sets.newHashSet();
 
@@ -65,36 +67,88 @@ public class BeanInfoIntrospector {
             }
 
             Field field = FieldUtils.getField(propertyDescriptor.getReadMethod().getDeclaringClass(), propertyDescriptor.getName(), true);
+            String propertyName = getPropertyName(propertyDescriptor, field);
+
 
             if (isUnwrapped(propertyDescriptor, field)) {
-                unwrapped.add(propertyDescriptor.getName());
+                unwrapped.add(propertyName);
             }
 
-            if (field == null) {
-                continue;
-            }
-
-            Set<String> views = introspectField(field);
+            Set<String> views = introspectPropertyViews(propertyDescriptor, field);
 
             for (String view : views) {
-                Set<String> fieldNames = viewToFieldNames.get(view);
+                Set<String> fieldNames = viewToPropertyNames.get(view);
 
                 if (fieldNames == null) {
                     fieldNames = Sets.newHashSet();
-                    viewToFieldNames.put(view, fieldNames);
+                    viewToPropertyNames.put(view, fieldNames);
                 }
 
-                fieldNames.add(field.getName());
-
+                fieldNames.add(propertyName);
             }
-
         }
 
 
-        viewToFieldNames = makeUnmodifiable(expand(viewToFieldNames));
+        viewToPropertyNames = makeUnmodifiable(expand(viewToPropertyNames));
         unwrapped = Collections.unmodifiableSet(unwrapped);
 
-        return new BeanInfo(viewToFieldNames, unwrapped);
+        return new BeanInfo(viewToPropertyNames, unwrapped);
+    }
+
+    private static String getPropertyName(PropertyDescriptor propertyDescriptor, Field field) {
+        String propertyName = null;
+
+        if (propertyDescriptor.getReadMethod() != null) {
+            //noinspection ConstantConditions
+            propertyName = getPropertyName(propertyName, propertyDescriptor.getReadMethod().getAnnotations());
+        }
+
+        if (propertyDescriptor.getWriteMethod() != null) {
+            propertyName = getPropertyName(propertyName, propertyDescriptor.getWriteMethod().getAnnotations());
+        }
+
+        if (field != null) {
+            propertyName = getPropertyName(propertyName, field.getAnnotations());
+        }
+
+        if (propertyName == null) {
+            propertyName = propertyDescriptor.getName();
+        }
+
+        return propertyName;
+    }
+
+    private static String getPropertyName(String propertyName, Annotation[] annotations) {
+        if (propertyName != null) {
+            return propertyName;
+        }
+
+        for (Annotation ann : annotations) {
+            if (ann instanceof JsonProperty) {
+                propertyName = getPropertyName((JsonProperty) ann);
+
+                if (propertyName != null) {
+                    return propertyName;
+                }
+
+            }
+
+            for (Annotation classAnn : ann.annotationType().getAnnotations()) {
+                if (classAnn instanceof JsonProperty) {
+                    propertyName = getPropertyName((JsonProperty) classAnn);
+
+                    if (propertyName != null) {
+                        return propertyName;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static String getPropertyName(JsonProperty ann) {
+        return StringUtils.defaultIfEmpty(ann.value(), null);
     }
 
     private static boolean isUnwrapped(PropertyDescriptor propertyDescriptor, Field field) {
@@ -136,14 +190,22 @@ public class BeanInfoIntrospector {
     // apply the base fields to other views if configured to do so.
     private static Map<String, Set<String>> expand(Map<String, Set<String>> viewToPropNames) {
 
-        if (!SquigglyConfig.isFilterImplicitlyIncludeBaseFields()) {
-            return viewToPropNames;
-        }
-
         Set<String> baseProps = viewToPropNames.get(PropertyView.BASE_VIEW);
 
         if (baseProps == null) {
             baseProps = ImmutableSet.of();
+        }
+
+        if (!SquigglyConfig.isFilterImplicitlyIncludeBaseFieldsInView()) {
+
+            // make an exception for full view
+            Set<String> fullView = viewToPropNames.get(PropertyView.FULL_VIEW);
+
+            if (fullView != null) {
+                fullView.addAll(baseProps);
+            }
+
+            return viewToPropNames;
         }
 
         for (Map.Entry<String, Set<String>> entry : viewToPropNames.entrySet()) {
@@ -159,11 +221,31 @@ public class BeanInfoIntrospector {
     }
 
     // grab all the PropertyView (or derived) annotations and return their view names.
-    private static Set<String> introspectField(Field field) {
+    private static Set<String> introspectPropertyViews(PropertyDescriptor propertyDescriptor, Field field) {
 
         Set<String> views = Sets.newHashSet();
 
-        for (Annotation ann : field.getAnnotations()) {
+        if (propertyDescriptor.getReadMethod() != null) {
+            applyPropertyViews(views, propertyDescriptor.getReadMethod().getAnnotations());
+        }
+
+        if (propertyDescriptor.getWriteMethod() != null) {
+            applyPropertyViews(views, propertyDescriptor.getWriteMethod().getAnnotations());
+        }
+
+        if (field != null) {
+            applyPropertyViews(views, field.getAnnotations());
+        }
+
+        if (views.isEmpty() && SquigglyConfig.isPropertyAddNonAnnotatedFieldsToBaseView()) {
+            return Collections.singleton(PropertyView.BASE_VIEW);
+        }
+
+        return views;
+    }
+
+    private static void applyPropertyViews(Set<String> views, Annotation[] annotations) {
+        for (Annotation ann : annotations) {
             if (ann instanceof PropertyView) {
                 views.addAll(Lists.newArrayList(((PropertyView) ann).value()));
             }
@@ -174,11 +256,6 @@ public class BeanInfoIntrospector {
                 }
             }
         }
-        if (views.isEmpty() && SquigglyConfig.isPropertyAddNonAnnotatedFieldsToBaseView()) {
-            return Collections.singleton(PropertyView.BASE_VIEW);
-        }
-
-        return views;
     }
 
     public static GuavaCacheSquigglyMetricsSource getMetricsSource() {

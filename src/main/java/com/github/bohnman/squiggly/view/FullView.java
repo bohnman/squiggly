@@ -13,6 +13,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target(FIELD)
 @Retention(RUNTIME)
 @Documented
-@PropertyView({"full"})
+@PropertyView(PropertyView.FULL_VIEW)
 public @interface FullView {
 }

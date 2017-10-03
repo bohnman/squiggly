@@ -258,8 +258,8 @@ public class SquigglyPropertyFilterTest {
     }
 
     @Test
-    public void testFilterExcludesBaseFields() {
-        String fieldName = "filterImplicitlyIncludeBaseFields";
+    public void testFilterExcludesBaseFieldsInView() {
+        String fieldName = "filterImplicitlyIncludeBaseFieldsInView";
 
         try {
             setFieldValue(SquigglyConfig.class, fieldName, false);

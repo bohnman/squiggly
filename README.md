@@ -477,7 +477,9 @@ field.  This indicates that the phone field belongs to the "secret" view.
 **Wait a minute!**  Why was the firstName and lastName field included?  Even though we specified a certain view, the
 base fields are always included.  See [Changing Defaults](#changing-the-defaults) to alter this behavior.
 
-Note that you can also specifiy multiple views in the annotation - `@PropertyView({"one", "two", "three"}))` 
+Note that you can also specifiy multiple views in the annotation - `@PropertyView({"one", "two", "three"}))`
+
+You can also specify `@PropertyView` on getters and setters.  
 
 ### Using a Derived Annotation
 
@@ -619,8 +621,11 @@ Please refer to to the documentation to see all the values that are available.
 ### Enable/Disable adding non-annotated fields to the "base" view
 - property.addNonAnnotatedFieldsToBaseView=true
 
-### Enable/Disable implicit inclusion of base fields when specify a view
+### Enable/Disable inclusion of base fields for nested objects
 - filter.implicitlyIncludeBaseFields=true
+
+### Enable/Disable inclusion of base fields when a view is specified
+- filter.implicitlyIncludeBaseFieldsInView=true
 
 When set to false, base fields are not included when specifying a view
 
@@ -638,6 +643,7 @@ Squiggly Filter provides 2 methods to get information about configuration.
 ```json
 {
   "filter.implicitlyIncludeBaseFields": "true",
+  "filter.implicitlyIncludeBaseFieldsInView": "true",
   "filter.pathCache.spec": "maximumSize=10000",
   "filter.propagateViewToNestedFilters": "false",
   "parser.nodeCache.spec": "maximumSize=10000",
@@ -652,6 +658,7 @@ like the following:
 ```json
 {
   "filter.implicitlyIncludeBaseFields": "file:/path/one/squiggly.default.properties",
+  "filter.implicitlyIncludeBaseFieldsInView": "file:/path/one/squiggly.default.properties",
   "filter.pathCache.spec": "file:/path/one/squiggly.default.properties",
   "filter.propagateViewToNestedFilters": "file:/path/one/squiggly.default.properties",
   "parser.nodeCache.spec": "file:/path/two/squiggly.properties",
