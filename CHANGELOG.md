@@ -1,3 +1,9 @@
+# 1.3.6 (2017-10-02)
+
+* Added support for @JsonProperty
+* Added ability to place @PropertyView on getters and setters
+* Added ability to include/exclude base fields from nested objects
+
 # 1.3.5 (2017-09-14)
 
 * Changed dependency from antlr to antlr-runtime, which saves about 11 MB
