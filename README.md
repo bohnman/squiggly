@@ -30,6 +30,7 @@ escaped.  Square brackets are still permitted in the url and it is preferred to 
 * [Custom Integration](#custom-integration)
 * [Changing the Defaults](#changing-the-defaults)
 * [Metrics](#metrics)
+* [Limitations](#limitations)
 
 
 ## <a name="what-is-it"></a>What is it?
@@ -719,4 +720,42 @@ This will print the following:
   "squiggly.property.descriptorCache.totalLoadTime": 0
 }
 ```
- 
+
+## <a name="limitations"></a>Limitations
+
+### Using Serializers
+
+If you  use a custom serializer and write to a JsonGenerator directly, you will completely bypass Squiggly.
+
+For example:
+
+```java
+// Doesn't work with Squiggly
+public class TestSerializer extends JsonSerializer<TestObject> {
+
+	@Override
+	public void serialize(TestObject value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+		jgen.writeStartObject();
+		jgen.writeStringField("a", value.getA());
+		jgen.writeStringField("c", value.getC());
+		jgen.writeEndObject();
+	}
+}
+```
+
+Instead, you need to use the SerializerProvider, which will invoke Squiggly.  The above serializer can be rewritten as:
+
+```java
+// Works with Squiggly
+public class TestSerializer extends JsonSerializer<TestObject> {
+
+	@Override
+	public void serialize(TestObject value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+		Map<String, Object> map = new HashMap<>();
+		map.put("a", value.getA());
+		map.put("c", value.getC());
+
+		provider.defaultSerializeValue(map, jgen);
+	}
+}
+```
