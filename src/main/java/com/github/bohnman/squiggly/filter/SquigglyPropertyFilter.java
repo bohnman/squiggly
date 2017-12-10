@@ -336,8 +336,9 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     public void serializeAsField(final Object pojo, final JsonGenerator jgen, final SerializerProvider provider,
                                  final PropertyWriter writer) throws Exception {
         if (include(writer, jgen)) {
-            writer.serializeAsField(pojo, jgen, provider);
+            contextProvider.serializeAsIncludedField(pojo, jgen, provider, writer);
         } else if (!jgen.canOmitFields()) {
+            contextProvider.serializeAsExcludedField(pojo, jgen, provider, writer);
             writer.serializeAsOmittedField(pojo, jgen, provider);
         }
     }
