@@ -24,5 +24,5 @@ To load the reviews using Squiggly, you just have to include in the fields filte
 curl -s -g 'http://localhost:8080/hotel?fields=reviews.rating'
 ```
 
-You'll notice on the ``SampleDataJpaApplication.main`` method we override the ``serializeAsIncludedField`` method on the context provide which tells 
-lazy collections to initialize if they are included within a Squiggly filter.
+You'll notice on the ``SampleDataJpaApplication.main`` method we override the ``serializeAsIncludedField`` method on 
+the context provider which tells lazy collections to initialize if they are included within a Squiggly filter.
