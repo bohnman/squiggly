@@ -339,7 +339,6 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             contextProvider.serializeAsIncludedField(pojo, jgen, provider, writer);
         } else if (!jgen.canOmitFields()) {
             contextProvider.serializeAsExcludedField(pojo, jgen, provider, writer);
-            writer.serializeAsOmittedField(pojo, jgen, provider);
         }
     }
 
