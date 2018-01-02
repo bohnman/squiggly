@@ -1,3 +1,7 @@
+# 1.3.7 (2018-01-01)
+
+* Fixed negative dot paths when multiple paths were specified
+
 # 1.3.6 (2017-10-02)
 
 * Added support for @JsonProperty

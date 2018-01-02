@@ -103,16 +103,24 @@ public class SquigglyParser {
         }
 
         private void handleExpressionList(SquigglyExpressionParser.Expression_listContext ctx, MutableNode parent) {
-            for (SquigglyExpressionParser.ExpressionContext expressionContext : ctx.expression()) {
-                handleExpression(expressionContext, parent);
+            List<SquigglyExpressionParser.ExpressionContext> expressions = ctx.expression();
+            int negated = 0;
+
+            for (SquigglyExpressionParser.ExpressionContext expressionContext : expressions) {
+                if (handleExpression(expressionContext, parent)) {
+                    negated++;
+                }
+            }
+
+            if (negated == expressions.size()) {
+                parent.addChild(new MutableNode(new ExactName(PropertyView.BASE_VIEW), false));
             }
         }
 
-        private void handleExpression(SquigglyExpressionParser.ExpressionContext ctx, MutableNode parent) {
+        private boolean handleExpression(SquigglyExpressionParser.ExpressionContext ctx, MutableNode parent) {
 
             if (ctx.negated_expression() != null) {
-                handleNegatedExpression(ctx.negated_expression(), parent);
-                return;
+                return handleNegatedExpression(ctx.negated_expression(), parent);
             }
 
             List<SquigglyName> names;
@@ -149,6 +157,7 @@ public class SquigglyParser {
                 }
             }
 
+            return false;
         }
 
         private SquigglyName createName(SquigglyExpressionParser.FieldContext ctx) {
@@ -177,9 +186,10 @@ public class SquigglyParser {
         }
 
 
-        private void handleNegatedExpression(SquigglyExpressionParser.Negated_expressionContext ctx, MutableNode parent) {
+        private boolean handleNegatedExpression(SquigglyExpressionParser.Negated_expressionContext ctx, MutableNode parent) {
             if (ctx.field() != null) {
                 parent.addChild(new MutableNode(createName(ctx.field()), true));
+                return true;
             } else if (ctx.dot_path() != null) {
                 for (SquigglyExpressionParser.FieldContext fieldContext : ctx.dot_path().field()) {
                     parent.squiggly = true;
@@ -187,7 +197,10 @@ public class SquigglyParser {
                 }
 
                 parent.negated = true;
+                return true;
             }
+
+            return false;
         }
 
     }
