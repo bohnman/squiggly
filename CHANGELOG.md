@@ -1,4 +1,4 @@
-# 1.3.7 (2018-01-01)
+# 1.3.8 (2018-01-01)
 
 * Fixed negative dot paths when multiple paths were specified
 
