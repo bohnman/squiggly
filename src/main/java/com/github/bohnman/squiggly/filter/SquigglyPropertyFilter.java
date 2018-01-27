@@ -2,13 +2,12 @@ package com.github.bohnman.squiggly.filter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.bean.BeanInfo;
+import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.context.SquigglyContext;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
@@ -18,14 +17,12 @@ import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.name.ExactName;
 import com.github.bohnman.squiggly.parser.SquigglyNode;
 import com.github.bohnman.squiggly.view.PropertyView;
-import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -442,43 +439,5 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         public Class getBeanClass() {
             return bean;
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        String json = "{\n" +
-                "\"myPersonInfo\":[\n" +
-                "      {\n" +
-                "      \"myId\":2,\n" +
-                "\t  \"myDetailsInfo\": [\n" +
-                "\t     {\n" +
-                "\t\t \"myTitle\": \"Mr.\",\n" +
-                "\t     \"myNickName\": \"testPerson\",\n" +
-                "\t\t \"myBirthDate\": \"2013-03-09\"\n" +
-                "\t\t }\n" +
-                "\t  ],\n" +
-                "\t  \"myDetailsInfo1\": [\n" +
-                "\t     {\n" +
-                "\t\t \"myTitle1\": \"Mr.\",\n" +
-                "\t     \"myNickName1\": \"testPerson\",\n" +
-                "\t\t \"myBirthDate1\": \"2013-03-09\"\n" +
-                "\t\t }\n" +
-                "\t  ]\n" +
-                "\t  }\n" +
-                " ]\n" +
-                "}";
-
-
-        ObjectMapper objectMapper = Squiggly.init(new ObjectMapper(), "base,myPersonInfo[myDetailsInfo[base,-myTitle]]");
-        Object value = objectMapper.readValue(json, Map.class);
-        System.out.println(objectMapper.writeValueAsString(value));
-
-    }
-
-    private static class MyObject {
-
-    }
-
-    private static class MyPersonInfo {
-
     }
 }
