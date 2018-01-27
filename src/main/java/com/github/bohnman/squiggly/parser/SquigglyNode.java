@@ -3,9 +3,9 @@ package com.github.bohnman.squiggly.parser;
 import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.name.AnyShallowName;
 import com.github.bohnman.squiggly.name.SquigglyName;
+import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -15,7 +15,6 @@ import java.util.List;
 public class SquigglyNode {
 
     private final SquigglyName name;
-    private final SquigglyNode parent;
     private final List<SquigglyNode> children;
     private final boolean squiggly;
     private final boolean negated;
@@ -25,18 +24,16 @@ public class SquigglyNode {
      * Constructor.
      *
      * @param name     name of the node
-     * @param parent   parent node
      * @param children child nodes
      * @param negated whether or not the node has been negated
-     * @param squiggly whether or not a not is squiggly
+     * @param squiggly whether or not a node is squiggly
      * @param emptyNested whether of not filter specified {}
      * @see #isSquiggly()
      */
-    public SquigglyNode(SquigglyName name, SquigglyNode parent, List<SquigglyNode> children, boolean negated, boolean squiggly, boolean emptyNested) {
+    public SquigglyNode(SquigglyName name, List<SquigglyNode> children, boolean negated, boolean squiggly, boolean emptyNested) {
         this.name = name;
         this.negated = negated;
-        this.parent = parent;
-        this.children = Collections.unmodifiableList(children);
+        this.children = ImmutableList.copyOf(children);
         this.squiggly = squiggly;
         this.emptyNested = emptyNested;
     }
@@ -58,15 +55,6 @@ public class SquigglyNode {
      */
     public String getName() {
         return name.getName();
-    }
-
-    /**
-     * Get the node's parent.
-     *
-     * @return parent node
-     */
-    public SquigglyNode getParent() {
-        return parent;
     }
 
     /**
@@ -100,7 +88,7 @@ public class SquigglyNode {
     }
 
     /**
-     * Says whehter this node is *
+     * Says whether this node is *
      *
      * @return true if *, false if not
      */
@@ -109,7 +97,7 @@ public class SquigglyNode {
     }
 
     /**
-     * Says whether this node  explicity specified no children.  (eg. assignee{})
+     * Says whether this node explicitly specified no children.  (eg. assignee{})
      *
      * @return true if empty nested, false otherwise
      */

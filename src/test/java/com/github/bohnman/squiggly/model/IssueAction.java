@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.model;
 
 import com.github.bohnman.squiggly.view.FullView;
 
-public class IssueAction extends BaseIssue {
+public class IssueAction extends BaseEntity {
 
     private String type;
     private String text;

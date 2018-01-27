@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.model;
 
-public class BaseIssue {
+public class BaseEntity {
 
     private String id;
 

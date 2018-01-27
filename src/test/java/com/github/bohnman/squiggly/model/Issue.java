@@ -6,7 +6,7 @@ import com.github.bohnman.squiggly.view.PropertyView;
 import java.util.List;
 import java.util.Map;
 
-public class Issue extends BaseIssue {
+public class Issue extends BaseEntity {
 
     private String issueSummary;
     private String issueDetails;

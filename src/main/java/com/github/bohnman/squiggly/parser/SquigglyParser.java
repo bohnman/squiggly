@@ -28,7 +28,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 /**
  * The parser takes a filter expression and compiles it to an Abstract Syntax Tree (AST).  In this parser's case, the
@@ -70,57 +69,38 @@ public class SquigglyParser {
         SquigglyExpressionLexer lexer = ThrowingErrorListener.overwrite(new SquigglyExpressionLexer(new ANTLRInputStream(filter)));
         SquigglyExpressionParser parser = ThrowingErrorListener.overwrite(new SquigglyExpressionParser(new CommonTokenStream(lexer)));
 
-        Visiter visiter = new Visiter();
-        List<SquigglyNode> nodes = visiter.visit(parser.parse());
+        Visitor visitor = new Visitor();
+        List<SquigglyNode> nodes = Collections.unmodifiableList(visitor.visit(parser.parse()));
 
         CACHE.put(filter, nodes);
         return nodes;
-    }
-
-    // Break the filter expression into tokens
-    private List<String> tokenize(String filter, String separators) {
-        StringTokenizer tokenizer = new StringTokenizer(filter, separators, true);
-        List<String> tokens = new ArrayList<>();
-
-        while (tokenizer.hasMoreTokens()) {
-            tokens.add(tokenizer.nextToken());
-        }
-
-        return tokens;
     }
 
     public static SquigglyMetricsSource getMetricsSource() {
         return METRICS_SOURCE;
     }
 
-    private class Visiter extends SquigglyExpressionBaseVisitor<List<SquigglyNode>> {
-        MutableNode root = new MutableNode(new ExactName("root"));
-
+    private class Visitor extends SquigglyExpressionBaseVisitor<List<SquigglyNode>> {
         @Override
         public List<SquigglyNode> visitParse(SquigglyExpressionParser.ParseContext ctx) {
+            MutableNode root = new MutableNode(new ExactName("root")).dotPathed(true);
             handleExpressionList(ctx.expression_list(), root);
-            return root.getSquigglyChildNodes(null);
+            MutableNode analyzedRoot = analyze(root);
+            return analyzedRoot.toSquigglyNode().getChildren();
         }
 
         private void handleExpressionList(SquigglyExpressionParser.Expression_listContext ctx, MutableNode parent) {
             List<SquigglyExpressionParser.ExpressionContext> expressions = ctx.expression();
-            int negated = 0;
 
             for (SquigglyExpressionParser.ExpressionContext expressionContext : expressions) {
-                if (handleExpression(expressionContext, parent)) {
-                    negated++;
-                }
-            }
-
-            if (negated == expressions.size()) {
-                parent.addChild(new MutableNode(new ExactName(PropertyView.BASE_VIEW), false));
+                handleExpression(expressionContext, parent);
             }
         }
 
-        private boolean handleExpression(SquigglyExpressionParser.ExpressionContext ctx, MutableNode parent) {
+        private void handleExpression(SquigglyExpressionParser.ExpressionContext ctx, MutableNode parent) {
 
             if (ctx.negated_expression() != null) {
-                return handleNegatedExpression(ctx.negated_expression(), parent);
+                handleNegatedExpression(ctx.negated_expression(), parent);
             }
 
             List<SquigglyName> names;
@@ -130,7 +110,7 @@ public class SquigglyParser {
             } else if (ctx.dot_path() != null) {
                 parent.squiggly = true;
                 for (int i = 0; i < ctx.dot_path().field().size() - 1; i++) {
-                    parent = parent.addChild(new MutableNode(createName(ctx.dot_path().field(i))));
+                    parent = parent.addChild(new MutableNode(createName(ctx.dot_path().field(i))).dotPathed(true));
                     parent.squiggly = true;
                 }
                 names = Collections.singletonList(createName(ctx.dot_path().field().get(ctx.dot_path().field().size() - 1)));
@@ -156,8 +136,6 @@ public class SquigglyParser {
                     handleExpressionList(ctx.nested_expression().expression_list(), node);
                 }
             }
-
-            return false;
         }
 
         private SquigglyName createName(SquigglyExpressionParser.FieldContext ctx) {
@@ -179,30 +157,61 @@ public class SquigglyParser {
             } else if (ctx.wildcard_shallow_field() != null) {
                 name = AnyShallowName.get();
             } else {
-                throw new IllegalArgumentException("Unhandle field: " + ctx.getText());
+                throw new IllegalArgumentException("Unhandled field: " + ctx.getText());
             }
 
             return name;
         }
 
 
-        private boolean handleNegatedExpression(SquigglyExpressionParser.Negated_expressionContext ctx, MutableNode parent) {
+        private void handleNegatedExpression(SquigglyExpressionParser.Negated_expressionContext ctx, MutableNode parent) {
             if (ctx.field() != null) {
-                parent.addChild(new MutableNode(createName(ctx.field()), true));
-                return true;
+                parent.addChild(new MutableNode(createName(ctx.field())).negated(true));
             } else if (ctx.dot_path() != null) {
                 for (SquigglyExpressionParser.FieldContext fieldContext : ctx.dot_path().field()) {
                     parent.squiggly = true;
-                    parent = parent.addChild(new MutableNode(createName(fieldContext)));
+                    parent = parent.addChild(new MutableNode(createName(fieldContext)).dotPathed(true));
                 }
 
-                parent.negated = true;
-                return true;
+                parent.negated(true);
             }
-
-            return false;
         }
 
+    }
+
+    private MutableNode analyze(MutableNode node) {
+        if (node.children != null && !node.children.isEmpty()) {
+            boolean allNegated = true;
+
+            for (MutableNode child : node.children.values()) {
+                if (!child.negated) {
+                    allNegated = false;
+                    break;
+                }
+            }
+
+            if (allNegated) {
+                node.addChild(new MutableNode(newBaseViewName()).dotPathed(node.dotPathed));
+                MutableNode parent = node.parent;
+
+                while (parent != null) {
+                    parent.addChild(new MutableNode(newBaseViewName()).dotPathed(parent.dotPathed));
+
+                    if (!parent.dotPathed) {
+                        break;
+                    }
+
+                    parent = parent.parent;
+                }
+            } else {
+                for (MutableNode child : node.children.values()) {
+                    analyze(child);
+                }
+            }
+
+        }
+
+        return node;
     }
 
     private class MutableNode {
@@ -211,116 +220,86 @@ public class SquigglyParser {
         private boolean squiggly;
         private boolean emptyNested;
         private Map<String, MutableNode> children;
+        private boolean dotPathed;
         private MutableNode parent;
-        private MutableNode returnParent;
-        public boolean nested;
 
-        public MutableNode(SquigglyName name) {
+        MutableNode(SquigglyName name) {
             this.name = name;
         }
 
-        public MutableNode(SquigglyName name, boolean negated) {
-            this.name = name;
-            this.negated = negated;
-        }
-
-        public SquigglyNode toSquigglyNode(SquigglyNode parentNode) {
+        SquigglyNode toSquigglyNode() {
             if (name == null) {
                 throw new IllegalArgumentException("No Names specified");
             }
 
-            SquigglyNode node;
+            List<SquigglyNode> childNodes;
 
             if (children == null || children.isEmpty()) {
-                node = newSquigglyNode(name, parentNode, Collections.<SquigglyNode>emptyList());
+                childNodes = Collections.emptyList();
             } else {
-                List<SquigglyNode> childNodes = new ArrayList<>(children.size());
-                node = newSquigglyNode(name, parentNode, childNodes);
-                addSquigglyChildNodes(node, childNodes);
-            }
+                childNodes = new ArrayList<>(children.size());
 
-            return node;
-
-        }
-
-        private SquigglyNode newSquigglyNode(SquigglyName name, SquigglyNode parentNode, List<SquigglyNode> childNodes) {
-            return new SquigglyNode(name, parentNode, childNodes, negated, squiggly, emptyNested);
-        }
-
-        @SuppressWarnings("SameParameterValue")
-        private List<SquigglyNode> getSquigglyChildNodes(SquigglyNode parentNode) {
-            if (children == null || children.isEmpty()) {
-                return Collections.emptyList();
-            }
-
-            List<SquigglyNode> childNodes = new ArrayList<>();
-            addSquigglyChildNodes(parentNode, childNodes);
-
-            return childNodes;
-        }
-
-        private void addSquigglyChildNodes(SquigglyNode parentNode, List<SquigglyNode> childNodes) {
-            boolean allNegated = true;
-
-            for (MutableNode child : children.values()) {
-                childNodes.add(child.toSquigglyNode(parentNode));
-
-                if (allNegated && !child.negated) {
-                    allNegated = false;
+                for (MutableNode child : children.values()) {
+                    childNodes.add(child.toSquigglyNode());
                 }
+
             }
 
-            if (allNegated) {
-                childNodes.add(newSquigglyNode(new ExactName(PropertyView.BASE_VIEW), parentNode, Collections.<SquigglyNode>emptyList()));
-            }
+            return newSquigglyNode(name, childNodes);
         }
 
-        @SuppressWarnings("UnusedReturnValue")
-        public MutableNode withName(SquigglyName name) {
-            this.name = name;
+        private SquigglyNode newSquigglyNode(SquigglyName name, List<SquigglyNode> childNodes) {
+            return new SquigglyNode(name, childNodes, negated, squiggly, emptyNested);
+        }
+
+        public MutableNode dotPathed(boolean dotPathed) {
+            this.dotPathed = dotPathed;
             return this;
         }
 
-        public MutableNode withParent(MutableNode parent) {
-            this.parent = parent;
+        public MutableNode negated(boolean negated) {
+            this.negated = negated;
             return this;
         }
 
-        public MutableNode addChild(MutableNode child) {
-            child.parent = this;
-
+        public MutableNode addChild(MutableNode childToAdd) {
             if (children == null) {
                 children = new LinkedHashMap<>();
             }
 
-            String name = child.name.getName();
-            MutableNode existing = children.get(name);
+            String name = childToAdd.name.getName();
+            MutableNode existingChild = children.get(name);
 
-            if (existing != null) {
-                if (child.children != null) {
-                    for (MutableNode otherChild : child.children.values()) {
-                        otherChild.parent = this;
-                    }
+            if (existingChild == null) {
+                childToAdd.parent = this;
+                children.put(name, childToAdd);
+            } else {
+                if (childToAdd.children != null) {
 
-                    if (existing.children == null) {
-                        existing.children = child.children;
+                    if (existingChild.children == null) {
+                        existingChild.children = childToAdd.children;
                     } else {
-                        existing.children.putAll(child.children);
+                        existingChild.children.putAll(childToAdd.children);
                     }
-
-                    existing.children.putAll(child.children);
                 }
 
 
-                existing.squiggly = existing.squiggly || child.squiggly;
-                existing.emptyNested = existing.emptyNested && child.emptyNested;
-                return existing;
+                existingChild.squiggly = existingChild.squiggly || childToAdd.squiggly;
+                existingChild.emptyNested = existingChild.emptyNested && childToAdd.emptyNested;
+                existingChild.dotPathed = existingChild.dotPathed && childToAdd.dotPathed;
+                childToAdd = existingChild;
             }
 
-            children.put(name, child);
+            if (!childToAdd.dotPathed && dotPathed) {
+                dotPathed = false;
+            }
 
-            return child;
+            return childToAdd;
         }
+    }
+
+    private ExactName newBaseViewName() {
+        return new ExactName(PropertyView.BASE_VIEW);
     }
 
 
