@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.filter.repository;
 
 import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -17,6 +18,7 @@ public class MapFilterRepository implements SquigglyFilterRepository {
         this.filterByName = ImmutableMap.copyOf(filterByName);
     }
 
+    @Nullable
     @Override
     public String findByName(String name) {
         return filterByName.get(name);

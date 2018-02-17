@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.config.source;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 
@@ -18,7 +19,8 @@ public class CompositeConfigSource implements SquigglyConfigSource {
     }
 
     @Override
-    public String getProperty(String name, String defaultValue) {
+    @Nullable
+    public String getProperty(String name, @Nullable  String defaultValue) {
         String property = null;
 
         for (SquigglyConfigSource source : sources) {
@@ -36,6 +38,7 @@ public class CompositeConfigSource implements SquigglyConfigSource {
         return property;
     }
 
+    @Nullable
     @Override
     public String getLocation(String name) {
         String location = null;

@@ -3,6 +3,7 @@ package com.github.bohnman.squiggly.web;
 import com.github.bohnman.squiggly.context.provider.AbstractSquigglyContextProvider;
 import com.google.common.base.MoreObjects;
 
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +25,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         this.defaultFilter = defaultFilter;
     }
 
+    @Nullable
     @Override
     protected String getFilter(Class beanClass) {
         HttpServletRequest request = getRequest();

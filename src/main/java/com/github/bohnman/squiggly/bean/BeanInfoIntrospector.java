@@ -17,6 +17,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
+import javax.annotation.Nullable;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -116,6 +117,7 @@ public class BeanInfoIntrospector {
         return propertyName;
     }
 
+    @Nullable
     private static String getPropertyName(String propertyName, Annotation[] annotations) {
         if (propertyName != null) {
             return propertyName;

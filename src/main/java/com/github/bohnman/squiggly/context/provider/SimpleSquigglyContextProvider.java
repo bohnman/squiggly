@@ -1,6 +1,9 @@
 package com.github.bohnman.squiggly.context.provider;
 
+import com.github.bohnman.squiggly.parser.SquigglyParser;
 import net.jcip.annotations.ThreadSafe;
+
+import javax.annotation.Nullable;
 
 /**
  * Provider implementation that just takes a fixed filter expression.
@@ -10,7 +13,7 @@ public class SimpleSquigglyContextProvider extends AbstractSquigglyContextProvid
 
     private final String filter;
 
-    public SimpleSquigglyContextProvider(String filter) {
+    public SimpleSquigglyContextProvider(@Nullable  String filter) {
         this.filter = filter;
     }
 
@@ -27,6 +30,7 @@ public class SimpleSquigglyContextProvider extends AbstractSquigglyContextProvid
         return true;
     }
 
+    @Nullable
     @Override
     protected String getFilter(Class beanClass) {
         return filter;

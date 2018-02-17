@@ -1,12 +1,17 @@
 package com.github.bohnman.squiggly.config.source;
 
+import javax.annotation.Nullable;
+
 public interface SquigglyConfigSource {
 
+    @Nullable
     default String getProperty(String name) {
         return getProperty(name, null);
     }
 
-   String getProperty(String name, String defaultValue);
+    @Nullable
+    String getProperty(String name, @Nullable  String defaultValue);
 
+    @Nullable
     String getLocation(String name);
 }

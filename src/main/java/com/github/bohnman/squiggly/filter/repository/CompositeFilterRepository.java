@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.filter.repository;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -16,6 +17,7 @@ public class CompositeFilterRepository implements SquigglyFilterRepository {
         this.repositories = checkNotNull(repositories);
     }
 
+    @Nullable
     @Override
     public String findByName(String name) {
         String filter = null;

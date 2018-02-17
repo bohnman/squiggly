@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.web;
 
 import net.jcip.annotations.ThreadSafe;
 
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -9,8 +10,9 @@ import javax.servlet.http.HttpServletRequest;
  */
 @ThreadSafe
 public class SquigglyRequestHolder {
-    private static final ThreadLocal<HttpServletRequest> HOLDER = new ThreadLocal<HttpServletRequest>();
+    private static final ThreadLocal<HttpServletRequest> HOLDER = new ThreadLocal<>();
 
+    @Nullable
     public static HttpServletRequest getRequest() {
         return HOLDER.get();
     }

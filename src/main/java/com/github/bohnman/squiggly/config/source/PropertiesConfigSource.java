@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.config.source;
 
 import com.google.common.base.MoreObjects;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -34,11 +35,13 @@ public class PropertiesConfigSource implements  SquigglyConfigSource {
         }
     }
 
+    @Nullable
     @Override
-    public String getProperty(String name, String defaultValue) {
+    public String getProperty(String name, @Nullable  String defaultValue) {
         return MoreObjects.firstNonNull(properties.getProperty(name), defaultValue);
     }
 
+    @Nullable
     @Override
     public String getLocation(String name) {
         if (!properties.containsKey(name)) {

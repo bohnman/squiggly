@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jcip.annotations.ThreadSafe;
 
+import javax.annotation.Nullable;
+
 /**
  * Provides various convenience methods.
  */
@@ -21,7 +23,7 @@ public class SquigglyUtils {
      * @param object the object to convert
      * @return json string
      */
-    public static String stringify(ObjectMapper mapper, Object object) {
+    public static String stringify(ObjectMapper mapper, @Nullable  Object object) {
         try {
             return mapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
