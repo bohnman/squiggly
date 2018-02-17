@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.config.source.SquigglyConfigSource;
 import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.filter.SquigglyPropertyFilter;
@@ -12,6 +13,9 @@ import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
 import com.github.bohnman.squiggly.serializer.SquigglySerializer;
 import net.jcip.annotations.ThreadSafe;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -190,8 +194,20 @@ public class Squiggly {
 
         private SquigglyContextProvider contextProvider;
         private SquigglySerializer serializer;
+        private List<SquigglyConfigSource> configSources = new ArrayList<>();
 
         private Builder() {
+        }
+
+        /**
+         * Add a config source.
+         *
+         * @param source the config source
+         * @return builder
+         */
+        public B config(SquigglyConfigSource source) {
+            configSources.add(checkNotNull(source));
+            return getThis();
         }
 
         /**
@@ -234,7 +250,7 @@ public class Squiggly {
         @SuppressWarnings("unchecked")
         public S build() {
             checkNotNull(contextProvider, "contextProvider is required.  Either staticFilter or context must be called.");
-            SquigglyConfig config = new SquigglyConfig();
+            SquigglyConfig config = new SquigglyConfig(configSources);
             SquigglyMetrics metrics = new SquigglyMetrics();
             SquigglyParser parser = new SquigglyParser(config, metrics);
             SquigglySerializer serializer = this.serializer;

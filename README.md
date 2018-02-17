@@ -15,6 +15,8 @@ escaped.  Square brackets are still permitted in the url and it is preferred to 
 * removed Squiggly.init(ObjectMapper, SquigglyPropertyFilter)
 * removed Squiggly.init(Iterable<ObjectMapper>, SquigglyPropertyFilter filter)
 * moved serialize* methods in SquigglyContextProvider to new SquigglySerializer interface
+* all config properties prefixed with squiggly.
+
 
 # Squiggly Filter For Jackson
 
@@ -55,7 +57,7 @@ Integrating Squiggly into your webapp is covered in [Custom Integration](#custom
 
 ## <a name="prerequisites"></a>Requirements
 
-- Java 7+
+- Java 8+
 - [ANTLR](http://www.antlr.org/)
 - [Commons Lang 3](https://commons.apache.org/proper/commons-lang/)
 - [Google Guava](https://github.com/google/guava)
