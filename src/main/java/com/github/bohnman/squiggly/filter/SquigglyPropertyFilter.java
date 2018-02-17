@@ -11,6 +11,7 @@ import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.context.SquigglyContext;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.filter.repository.SquigglyFilterRepository;
 import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.name.AnyDeepName;
@@ -83,38 +84,35 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     private final List<SquigglyNode> baseViewNodes = Collections.singletonList(new SquigglyNode(new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), false, true, false));
     private final BeanInfoIntrospector beanInfoIntrospector;
     private final SquigglyContextProvider contextProvider;
+    private final SquigglyFilterRepository filterRepository;
     private final SquigglyParser parser;
     private final SquigglySerializer serializer;
 
     /**
-     * Construct with a specified context provider.
-     *
-     * @param config          config
-     * @param metrics         metrics
-     * @param parser          parser
-     * @param serializer      serializer
-     * @param contextProvider context provider
-     */
-    public SquigglyPropertyFilter(SquigglyConfig config, SquigglyMetrics metrics, SquigglyParser parser, SquigglySerializer serializer, SquigglyContextProvider contextProvider) {
-        this(config, metrics, contextProvider, parser, serializer, new BeanInfoIntrospector(config, metrics));
-    }
-
-    /**
      * Construct with a context provider and an introspector
      *
+     * @param beanInfoIntrospector introspector
      * @param config               config
-     * @param metrics              metrics
      * @param contextProvider      context provider
+     * @param filterRepository     filter repository
+     * @param metrics              metrics
      * @param parser               parser
      * @param serializer           serializer
-     * @param beanInfoIntrospector introspector
      */
-    public SquigglyPropertyFilter(SquigglyConfig config, SquigglyMetrics metrics, SquigglyContextProvider contextProvider, SquigglyParser parser, SquigglySerializer serializer, BeanInfoIntrospector beanInfoIntrospector) {
+    public SquigglyPropertyFilter(
+            BeanInfoIntrospector beanInfoIntrospector,
+            SquigglyConfig config,
+            SquigglyContextProvider contextProvider,
+            SquigglyFilterRepository filterRepository,
+            SquigglyMetrics metrics,
+            SquigglyParser parser,
+            SquigglySerializer serializer) {
+        this.beanInfoIntrospector = checkNotNull(beanInfoIntrospector);
         this.config = checkNotNull(config);
         this.contextProvider = checkNotNull(contextProvider);
+        this.filterRepository = checkNotNull(filterRepository);
         this.parser = checkNotNull(parser);
         this.serializer = checkNotNull(serializer);
-        this.beanInfoIntrospector = checkNotNull(beanInfoIntrospector);
         this.matchCache = CacheBuilder.from(config.getFilterPathCacheSpec()).build();
         metrics.add(new GuavaCacheSquigglyMetricsSource("squiggly.filter.pathCache.", matchCache));
     }
@@ -165,7 +163,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
 
         Path path = getPath(writer, streamContext);
-        SquigglyContext context = contextProvider.getContext(parser, path.getFirst().getBeanClass());
+        SquigglyContext context = contextProvider.getContext(path.getFirst().getBeanClass(), filterRepository, parser);
         String filter = context.getFilter();
 
 

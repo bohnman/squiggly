@@ -3,19 +3,25 @@ package com.github.bohnman.squiggly;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.config.source.SquigglyConfigSource;
 import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.filter.SquigglyPropertyFilterMixin;
+import com.github.bohnman.squiggly.filter.repository.CompositeFilterRepository;
+import com.github.bohnman.squiggly.filter.repository.MapFilterRepository;
+import com.github.bohnman.squiggly.filter.repository.SquigglyFilterRepository;
 import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
 import com.github.bohnman.squiggly.serializer.SquigglySerializer;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -192,9 +198,11 @@ public class Squiggly {
      */
     public static class Builder<B extends Builder<B, S>, S extends Squiggly> {
 
+        private Map<String, String> savedFilters = new HashMap<>();
         private SquigglyContextProvider contextProvider;
         private SquigglySerializer serializer;
         private List<SquigglyConfigSource> configSources = new ArrayList<>();
+        private SquigglyFilterRepository filterRepository;
 
         private Builder() {
         }
@@ -218,6 +226,29 @@ public class Squiggly {
          */
         public B context(SquigglyContextProvider contextProvider) {
             this.contextProvider = contextProvider;
+            return getThis();
+        }
+
+        /**
+         * Sets the filter repository.
+         *
+         * @param filterRepository filter repository
+         * @return builder
+         */
+        public B savedFilter(SquigglyFilterRepository filterRepository) {
+            this.filterRepository = filterRepository;
+            return getThis();
+        }
+
+        /**
+         * Adds a saved filter.
+         *
+         * @param name name
+         * @param filter filter
+         * @return builder
+         */
+        public B savedFilter(String name, String filter) {
+            savedFilters.put(name, filter);
             return getThis();
         }
 
@@ -249,17 +280,35 @@ public class Squiggly {
          */
         @SuppressWarnings("unchecked")
         public S build() {
-            checkNotNull(contextProvider, "contextProvider is required.  Either staticFilter or context must be called.");
+            SquigglyContextProvider contextProvider = this.contextProvider;
             SquigglyConfig config = new SquigglyConfig(configSources);
             SquigglyMetrics metrics = new SquigglyMetrics();
             SquigglyParser parser = new SquigglyParser(config, metrics);
             SquigglySerializer serializer = this.serializer;
 
+            if (contextProvider == null) {
+                contextProvider = new SimpleSquigglyContextProvider("**");
+            }
+
+
             if (serializer == null) {
                 serializer = new SquigglySerializer() {};
             }
 
-            SquigglyPropertyFilter filter = new SquigglyPropertyFilter(config, metrics, parser, serializer, contextProvider);
+            SquigglyFilterRepository filterRepository = new MapFilterRepository(savedFilters);
+
+            if (this.filterRepository != null) {
+                filterRepository = new CompositeFilterRepository(filterRepository, this.filterRepository);
+            }
+
+            SquigglyPropertyFilter filter = new SquigglyPropertyFilter(
+                    new BeanInfoIntrospector(config, metrics),
+                    config,
+                    contextProvider,
+                    filterRepository,
+                    metrics,
+                    parser,
+                    serializer);
             return (S) new Squiggly(config, filter, metrics);
         }
 

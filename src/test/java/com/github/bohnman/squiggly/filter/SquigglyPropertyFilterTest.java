@@ -2,8 +2,10 @@ package com.github.bohnman.squiggly.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
+import com.github.bohnman.squiggly.filter.repository.MapFilterRepository;
 import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.model.Issue;
 import com.github.bohnman.squiggly.model.IssueAction;
@@ -391,7 +393,9 @@ public class SquigglyPropertyFilterTest {
         SquigglyParser parser = new SquigglyParser(config, metrics);
         SimpleSquigglyContextProvider provider = new SimpleSquigglyContextProvider(filter);
         SquigglySerializer serializer = new SquigglySerializer() {};
-        filterProvider.addFilter(SquigglyPropertyFilter.FILTER_ID, new SquigglyPropertyFilter(config, metrics, parser, serializer, provider));
+        MapFilterRepository filterRepository = new MapFilterRepository();
+        BeanInfoIntrospector introspector = new BeanInfoIntrospector(config, metrics);
+        filterProvider.addFilter(SquigglyPropertyFilter.FILTER_ID, new SquigglyPropertyFilter(introspector, config, provider, filterRepository, metrics, parser, serializer));
         return filter;
     }
 
