@@ -1,18 +1,21 @@
 package com.github.bohnman.squiggly.metric.source;
 
-import com.google.common.collect.ImmutableList;
+import net.jcip.annotations.ThreadSafe;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * A source that pull metrics from multiple other sources.
  */
+@ThreadSafe
 public class CompositeSquigglyMetricsSource implements SquigglyMetricsSource {
 
-    private final ImmutableList<SquigglyMetricsSource> sources;
+    private final List<SquigglyMetricsSource> sources = new CopyOnWriteArrayList<>();
 
-    public CompositeSquigglyMetricsSource(SquigglyMetricsSource... sources) {
-        this.sources = ImmutableList.copyOf(sources);
+    public void add(SquigglyMetricsSource source) {
+        sources.add(source);
     }
 
     @Override

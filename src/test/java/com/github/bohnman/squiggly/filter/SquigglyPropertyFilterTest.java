@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
+import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.model.Issue;
 import com.github.bohnman.squiggly.model.IssueAction;
 import com.github.bohnman.squiggly.model.Item;
 import com.github.bohnman.squiggly.model.Outer;
 import com.github.bohnman.squiggly.model.User;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
+import com.github.bohnman.squiggly.serializer.SquigglySerializer;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +33,8 @@ public class SquigglyPropertyFilterTest {
     private ObjectMapper objectMapper;
     private SimpleFilterProvider filterProvider;
     private boolean init = false;
+    private SquigglyConfig config;
+    private SquigglyMetrics metrics;
 
     @Before
     public void beforeEachTest() {
@@ -42,6 +46,9 @@ public class SquigglyPropertyFilterTest {
             objectMapper.addMixIn(Object.class, SquigglyPropertyFilterMixin.class);
             init = true;
         }
+
+        this.config = new SquigglyConfig();
+        this.metrics = new SquigglyMetrics();
 
         filterProvider.removeFilter(SquigglyPropertyFilter.FILTER_ID);
     }
@@ -268,11 +275,11 @@ public class SquigglyPropertyFilterTest {
         String fieldName = "filterImplicitlyIncludeBaseFieldsInView";
 
         try {
-            setFieldValue(SquigglyConfig.class, fieldName, false);
+            setFieldValue(config, fieldName, false);
             filter("view1");
             assertEquals("{\"properties\":" + stringifyRaw(issue.getProperties()) + "}", stringify());
         } finally {
-            setFieldValue(SquigglyConfig.class, fieldName, true);
+            setFieldValue(config, fieldName, true);
         }
     }
 
@@ -281,11 +288,11 @@ public class SquigglyPropertyFilterTest {
         String fieldName = "filterPropagateViewToNestedFilters";
 
         try {
-            setFieldValue(SquigglyConfig.class, fieldName, true);
+            setFieldValue(config, fieldName, true);
             filter("full");
             assertEquals(stringifyRaw(), stringify());
         } finally {
-            setFieldValue(SquigglyConfig.class, fieldName, false);
+            setFieldValue(config, fieldName, false);
         }
     }
 
@@ -294,11 +301,11 @@ public class SquigglyPropertyFilterTest {
         String fieldName = "propertyAddNonAnnotatedFieldsToBaseView";
 
         try {
-            setFieldValue(SquigglyConfig.class, fieldName, false);
+            setFieldValue(config, fieldName, false);
             filter("base");
             assertEquals("{}", stringify());
         } finally {
-            setFieldValue(SquigglyConfig.class, fieldName, true);
+            setFieldValue(config, fieldName, true);
         }
     }
 
@@ -333,10 +340,10 @@ public class SquigglyPropertyFilterTest {
         assertEquals("{\"innerText\":\"innerValue\"}", stringify(new Outer("outerValue", "innerValue")));
     }
 
-    private void setFieldValue(Class<?> ownerClass, String fieldName, boolean value) {
-        Field field = getField(ownerClass, fieldName);
+    private void setFieldValue(Object object, String fieldName, boolean value) {
+        Field field = getField(object, fieldName);
         try {
-            field.setBoolean(null, value);
+            field.setBoolean(object, value);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
@@ -352,9 +359,9 @@ public class SquigglyPropertyFilterTest {
         }
     }
 
-    private Field getField(Class<?> ownerClass, String fieldName) {
+    private Field getField(Object object, String fieldName) {
         try {
-            Field field = ownerClass.getDeclaredField(fieldName);
+            Field field = object.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
             removeFinalModifier(field);
             return field;
@@ -381,9 +388,10 @@ public class SquigglyPropertyFilterTest {
 
     @SuppressWarnings("UnusedReturnValue")
     private String filter(String filter) {
-        SquigglyParser parser = new SquigglyParser();
-        SimpleSquigglyContextProvider provider = new SimpleSquigglyContextProvider(parser, filter);
-        filterProvider.addFilter(SquigglyPropertyFilter.FILTER_ID, new SquigglyPropertyFilter(provider));
+        SquigglyParser parser = new SquigglyParser(config, metrics);
+        SimpleSquigglyContextProvider provider = new SimpleSquigglyContextProvider(filter);
+        SquigglySerializer serializer = new SquigglySerializer() {};
+        filterProvider.addFilter(SquigglyPropertyFilter.FILTER_ID, new SquigglyPropertyFilter(config, metrics, parser, serializer, provider));
         return filter;
     }
 

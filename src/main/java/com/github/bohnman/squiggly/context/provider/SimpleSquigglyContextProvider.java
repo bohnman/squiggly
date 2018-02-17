@@ -1,6 +1,5 @@
 package com.github.bohnman.squiggly.context.provider;
 
-import com.github.bohnman.squiggly.parser.SquigglyParser;
 import net.jcip.annotations.ThreadSafe;
 
 /**
@@ -11,8 +10,7 @@ public class SimpleSquigglyContextProvider extends AbstractSquigglyContextProvid
 
     private final String filter;
 
-    public SimpleSquigglyContextProvider(SquigglyParser parser, String filter) {
-        super(parser);
+    public SimpleSquigglyContextProvider(String filter) {
         this.filter = filter;
     }
 

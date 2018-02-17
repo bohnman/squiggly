@@ -1,7 +1,5 @@
 package com.github.bohnman.squiggly.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.google.common.cache.CacheBuilderSpec;
 import com.google.common.collect.ImmutableSortedMap;
@@ -23,20 +21,20 @@ import java.util.SortedMap;
 @ThreadSafe
 public class SquigglyConfig {
 
-    private static final SortedMap<String, String> PROPS_MAP;
-    private static final SortedMap<String, String> SOURCE_MAP;
+    private final SortedMap<String, String> PROPS_MAP;
+    private final SortedMap<String, String> SOURCE_MAP;
 
-    private static final boolean filterImplicitlyIncludeBaseFields;
-    private static final boolean filterImplicitlyIncludeBaseFieldsInView;
-    private static final CacheBuilderSpec filterPathCacheSpec;
-    private static final boolean filterPropagateViewToNestedFilters;
+    private final boolean filterImplicitlyIncludeBaseFields;
+    private final boolean filterImplicitlyIncludeBaseFieldsInView;
+    private final CacheBuilderSpec filterPathCacheSpec;
+    private final boolean filterPropagateViewToNestedFilters;
 
-    private static final CacheBuilderSpec parserNodeCacheSpec;
+    private final CacheBuilderSpec parserNodeCacheSpec;
 
-    private static boolean propertyAddNonAnnotatedFieldsToBaseView;
-    private static final CacheBuilderSpec propertyDescriptorCacheSpec;
+    private boolean propertyAddNonAnnotatedFieldsToBaseView;
+    private final CacheBuilderSpec propertyDescriptorCacheSpec;
 
-    static {
+    public SquigglyConfig() {
         Map<String, String> propsMap = Maps.newHashMap();
         Map<String, String> sourceMap = Maps.newHashMap();
 
@@ -55,7 +53,7 @@ public class SquigglyConfig {
         propertyDescriptorCacheSpec = getCacheSpec(PROPS_MAP, "property.descriptorCache.spec");
     }
 
-    private static CacheBuilderSpec getCacheSpec(Map<String, String> props, String key) {
+    private CacheBuilderSpec getCacheSpec(Map<String, String> props, String key) {
         String value = props.get(key);
 
         if (value == null) {
@@ -65,11 +63,11 @@ public class SquigglyConfig {
         return CacheBuilderSpec.parse(value);
     }
 
-    private static boolean getBool(Map<String, String> props, String key) {
+    private boolean getBool(Map<String, String> props, String key) {
         return "true".equals(props.get(key));
     }
 
-    private static int getInt(Map<String, String> props, String key) {
+    private int getInt(Map<String, String> props, String key) {
         try {
             return Integer.parseInt(props.get(key));
         } catch (NumberFormatException e) {
@@ -77,7 +75,7 @@ public class SquigglyConfig {
         }
     }
 
-    private static void loadProps(Map<String, String> propsMap, Map<String, String> sourceMap, String file) {
+    private void loadProps(Map<String, String> propsMap, Map<String, String> sourceMap, String file) {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         URL url = classLoader.getResource(file);
 
@@ -110,16 +108,13 @@ public class SquigglyConfig {
         }
     }
 
-    private SquigglyConfig() {
-    }
-
     /**
      * Determines whether or not to include base fields for nested objects
      *
      * @return true if includes, false if not
      * @see com.github.bohnman.squiggly.view.PropertyView
      */
-    public static boolean isFilterImplicitlyIncludeBaseFields() {
+    public boolean isFilterImplicitlyIncludeBaseFields() {
         return filterImplicitlyIncludeBaseFields;
     }
 
@@ -128,7 +123,7 @@ public class SquigglyConfig {
      *
      * @return true if includes, false if not
      */
-    public static boolean isFilterImplicitlyIncludeBaseFieldsInView() {
+    public boolean isFilterImplicitlyIncludeBaseFieldsInView() {
         return filterImplicitlyIncludeBaseFieldsInView;
     }
 
@@ -138,7 +133,7 @@ public class SquigglyConfig {
      * @return spec
      * @see com.github.bohnman.squiggly.filter.SquigglyPropertyFilter
      */
-    public static CacheBuilderSpec getFilterPathCacheSpec() {
+    public CacheBuilderSpec getFilterPathCacheSpec() {
         return filterPathCacheSpec;
     }
 
@@ -150,7 +145,7 @@ public class SquigglyConfig {
      *
      * @return true if includes, false if not
      */
-    public static boolean isFilterPropagateViewToNestedFilters() {
+    public boolean isFilterPropagateViewToNestedFilters() {
         return filterPropagateViewToNestedFilters;
     }
 
@@ -160,7 +155,7 @@ public class SquigglyConfig {
      * @return spec
      * @see com.github.bohnman.squiggly.parser.SquigglyParser
      */
-    public static CacheBuilderSpec getParserNodeCacheSpec() {
+    public CacheBuilderSpec getParserNodeCacheSpec() {
         return parserNodeCacheSpec;
     }
 
@@ -170,7 +165,7 @@ public class SquigglyConfig {
      * @return true/false
      * @see BeanInfoIntrospector
      */
-    public static boolean isPropertyAddNonAnnotatedFieldsToBaseView() {
+    public boolean isPropertyAddNonAnnotatedFieldsToBaseView() {
         return propertyAddNonAnnotatedFieldsToBaseView;
     }
 
@@ -180,7 +175,7 @@ public class SquigglyConfig {
      * @return spec
      * @see BeanInfoIntrospector
      */
-    public static CacheBuilderSpec getPropertyDescriptorCacheSpec() {
+    public CacheBuilderSpec getPropertyDescriptorCacheSpec() {
         return propertyDescriptorCacheSpec;
     }
 
@@ -189,7 +184,7 @@ public class SquigglyConfig {
      *
      * @return map
      */
-    public static SortedMap<String, String> asMap() {
+    public SortedMap<String, String> asMap() {
         return PROPS_MAP;
     }
 
@@ -198,11 +193,11 @@ public class SquigglyConfig {
      *
      * @return source map
      */
-    public static SortedMap<String, String> asSourceMap() {
+    public SortedMap<String, String> asSourceMap() {
         return SOURCE_MAP;
     }
 
     public static void main(String[] args) {
-        System.out.println(SquigglyConfig.asMap());
+        System.out.println(new SquigglyConfig().asMap());
     }
 }

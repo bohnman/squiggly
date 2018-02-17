@@ -1,10 +1,7 @@
 package com.github.bohnman.squiggly.metric;
 
-import com.github.bohnman.squiggly.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.metric.source.CompositeSquigglyMetricsSource;
 import com.github.bohnman.squiggly.metric.source.SquigglyMetricsSource;
-import com.github.bohnman.squiggly.parser.SquigglyParser;
-import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
 
@@ -16,17 +13,15 @@ import java.util.SortedMap;
 @ThreadSafe
 public class SquigglyMetrics {
 
-    private static final SquigglyMetricsSource METRICS_SOURCE;
+    private final CompositeSquigglyMetricsSource metricsSource = new CompositeSquigglyMetricsSource();
 
-    static {
-        METRICS_SOURCE = new CompositeSquigglyMetricsSource(
-                SquigglyParser.getMetricsSource(),
-                SquigglyPropertyFilter.getMetricsSource(),
-                BeanInfoIntrospector.getMetricsSource()
-        );
-    }
-
-    private SquigglyMetrics() {
+    /**
+     * Adds a new source to the metrics.
+     *
+     * @param source the source
+     */
+    public void add(SquigglyMetricsSource source) {
+        metricsSource.add(source);
     }
 
     /**
@@ -34,9 +29,9 @@ public class SquigglyMetrics {
      *
      * @return map
      */
-    public static SortedMap<String, Object> asMap() {
+    public SortedMap<String, Object> asMap() {
         SortedMap<String, Object> metrics = Maps.newTreeMap();
-        METRICS_SOURCE.applyMetrics(metrics);
+        metricsSource.applyMetrics(metrics);
         return metrics;
     }
 }

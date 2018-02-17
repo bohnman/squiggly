@@ -1,7 +1,6 @@
 package com.github.bohnman.squiggly.web;
 
 import com.github.bohnman.squiggly.context.provider.AbstractSquigglyContextProvider;
-import com.github.bohnman.squiggly.parser.SquigglyParser;
 import com.google.common.base.MoreObjects;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,12 +20,6 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
     }
 
     public RequestSquigglyContextProvider(String filterParam, String defaultFilter) {
-        this(new SquigglyParser(), filterParam, defaultFilter);
-
-    }
-
-    public RequestSquigglyContextProvider(SquigglyParser parser, String filterParam, String defaultFilter) {
-        super(parser);
         this.filterParam = filterParam;
         this.defaultFilter = defaultFilter;
     }
@@ -80,7 +73,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         @SuppressWarnings("RedundantStringConstructorCall")
         private static final String NULL = new String();
         public static final String REQUEST_KEY = FilterCache.class.getName();
-        private final Map<Class, String> map = new HashMap<Class, String>();
+        private final Map<Class, String> map = new HashMap<>();
 
         public static FilterCache getOrCreate(HttpServletRequest request) {
             FilterCache cache = (FilterCache) request.getAttribute(REQUEST_KEY);

@@ -3,76 +3,45 @@ package com.github.bohnman.squiggly;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.filter.SquigglyPropertyFilterMixin;
+import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
+import com.github.bohnman.squiggly.serializer.SquigglySerializer;
+import net.jcip.annotations.ThreadSafe;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Provides various way of registering a {@link SquigglyPropertyFilter} with a Jackson ObjectMapper.
  */
+@ThreadSafe
 public class Squiggly {
 
-    private Squiggly() {
+    private final SquigglyPropertyFilter filter;
+    private final SquigglyConfig config;
+    private final SquigglyMetrics metrics;
+
+    private Squiggly(
+            SquigglyConfig config,
+            SquigglyPropertyFilter filter,
+            SquigglyMetrics metrics) {
+        this.config = checkNotNull(config);
+        this.filter = checkNotNull(filter);
+        this.metrics = checkNotNull(metrics);
     }
 
     /**
-     * Initialize a @{@link SquigglyPropertyFilter} with a static filter expression.
+     * Apply squiggly to the provided object mapper.
      *
-     * @param mapper the Jackson Object Mapper
-     * @param filter the filter expressions
-     * @return object mapper, mainly for convenience
-     * @throws IllegalStateException if the filter was unable to be registered
-     */
-    public static ObjectMapper init(ObjectMapper mapper, String filter) throws IllegalStateException {
-        return init(mapper, new SimpleSquigglyContextProvider(new SquigglyParser(), filter));
-    }
-
-    /**
-     * Initialize a @{@link SquigglyPropertyFilter} with a static filter expression.
-     *
-     * @param mappers the Jackson Object Mappers to init
-     * @param filter the filter expressions
-     * @throws IllegalStateException if the filter was unable to be registered
-     */
-    public static void init(Iterable<ObjectMapper> mappers, String filter) throws IllegalStateException {
-        init(mappers, new SimpleSquigglyContextProvider(new SquigglyParser(), filter));
-    }
-
-    /**
-     * Initialize a @{@link SquigglyPropertyFilter} with a specific context provider.
-     *
-     * @param mapper          the Jackson Object Mapper
-     * @param contextProvider the context provider to use
-     * @return object mapper, mainly for convenience
-     * @throws IllegalStateException if the filter was unable to be registered
-     */
-    public static ObjectMapper init(ObjectMapper mapper, SquigglyContextProvider contextProvider) throws IllegalStateException {
-        return init(mapper, new SquigglyPropertyFilter(contextProvider));
-    }
-
-    /**
-     * Initialize a @{@link SquigglyPropertyFilter} with a specific context provider.
-     *
-     * @param mappers          the Jackson Object Mappers to init
-     * @param contextProvider the context provider to use
-     * @throws IllegalStateException if the filter was unable to be registered
-     */
-    public static void init(Iterable<ObjectMapper> mappers, SquigglyContextProvider contextProvider) {
-        init(mappers, new SquigglyPropertyFilter(contextProvider));
-    }
-
-    /**
-     * Initialize a @{@link SquigglyPropertyFilter} with a specific property filter.
-     *
-     * @param mapper the Jackson Object Mapper
-     * @param filter the property filter
-     * @return object mapper, mainly for convenience
-     * @throws IllegalStateException if the filter was unable to be registered
+     * @param mapper object mapper
+     * @return object mapper
      */
     @SuppressWarnings("deprecation")
-    public static ObjectMapper init(ObjectMapper mapper, SquigglyPropertyFilter filter) throws IllegalStateException {
+    public ObjectMapper apply(ObjectMapper mapper) {
         FilterProvider filterProvider = mapper.getSerializationConfig().getFilterProvider();
         SimpleFilterProvider simpleFilterProvider;
 
@@ -93,15 +62,194 @@ public class Squiggly {
     }
 
     /**
-     * Initialize a @{@link SquigglyPropertyFilter} with a specific property filter.
+     * Apply squiggly to all of the provided object mappers
      *
-     * @param mappers the Jackson Object Mappers to init
-     * @param filter the property filter
+     * @param mappers the object mappers
+     */
+    public void applyAll(Iterable<ObjectMapper> mappers) {
+        for (ObjectMapper mapper : mappers) {
+            apply(mapper);
+        }
+    }
+
+    /**
+     * Apply squiggly to all of the provided object mappers
+     *
+     * @param mappers the object mappers
+     */
+    public void applyAll(ObjectMapper... mappers) {
+        for (ObjectMapper mapper : mappers) {
+            apply(mapper);
+        }
+    }
+
+    /**
+     * Get the configuration information
+     *
+     * @return config
+     */
+    public SquigglyConfig getConfig() {
+        return config;
+    }
+
+    /**
+     * Get the metrics.
+     *
+     * @return metrics
+     */
+    public SquigglyMetrics getMetrics() {
+        return metrics;
+    }
+
+    /**
+     * Create a builder that configures Squiggly.
+     *
+     * @return builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Create a builder that configures Squiggly with a static filter.
+     *
+     * @param filter static filter
+     *
+     * @return builder
+     */
+    public static Builder builder(String filter) {
+        return builder().staticFilter(filter);
+    }
+
+    /**
+     * Create a builder that configures Squiggly with a context provider.
+     *
+     * @param contextProvider context provider
+     *
+     * @return builder
+     */
+    public static Builder builder(SquigglyContextProvider contextProvider) {
+        return builder().context(contextProvider);
+    }
+
+
+    /**
+     * Initialize a @{@link SquigglyPropertyFilter} with a static filter expression.
+     *
+     * @param mapper the Jackson Object Mapper
+     * @param filter the filter expressions
+     * @return object mapper, mainly for convenience
      * @throws IllegalStateException if the filter was unable to be registered
      */
-    public static void init(Iterable<ObjectMapper> mappers, SquigglyPropertyFilter filter) {
-        for (ObjectMapper mapper : mappers) {
-            init(mapper, filter);
+    public static ObjectMapper init(ObjectMapper mapper, String filter) throws IllegalStateException {
+        return init(mapper, new SimpleSquigglyContextProvider(filter));
+    }
+
+    /**
+     * Initialize a @{@link SquigglyPropertyFilter} with a static filter expression.
+     *
+     * @param mappers the Jackson Object Mappers to init
+     * @param filter the filter expressions
+     * @throws IllegalStateException if the filter was unable to be registered
+     */
+    public static void init(Iterable<ObjectMapper> mappers, String filter) throws IllegalStateException {
+        init(mappers, new SimpleSquigglyContextProvider(filter));
+    }
+
+    /**
+     * Initialize a @{@link SquigglyPropertyFilter} with a specific context provider.
+     *
+     * @param mapper          the Jackson Object Mapper
+     * @param contextProvider the context provider to use
+     * @return object mapper, mainly for convenience
+     * @throws IllegalStateException if the filter was unable to be registered
+     */
+    public static ObjectMapper init(ObjectMapper mapper, SquigglyContextProvider contextProvider) throws IllegalStateException {
+        return builder(contextProvider).build().apply(mapper);
+    }
+
+    /**
+     * Initialize a @{@link SquigglyPropertyFilter} with a specific context provider.
+     *
+     * @param mappers          the Jackson Object Mappers to init
+     * @param contextProvider the context provider to use
+     * @throws IllegalStateException if the filter was unable to be registered
+     */
+    public static void init(Iterable<ObjectMapper> mappers, SquigglyContextProvider contextProvider) {
+        builder(contextProvider).build().applyAll(mappers);
+    }
+
+
+    /**
+     * Helper class that configures squiggly
+     *
+     * @param <B> the builder type
+     * @param <S> the squiggly type
+     */
+    public static class Builder<B extends Builder<B, S>, S extends Squiggly> {
+
+        private SquigglyContextProvider contextProvider;
+        private SquigglySerializer serializer;
+
+        private Builder() {
+        }
+
+        /**
+         * Set a context provider.
+         *
+         * @param contextProvider the context provider
+         * @return builder
+         */
+        public B context(SquigglyContextProvider contextProvider) {
+            this.contextProvider = contextProvider;
+            return getThis();
+        }
+
+        /**
+         * Sets a serializer.
+         *
+         * @param serializer serializer
+         * @return builder
+         */
+        public B serializer(SquigglySerializer serializer) {
+            this.serializer = serializer;
+            return getThis();
+        }
+
+        /**
+         * Set a static filter.
+         *
+         * @param filter the filter
+         * @return builder
+         */
+        public B staticFilter(String filter) {
+            return context(new SimpleSquigglyContextProvider(filter));
+        }
+
+        /**
+         * Build the squiggly object.
+         *
+         * @return squiggly object
+         */
+        @SuppressWarnings("unchecked")
+        public S build() {
+            checkNotNull(contextProvider, "contextProvider is required.  Either staticFilter or context must be called.");
+            SquigglyConfig config = new SquigglyConfig();
+            SquigglyMetrics metrics = new SquigglyMetrics();
+            SquigglyParser parser = new SquigglyParser(config, metrics);
+            SquigglySerializer serializer = this.serializer;
+
+            if (serializer == null) {
+                serializer = new SquigglySerializer() {};
+            }
+
+            SquigglyPropertyFilter filter = new SquigglyPropertyFilter(config, metrics, parser, serializer, contextProvider);
+            return (S) new Squiggly(config, filter, metrics);
+        }
+
+        @SuppressWarnings("unchecked")
+        private B getThis() {
+            return (B) this;
         }
     }
 

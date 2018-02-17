@@ -3,6 +3,7 @@ package com.github.bohnman.squiggly.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.view.PropertyView;
 import com.google.common.cache.CacheBuilder;
@@ -26,6 +27,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Introspects bean classes, looking for @{@link PropertyView} annotations on fields.
  */
@@ -35,26 +38,27 @@ public class BeanInfoIntrospector {
     /**
      * Caches bean class to a map of views to property views.
      */
-    private static final LoadingCache<Class, BeanInfo> CACHE;
-    private static final GuavaCacheSquigglyMetricsSource METRICS_SOURCE;
+    private final LoadingCache<Class, BeanInfo> cache;
+    private final SquigglyConfig config;
 
-    static {
-        CACHE = CacheBuilder.from(SquigglyConfig.getPropertyDescriptorCacheSpec())
+    public BeanInfoIntrospector(SquigglyConfig config, SquigglyMetrics metrics) {
+        this.config = checkNotNull(config);
+        cache = CacheBuilder.from(config.getPropertyDescriptorCacheSpec())
                 .build(new CacheLoader<Class, BeanInfo>() {
                     @Override
-                    public BeanInfo load(Class key) throws Exception {
+                    public BeanInfo load(Class key) {
                         return introspectClass(key);
                     }
                 });
-        METRICS_SOURCE = new GuavaCacheSquigglyMetricsSource("squiggly.property.descriptorCache.", CACHE);
+        metrics.add(new GuavaCacheSquigglyMetricsSource("squiggly.property.descriptorCache.", cache));
     }
 
 
     public BeanInfo introspect(Class beanClass) {
-        return CACHE.getUnchecked(beanClass);
+        return cache.getUnchecked(beanClass);
     }
 
-    private static BeanInfo introspectClass(Class beanClass) {
+    private BeanInfo introspectClass(Class beanClass) {
 
         Map<String, Set<String>> viewToPropertyNames = Maps.newHashMap();
         Set<String> resolved = Sets.newHashSet();
@@ -77,13 +81,7 @@ public class BeanInfoIntrospector {
             Set<String> views = introspectPropertyViews(propertyDescriptor, field);
 
             for (String view : views) {
-                Set<String> fieldNames = viewToPropertyNames.get(view);
-
-                if (fieldNames == null) {
-                    fieldNames = Sets.newHashSet();
-                    viewToPropertyNames.put(view, fieldNames);
-                }
-
+                Set<String> fieldNames = viewToPropertyNames.computeIfAbsent(view, k -> Sets.newHashSet());
                 fieldNames.add(propertyName);
             }
         }
@@ -95,7 +93,7 @@ public class BeanInfoIntrospector {
         return new BeanInfo(viewToPropertyNames, unwrapped);
     }
 
-    private static String getPropertyName(PropertyDescriptor propertyDescriptor, Field field) {
+    private String getPropertyName(PropertyDescriptor propertyDescriptor, Field field) {
         String propertyName = null;
 
         if (propertyDescriptor.getReadMethod() != null) {
@@ -188,7 +186,7 @@ public class BeanInfoIntrospector {
     }
 
     // apply the base fields to other views if configured to do so.
-    private static Map<String, Set<String>> expand(Map<String, Set<String>> viewToPropNames) {
+    private Map<String, Set<String>> expand(Map<String, Set<String>> viewToPropNames) {
 
         Set<String> baseProps = viewToPropNames.get(PropertyView.BASE_VIEW);
 
@@ -196,7 +194,7 @@ public class BeanInfoIntrospector {
             baseProps = ImmutableSet.of();
         }
 
-        if (!SquigglyConfig.isFilterImplicitlyIncludeBaseFieldsInView()) {
+        if (!config.isFilterImplicitlyIncludeBaseFieldsInView()) {
 
             // make an exception for full view
             Set<String> fullView = viewToPropNames.get(PropertyView.FULL_VIEW);
@@ -221,7 +219,7 @@ public class BeanInfoIntrospector {
     }
 
     // grab all the PropertyView (or derived) annotations and return their view names.
-    private static Set<String> introspectPropertyViews(PropertyDescriptor propertyDescriptor, Field field) {
+    private Set<String> introspectPropertyViews(PropertyDescriptor propertyDescriptor, Field field) {
 
         Set<String> views = Sets.newHashSet();
 
@@ -237,14 +235,14 @@ public class BeanInfoIntrospector {
             applyPropertyViews(views, field.getAnnotations());
         }
 
-        if (views.isEmpty() && SquigglyConfig.isPropertyAddNonAnnotatedFieldsToBaseView()) {
+        if (views.isEmpty() && config.isPropertyAddNonAnnotatedFieldsToBaseView()) {
             return Collections.singleton(PropertyView.BASE_VIEW);
         }
 
         return views;
     }
 
-    private static void applyPropertyViews(Set<String> views, Annotation[] annotations) {
+    private void applyPropertyViews(Set<String> views, Annotation[] annotations) {
         for (Annotation ann : annotations) {
             if (ann instanceof PropertyView) {
                 views.addAll(Lists.newArrayList(((PropertyView) ann).value()));
@@ -256,9 +254,5 @@ public class BeanInfoIntrospector {
                 }
             }
         }
-    }
-
-    public static GuavaCacheSquigglyMetricsSource getMetricsSource() {
-        return METRICS_SOURCE;
     }
 }

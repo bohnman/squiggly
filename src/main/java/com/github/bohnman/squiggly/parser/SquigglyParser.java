@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.parser;
 
 import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
-import com.github.bohnman.squiggly.metric.source.SquigglyMetricsSource;
 import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.name.AnyShallowName;
 import com.github.bohnman.squiggly.name.ExactName;
@@ -37,12 +37,11 @@ import java.util.Set;
 public class SquigglyParser {
 
     // Caches parsed filter expressions
-    private static final Cache<String, List<SquigglyNode>> CACHE;
-    private static final SquigglyMetricsSource METRICS_SOURCE;
+    private final Cache<String, List<SquigglyNode>> cache;
 
-    static {
-        CACHE = CacheBuilder.from(SquigglyConfig.getParserNodeCacheSpec()).build();
-        METRICS_SOURCE = new GuavaCacheSquigglyMetricsSource("squiggly.parser.nodeCache.", CACHE);
+    public SquigglyParser(SquigglyConfig config, SquigglyMetrics metrics) {
+        cache = CacheBuilder.from(config.getParserNodeCacheSpec()).build();
+        metrics.add(new GuavaCacheSquigglyMetricsSource("squiggly.parser.nodeCache.", cache));
     }
 
     /**
@@ -59,7 +58,7 @@ public class SquigglyParser {
         }
 
         // get it from the cache if we can
-        List<SquigglyNode> cachedNodes = CACHE.getIfPresent(filter);
+        List<SquigglyNode> cachedNodes = cache.getIfPresent(filter);
 
         if (cachedNodes != null) {
             return cachedNodes;
@@ -72,12 +71,8 @@ public class SquigglyParser {
         Visitor visitor = new Visitor();
         List<SquigglyNode> nodes = Collections.unmodifiableList(visitor.visit(parser.parse()));
 
-        CACHE.put(filter, nodes);
+        cache.put(filter, nodes);
         return nodes;
-    }
-
-    public static SquigglyMetricsSource getMetricsSource() {
-        return METRICS_SOURCE;
     }
 
     private class Visitor extends SquigglyExpressionBaseVisitor<List<SquigglyNode>> {
@@ -120,7 +115,7 @@ public class SquigglyParser {
                     names.add(createName(fieldContext));
                 }
             } else if (ctx.deep() != null) {
-                names = Collections.singletonList((SquigglyName) AnyDeepName.get());
+                names = Collections.singletonList(AnyDeepName.get());
             } else {
                 names = Collections.emptyList();
             }

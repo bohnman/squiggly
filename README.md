@@ -9,6 +9,13 @@ No longer Preferred but will still work: `assignee{firstName}`
 The reason for this is that newer versions of Tomcat no longer allow braces to be specified on the url without being
 escaped.  Square brackets are still permitted in the url and it is preferred to make the syntax url friendly.
 
+# Breaking Changes
+* SquigglyConfig no longer static
+* SquigglyMetrics no longer static
+* removed Squiggly.init(ObjectMapper, SquigglyPropertyFilter)
+* removed Squiggly.init(Iterable<ObjectMapper>, SquigglyPropertyFilter filter)
+* moved serialize* methods in SquigglyContextProvider to new SquigglySerializer interface
+
 # Squiggly Filter For Jackson
 
 ## Contents

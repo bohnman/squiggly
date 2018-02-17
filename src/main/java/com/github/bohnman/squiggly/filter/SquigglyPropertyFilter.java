@@ -11,11 +11,13 @@ import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.context.SquigglyContext;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
-import com.github.bohnman.squiggly.metric.source.SquigglyMetricsSource;
 import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.name.ExactName;
 import com.github.bohnman.squiggly.parser.SquigglyNode;
+import com.github.bohnman.squiggly.parser.SquigglyParser;
+import com.github.bohnman.squiggly.serializer.SquigglySerializer;
 import com.github.bohnman.squiggly.view.PropertyView;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -28,6 +30,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 
 /**
@@ -71,39 +75,48 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static final String FILTER_ID = "squigglyFilter";
 
+    private final SquigglyConfig config;
     /**
-     * Cache that stores previous evalulated matches.
+     * Cache that stores previous evaluated matches.
      */
-    private static final Cache<Pair<Path, String>, Boolean> MATCH_CACHE;
-    private static final SquigglyMetricsSource METRICS_SOURCE;
-    private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(new SquigglyNode(new ExactName(PropertyView.BASE_VIEW), Collections.<SquigglyNode>emptyList(), false, true, false));
-
-    static {
-        MATCH_CACHE = CacheBuilder.from(SquigglyConfig.getFilterPathCacheSpec()).build();
-        METRICS_SOURCE = new GuavaCacheSquigglyMetricsSource("squiggly.filter.pathCache.", MATCH_CACHE);
-    }
-
+    private final Cache<Pair<Path, String>, Boolean> matchCache;
+    private final List<SquigglyNode> baseViewNodes = Collections.singletonList(new SquigglyNode(new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), false, true, false));
     private final BeanInfoIntrospector beanInfoIntrospector;
     private final SquigglyContextProvider contextProvider;
+    private final SquigglyParser parser;
+    private final SquigglySerializer serializer;
 
     /**
      * Construct with a specified context provider.
      *
+     * @param config          config
+     * @param metrics         metrics
+     * @param parser          parser
+     * @param serializer      serializer
      * @param contextProvider context provider
      */
-    public SquigglyPropertyFilter(SquigglyContextProvider contextProvider) {
-        this(contextProvider, new BeanInfoIntrospector());
+    public SquigglyPropertyFilter(SquigglyConfig config, SquigglyMetrics metrics, SquigglyParser parser, SquigglySerializer serializer, SquigglyContextProvider contextProvider) {
+        this(config, metrics, contextProvider, parser, serializer, new BeanInfoIntrospector(config, metrics));
     }
 
     /**
      * Construct with a context provider and an introspector
      *
-     * @param contextProvider          context provider
+     * @param config               config
+     * @param metrics              metrics
+     * @param contextProvider      context provider
+     * @param parser               parser
+     * @param serializer           serializer
      * @param beanInfoIntrospector introspector
      */
-    public SquigglyPropertyFilter(SquigglyContextProvider contextProvider, BeanInfoIntrospector beanInfoIntrospector) {
-        this.contextProvider = contextProvider;
-        this.beanInfoIntrospector = beanInfoIntrospector;
+    public SquigglyPropertyFilter(SquigglyConfig config, SquigglyMetrics metrics, SquigglyContextProvider contextProvider, SquigglyParser parser, SquigglySerializer serializer, BeanInfoIntrospector beanInfoIntrospector) {
+        this.config = checkNotNull(config);
+        this.contextProvider = checkNotNull(contextProvider);
+        this.parser = checkNotNull(parser);
+        this.serializer = checkNotNull(serializer);
+        this.beanInfoIntrospector = checkNotNull(beanInfoIntrospector);
+        this.matchCache = CacheBuilder.from(config.getFilterPathCacheSpec()).build();
+        metrics.add(new GuavaCacheSquigglyMetricsSource("squiggly.filter.pathCache.", matchCache));
     }
 
     // create a path structure representing the object graph
@@ -140,7 +153,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         throw new UnsupportedOperationException("Cannot call include without JsonGenerator");
     }
 
-    protected boolean include(final PropertyWriter writer, final JsonGenerator jgen) {
+    private boolean include(final PropertyWriter writer, final JsonGenerator jgen) {
         if (!contextProvider.isFilteringEnabled()) {
             return true;
         }
@@ -152,7 +165,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
 
         Path path = getPath(writer, streamContext);
-        SquigglyContext context = contextProvider.getContext(path.getFirst().getBeanClass());
+        SquigglyContext context = contextProvider.getContext(parser, path.getFirst().getBeanClass());
         String filter = context.getFilter();
 
 
@@ -163,13 +176,13 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         if (path.isCachable()) {
             // cache the match result using the path and filter expression
             Pair<Path, String> pair = Pair.of(path, filter);
-            Boolean match = MATCH_CACHE.getIfPresent(pair);
+            Boolean match = matchCache.getIfPresent(pair);
 
             if (match == null) {
                 match = pathMatches(path, context);
             }
 
-            MATCH_CACHE.put(pair, match);
+            matchCache.put(pair, match);
             return match;
         }
 
@@ -232,8 +245,8 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
                 nodes = match.getChildren();
 
-                if (i < lastIdx && nodes.isEmpty() && !match.isEmptyNested() && SquigglyConfig.isFilterImplicitlyIncludeBaseFields()) {
-                    nodes = BASE_VIEW_NODES;
+                if (i < lastIdx && nodes.isEmpty() && !match.isEmptyNested() && config.isFilterImplicitlyIncludeBaseFields()) {
+                    nodes = baseViewNodes;
                 }
             }
         }
@@ -256,7 +269,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         for (String viewName : viewStack) {
             Set<String> names = getPropertyNames(element, viewName);
 
-            if (names.isEmpty() && SquigglyConfig.isFilterImplicitlyIncludeBaseFields()) {
+            if (names.isEmpty() && config.isFilterImplicitlyIncludeBaseFields()) {
                 names = getPropertyNames(element, PropertyView.BASE_VIEW);
             }
 
@@ -309,7 +322,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     private Set<String> addToViewStack(Set<String> viewStack, SquigglyNode viewNode) {
-        if (!SquigglyConfig.isFilterPropagateViewToNestedFilters()) {
+        if (!config.isFilterPropagateViewToNestedFilters()) {
             return null;
         }
 
@@ -336,19 +349,15 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     public void serializeAsField(final Object pojo, final JsonGenerator jgen, final SerializerProvider provider,
                                  final PropertyWriter writer) throws Exception {
         if (include(writer, jgen)) {
-            contextProvider.serializeAsIncludedField(pojo, jgen, provider, writer);
+            serializer.serializeAsIncludedField(pojo, jgen, provider, writer);
         } else if (!jgen.canOmitFields()) {
-            contextProvider.serializeAsExcludedField(pojo, jgen, provider, writer);
+            serializer.serializeAsExcludedField(pojo, jgen, provider, writer);
         }
     }
 
-    public static SquigglyMetricsSource getMetricsSource() {
-        return METRICS_SOURCE;
-    }
-
     /*
-            Represents the path structuore in the object graph
-         */
+        Represents the path structuore in the object graph
+     */
     private static class Path {
 
         private final String id;
