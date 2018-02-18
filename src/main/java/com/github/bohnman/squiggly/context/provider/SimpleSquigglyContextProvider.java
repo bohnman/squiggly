@@ -13,6 +13,10 @@ public class SimpleSquigglyContextProvider extends AbstractSquigglyContextProvid
 
     private final String filter;
 
+    public SimpleSquigglyContextProvider() {
+        this(null);
+    }
+
     public SimpleSquigglyContextProvider(@Nullable  String filter) {
         this.filter = filter;
     }

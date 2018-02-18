@@ -16,8 +16,12 @@ import com.github.bohnman.squiggly.filter.repository.SquigglyFilterRepository;
 import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
 import com.github.bohnman.squiggly.serializer.SquigglySerializer;
+import com.github.bohnman.squiggly.variable.CompositeVariableResolver;
+import com.github.bohnman.squiggly.variable.MapVariableResolver;
+import com.github.bohnman.squiggly.variable.SquigglyVariableResolver;
 import net.jcip.annotations.ThreadSafe;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,17 +35,33 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @ThreadSafe
 public class Squiggly {
 
+    private final BeanInfoIntrospector beanInfoIntrospector;
     private final SquigglyPropertyFilter filter;
     private final SquigglyConfig config;
     private final SquigglyMetrics metrics;
+    private final SquigglyContextProvider contextProvider;
+    private final SquigglyFilterRepository filterRepository;
+    private final SquigglyParser parser;
+    private final SquigglySerializer serializer;
+    private final SquigglyVariableResolver variableResolver;
 
-    private Squiggly(
+    public Squiggly(
             SquigglyConfig config,
-            SquigglyPropertyFilter filter,
-            SquigglyMetrics metrics) {
+            SquigglyContextProvider contextProvider,
+            SquigglyFilterRepository filterRepository,
+            SquigglyMetrics metrics,
+            SquigglyParser parser,
+            SquigglySerializer serializer,
+            SquigglyVariableResolver variableResolver) {
+        this.beanInfoIntrospector = new BeanInfoIntrospector(config, metrics);
         this.config = checkNotNull(config);
-        this.filter = checkNotNull(filter);
+        this.contextProvider = checkNotNull(contextProvider);
+        this.filterRepository = checkNotNull(filterRepository);
         this.metrics = checkNotNull(metrics);
+        this.parser = checkNotNull(parser);
+        this.serializer = checkNotNull(serializer);
+        this.variableResolver = checkNotNull(variableResolver);
+        this.filter = new SquigglyPropertyFilter(this);
     }
 
     /**
@@ -94,12 +114,48 @@ public class Squiggly {
     }
 
     /**
-     * Get the configuration information
+     * Gets bean info introspector.
+     *
+     * @return introspector
+     */
+    public BeanInfoIntrospector getBeanInfoIntrospector() {
+        return beanInfoIntrospector;
+    }
+
+    /**
+     * Get the configuration information.
      *
      * @return config
      */
     public SquigglyConfig getConfig() {
         return config;
+    }
+
+    /**
+     * Get context provider.
+     *
+     * @return context provider
+     */
+    public SquigglyContextProvider getContextProvider() {
+        return contextProvider;
+    }
+
+    /**
+     * Gets filter.
+     *
+     * @return filter
+     */
+    public SquigglyPropertyFilter getFilter() {
+        return filter;
+    }
+
+    /**
+     * Get filter repo.
+     *
+     * @return filter repo
+     */
+    public SquigglyFilterRepository getFilterRepository() {
+        return filterRepository;
     }
 
     /**
@@ -109,6 +165,33 @@ public class Squiggly {
      */
     public SquigglyMetrics getMetrics() {
         return metrics;
+    }
+
+    /**
+     * Get the parser.
+     *
+     * @return parser
+     */
+    public SquigglyParser getParser() {
+        return parser;
+    }
+
+    /**
+     * Get the serializer.
+     *
+     * @return serialzer
+     */
+    public SquigglySerializer getSerializer() {
+        return serializer;
+    }
+
+    /**
+     * Get the variable resolver.
+     *
+     * @return variable resolver
+     */
+    public SquigglyVariableResolver getVariableResolver() {
+        return variableResolver;
     }
 
     /**
@@ -124,7 +207,6 @@ public class Squiggly {
      * Create a builder that configures Squiggly with a static filter.
      *
      * @param filter static filter
-     *
      * @return builder
      */
     public static Builder builder(String filter) {
@@ -135,7 +217,6 @@ public class Squiggly {
      * Create a builder that configures Squiggly with a context provider.
      *
      * @param contextProvider context provider
-     *
      * @return builder
      */
     public static Builder builder(SquigglyContextProvider contextProvider) {
@@ -159,7 +240,7 @@ public class Squiggly {
      * Initialize a @{@link SquigglyPropertyFilter} with a static filter expression.
      *
      * @param mappers the Jackson Object Mappers to init
-     * @param filter the filter expressions
+     * @param filter  the filter expressions
      * @throws IllegalStateException if the filter was unable to be registered
      */
     public static void init(Iterable<ObjectMapper> mappers, String filter) throws IllegalStateException {
@@ -181,7 +262,7 @@ public class Squiggly {
     /**
      * Initialize a @{@link SquigglyPropertyFilter} with a specific context provider.
      *
-     * @param mappers          the Jackson Object Mappers to init
+     * @param mappers         the Jackson Object Mappers to init
      * @param contextProvider the context provider to use
      * @throws IllegalStateException if the filter was unable to be registered
      */
@@ -198,11 +279,23 @@ public class Squiggly {
      */
     public static class Builder<B extends Builder<B, S>, S extends Squiggly> {
 
-        private Map<String, String> savedFilters = new HashMap<>();
+        private final List<SquigglyConfigSource> configSources = new ArrayList<>();
+
+        @Nullable
         private SquigglyContextProvider contextProvider;
-        private SquigglySerializer serializer;
-        private List<SquigglyConfigSource> configSources = new ArrayList<>();
+
+        @Nullable
         private SquigglyFilterRepository filterRepository;
+
+        private final Map<String, String> savedFilters = new HashMap<>();
+
+        @Nullable
+        private SquigglySerializer serializer;
+
+        @Nullable
+        private SquigglyVariableResolver variableResolver;
+
+        private final Map<String, Object> variables = new HashMap<>();
 
         private Builder() {
         }
@@ -235,7 +328,7 @@ public class Squiggly {
          * @param filterRepository filter repository
          * @return builder
          */
-        public B savedFilter(SquigglyFilterRepository filterRepository) {
+        public B filterRepository(SquigglyFilterRepository filterRepository) {
             this.filterRepository = filterRepository;
             return getThis();
         }
@@ -243,7 +336,7 @@ public class Squiggly {
         /**
          * Adds a saved filter.
          *
-         * @param name name
+         * @param name   name
          * @param filter filter
          * @return builder
          */
@@ -274,6 +367,29 @@ public class Squiggly {
         }
 
         /**
+         * Sets the variable resolver.
+         *
+         * @param variableResolver variable resolver
+         * @return builder
+         */
+        public B variableResolver(SquigglyVariableResolver variableResolver) {
+            this.variableResolver = variableResolver;
+            return getThis();
+        }
+
+        /**
+         * Sets a global variable.
+         *
+         * @param name  name
+         * @param value value
+         * @return builder
+         */
+        public B variable(String name, Object value) {
+            variables.put(name, value);
+            return getThis();
+        }
+
+        /**
          * Build the squiggly object.
          *
          * @return squiggly object
@@ -287,29 +403,28 @@ public class Squiggly {
             SquigglySerializer serializer = this.serializer;
 
             if (contextProvider == null) {
-                contextProvider = new SimpleSquigglyContextProvider("**");
+                contextProvider = new SimpleSquigglyContextProvider();
             }
 
 
             if (serializer == null) {
-                serializer = new SquigglySerializer() {};
+                serializer = new SquigglySerializer() {
+                };
             }
 
             SquigglyFilterRepository filterRepository = new MapFilterRepository(savedFilters);
 
             if (this.filterRepository != null) {
-                filterRepository = new CompositeFilterRepository(filterRepository, this.filterRepository);
+                filterRepository = new CompositeFilterRepository(this.filterRepository, filterRepository);
             }
 
-            SquigglyPropertyFilter filter = new SquigglyPropertyFilter(
-                    new BeanInfoIntrospector(config, metrics),
-                    config,
-                    contextProvider,
-                    filterRepository,
-                    metrics,
-                    parser,
-                    serializer);
-            return (S) new Squiggly(config, filter, metrics);
+            SquigglyVariableResolver variableResolver = new MapVariableResolver(variables);
+
+            if (this.variableResolver != null) {
+                variableResolver = new CompositeVariableResolver(this.variableResolver, variableResolver);
+            }
+
+            return (S) new Squiggly(config, contextProvider, filterRepository, metrics, parser, serializer, variableResolver);
         }
 
         @SuppressWarnings("unchecked")

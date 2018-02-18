@@ -1,23 +1,17 @@
 package com.github.bohnman.squiggly.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.github.bohnman.squiggly.bean.BeanInfoIntrospector;
-import com.github.bohnman.squiggly.config.SquigglyConfig;
-import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
-import com.github.bohnman.squiggly.filter.repository.MapFilterRepository;
-import com.github.bohnman.squiggly.metric.SquigglyMetrics;
+import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.model.Issue;
 import com.github.bohnman.squiggly.model.IssueAction;
 import com.github.bohnman.squiggly.model.Item;
 import com.github.bohnman.squiggly.model.Outer;
 import com.github.bohnman.squiggly.model.User;
-import com.github.bohnman.squiggly.parser.SquigglyParser;
-import com.github.bohnman.squiggly.serializer.SquigglySerializer;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -31,28 +25,18 @@ import static org.junit.Assert.assertEquals;
 @SuppressWarnings("Duplicates")
 public class SquigglyPropertyFilterTest {
 
+    @Nullable
     private Issue issue;
+    @Nullable
     private ObjectMapper objectMapper;
-    private SimpleFilterProvider filterProvider;
     private boolean init = false;
-    private SquigglyConfig config;
-    private SquigglyMetrics metrics;
+    @Nullable
+    private Squiggly squiggly;
 
     @Before
     public void beforeEachTest() {
-        if (!init) {
-            issue = buildIssue();
-            objectMapper = new ObjectMapper();
-            filterProvider = new SimpleFilterProvider();
-            objectMapper.setFilterProvider(filterProvider);
-            objectMapper.addMixIn(Object.class, SquigglyPropertyFilterMixin.class);
-            init = true;
-        }
-
-        this.config = new SquigglyConfig();
-        this.metrics = new SquigglyMetrics();
-
-        filterProvider.removeFilter(SquigglyPropertyFilter.FILTER_ID);
+        issue = buildIssue();
+        objectMapper = new ObjectMapper();
     }
 
     private Issue buildIssue() {
@@ -275,39 +259,39 @@ public class SquigglyPropertyFilterTest {
     @Test
     public void testFilterExcludesBaseFieldsInView() {
         String fieldName = "filterImplicitlyIncludeBaseFieldsInView";
+        filter("view1");
 
         try {
-            setFieldValue(config, fieldName, false);
-            filter("view1");
+            setFieldValue(squiggly.getConfig(), fieldName, false);
             assertEquals("{\"properties\":" + stringifyRaw(issue.getProperties()) + "}", stringify());
         } finally {
-            setFieldValue(config, fieldName, true);
+            setFieldValue(squiggly.getConfig(), fieldName, true);
         }
     }
 
     @Test
     public void testPropagateViewToNestedFilters() {
         String fieldName = "filterPropagateViewToNestedFilters";
+        filter("full");
 
         try {
-            setFieldValue(config, fieldName, true);
-            filter("full");
+            setFieldValue(squiggly.getConfig(), fieldName, true);
             assertEquals(stringifyRaw(), stringify());
         } finally {
-            setFieldValue(config, fieldName, false);
+            setFieldValue(squiggly.getConfig(), fieldName, false);
         }
     }
 
     @Test
     public void testPropertyAddNonAnnotatedFieldsToBaseView() {
         String fieldName = "propertyAddNonAnnotatedFieldsToBaseView";
+        filter("base");
 
         try {
-            setFieldValue(config, fieldName, false);
-            filter("base");
+            setFieldValue(squiggly.getConfig(), fieldName, false);
             assertEquals("{}", stringify());
         } finally {
-            setFieldValue(config, fieldName, true);
+            setFieldValue(squiggly.getConfig(), fieldName, true);
         }
     }
 
@@ -390,12 +374,8 @@ public class SquigglyPropertyFilterTest {
 
     @SuppressWarnings("UnusedReturnValue")
     private String filter(String filter) {
-        SquigglyParser parser = new SquigglyParser(config, metrics);
-        SimpleSquigglyContextProvider provider = new SimpleSquigglyContextProvider(filter);
-        SquigglySerializer serializer = new SquigglySerializer() {};
-        MapFilterRepository filterRepository = new MapFilterRepository();
-        BeanInfoIntrospector introspector = new BeanInfoIntrospector(config, metrics);
-        filterProvider.addFilter(SquigglyPropertyFilter.FILTER_ID, new SquigglyPropertyFilter(introspector, config, provider, filterRepository, metrics, parser, serializer));
+        this.squiggly = Squiggly.builder(filter).build();
+        this.squiggly.apply(objectMapper);
         return filter;
     }
 

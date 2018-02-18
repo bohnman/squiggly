@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.context.provider;
 
+import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.context.SquigglyContext;
 import com.github.bohnman.squiggly.filter.repository.SquigglyFilterRepository;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
@@ -14,11 +15,10 @@ public interface SquigglyContextProvider {
      * Get the context.
      *
      * @param beanClass the class of the top-level bean being filtered
-     * @param filterRepository filter repository
-     * @param parser parser
+     * @param squiggly squiggly object
      * @return context
      */
-    SquigglyContext getContext(Class beanClass, SquigglyFilterRepository filterRepository, SquigglyParser parser);
+    SquigglyContext getContext(Class beanClass, Squiggly squiggly);
 
     /**
      * Hook method to enable/disable filtering.

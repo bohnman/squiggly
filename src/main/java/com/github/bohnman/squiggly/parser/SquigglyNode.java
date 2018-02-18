@@ -2,7 +2,9 @@ package com.github.bohnman.squiggly.parser;
 
 import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.name.AnyShallowName;
+import com.github.bohnman.squiggly.name.ExactName;
 import com.github.bohnman.squiggly.name.SquigglyName;
+import com.github.bohnman.squiggly.name.VariableName;
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 
@@ -112,5 +114,24 @@ public class SquigglyNode {
      */
     public boolean isNegated() {
         return negated;
+    }
+
+    /**
+     * Says whether node is a variable reference.
+     *
+     * @return true if variable reference, false otherwise
+     */
+    public boolean isVariable() {
+        return name instanceof VariableName;
+    }
+
+    /**
+     * Create a squiggly node with the specified name.
+     *
+     * @param newName new name
+     * @return ndoe
+     */
+    public SquigglyNode withName(SquigglyName newName) {
+        return new SquigglyNode(newName, children, negated, squiggly, emptyNested);
     }
 }

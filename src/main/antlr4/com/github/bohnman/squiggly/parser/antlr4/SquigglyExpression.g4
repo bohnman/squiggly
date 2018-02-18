@@ -3,133 +3,142 @@ grammar SquigglyExpression;
 // Parser Rules ---------------------------------------------------------------
 
 parse
-    : expression_list EOF
+    : expressionList EOF
     ;
 
-expression_list
+expressionList
     : expression (',' expression)*
     ;
 
 expression
-    : negated_expression
-    | field_list (nested_expression|empty_nested_expression)
-    | dot_path (nested_expression|empty_nested_expression)
-    | dot_path
+    : negatedExpression
+    | fieldList (nestedExpression|emptyNestedExpression)
+    | dotPath (nestedExpression|emptyNestedExpression)
+    | dotPath
     | field
     | deep
     ;
 
-field_list
+fieldList
     : '(' field (('|'|',') field)* ')'
     | field
     ;
 
-negated_expression
+negatedExpression
     : '-' field
-    | '-' dot_path
+    | '-' dotPath
     ;
 
-nested_expression
-    : LSQUIGGLY expression_list RSQUIGGLY
-    | LBRACE expression_list RBRACE
+nestedExpression
+    : LSquiggly expressionList RSquiggly
+    | LBrace expressionList RBrace
     ;
 
-empty_nested_expression
-    : LSQUIGGLY RSQUIGGLY
-    | LBRACE RBRACE
+emptyNestedExpression
+    : LSquiggly RSquiggly
+    | LBrace RBrace
     ;
 
 deep
-    : WILDCARD_DEEP
+    : WildcardDeep
     ;
 
-dot_path
+dotPath
     : field ('.' field)+
     ;
 
 field
-    : exact_field
-    | regex_field
-    | wildcard_shallow_field
-    | wildcard_field
+    : exactField
+    | regexField
+    | wildcardShallowField
+    | wildcardField
+    | variableField
     ;
 
-exact_field
-    : IDENTIFIER
+exactField
+    : Identifier
     ;
 
-regex_field
-    : '~' regex_pattern '~' regex_flag*
-    | '/' regex_pattern '/' regex_flag*
+regexField
+    : '~' regexPattern '~' regexFlag*
+    | '/' regexPattern '/' regexFlag*
     ;
 
-regex_pattern
-    : ('.' | '|' | ',' | LSQUIGGLY | RSQUIGGLY | LBRACE | RBRACE | '-' | REGEX_CHAR  | IDENTIFIER | WILDCARD_SHALLOW)+
+regexPattern
+    : ('.' | '|' | ',' | LSquiggly | RSquiggly | LBrace | RBrace | '-' | RegexChar  | Identifier | WildcardShallow)+
     ;
 
-regex_flag
+regexFlag
     : 'i'
     ;
 
-wildcard_field
-   : IDENTIFIER wildcard_char
-   | IDENTIFIER (wildcard_char IDENTIFIER)+ wildcard_char?
-   | wildcard_char IDENTIFIER
-   | wildcard_char (IDENTIFIER wildcard_char)+ IDENTIFIER?
+variableField
+    : Variable
+    ;
+
+wildcardField
+   : Identifier wildcardChar
+   | Identifier (wildcardChar Identifier)+ wildcardChar?
+   | wildcardChar Identifier
+   | wildcardChar (Identifier wildcardChar)+ Identifier?
    ;
 
-wildcard_char
-   : WILDCARD_SHALLOW
+wildcardChar
+   : WildcardShallow
    | '?'
    ;
 
-wildcard_shallow_field
-    : WILDCARD_SHALLOW
+wildcardShallowField
+    : WildcardShallow
     ;
 
 
 // Lexer Tokens ---------------------------------------------------------------
 
-fragment DIGIT
+fragment Digit
     : [0-9]
     ;
 
-fragment LETTER
+fragment Letter
     : [a-zA-Z]
     ;
 
-fragment VALID_FIELD_CHAR
-    : (LETTER | DIGIT | '$' | '_')
+fragment ValidFieldChar
+    : (Letter | Digit | '$' | '_')
     ;
 
-LBRACE
+LBrace
     : '['
     ;
 
-RBRACE
+RBrace
     : ']'
     ;
 
-LSQUIGGLY
+LSquiggly
     : '{'
     ;
 
-RSQUIGGLY
+RSquiggly
     : '}'
     ;
 
-IDENTIFIER
-    : VALID_FIELD_CHAR (VALID_FIELD_CHAR)*
+Identifier
+    : ValidFieldChar (ValidFieldChar)*
     ;
 
-WILDCARD_SHALLOW
+Variable
+    : ':' Identifier
+    ;
+
+WildcardShallow
     : '*'
     ;
 
-WILDCARD_DEEP
+WildcardDeep
     : '**'
     ;
 
-REGEX_CHAR
+RegexChar
     : ~('~' | '/')
     ;

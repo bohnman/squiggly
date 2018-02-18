@@ -8,6 +8,7 @@ import com.github.bohnman.squiggly.name.AnyShallowName;
 import com.github.bohnman.squiggly.name.ExactName;
 import com.github.bohnman.squiggly.name.RegexName;
 import com.github.bohnman.squiggly.name.SquigglyName;
+import com.github.bohnman.squiggly.name.VariableName;
 import com.github.bohnman.squiggly.name.WildcardName;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionBaseVisitor;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionLexer;
@@ -21,6 +22,7 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -79,12 +81,12 @@ public class SquigglyParser {
         @Override
         public List<SquigglyNode> visitParse(SquigglyExpressionParser.ParseContext ctx) {
             MutableNode root = new MutableNode(new ExactName("root")).dotPathed(true);
-            handleExpressionList(ctx.expression_list(), root);
+            handleExpressionList(ctx.expressionList(), root);
             MutableNode analyzedRoot = analyze(root);
             return analyzedRoot.toSquigglyNode().getChildren();
         }
 
-        private void handleExpressionList(SquigglyExpressionParser.Expression_listContext ctx, MutableNode parent) {
+        private void handleExpressionList(SquigglyExpressionParser.ExpressionListContext ctx, MutableNode parent) {
             List<SquigglyExpressionParser.ExpressionContext> expressions = ctx.expression();
 
             for (SquigglyExpressionParser.ExpressionContext expressionContext : expressions) {
@@ -94,24 +96,24 @@ public class SquigglyParser {
 
         private void handleExpression(SquigglyExpressionParser.ExpressionContext ctx, MutableNode parent) {
 
-            if (ctx.negated_expression() != null) {
-                handleNegatedExpression(ctx.negated_expression(), parent);
+            if (ctx.negatedExpression() != null) {
+                handleNegatedExpression(ctx.negatedExpression(), parent);
             }
 
             List<SquigglyName> names;
 
             if (ctx.field() != null) {
                 names = Collections.singletonList(createName(ctx.field()));
-            } else if (ctx.dot_path() != null) {
+            } else if (ctx.dotPath() != null) {
                 parent.squiggly = true;
-                for (int i = 0; i < ctx.dot_path().field().size() - 1; i++) {
-                    parent = parent.addChild(new MutableNode(createName(ctx.dot_path().field(i))).dotPathed(true));
+                for (int i = 0; i < ctx.dotPath().field().size() - 1; i++) {
+                    parent = parent.addChild(new MutableNode(createName(ctx.dotPath().field(i))).dotPathed(true));
                     parent.squiggly = true;
                 }
-                names = Collections.singletonList(createName(ctx.dot_path().field().get(ctx.dot_path().field().size() - 1)));
-            } else if (ctx.field_list() != null) {
-                names = new ArrayList<>(ctx.field_list().field().size());
-                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.field_list().field()) {
+                names = Collections.singletonList(createName(ctx.dotPath().field().get(ctx.dotPath().field().size() - 1)));
+            } else if (ctx.fieldList() != null) {
+                names = new ArrayList<>(ctx.fieldList().field().size());
+                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.fieldList().field()) {
                     names.add(createName(fieldContext));
                 }
             } else if (ctx.deep() != null) {
@@ -124,11 +126,11 @@ public class SquigglyParser {
             for (SquigglyName name : names) {
                 MutableNode node = parent.addChild(new MutableNode(name));
 
-                if (ctx.empty_nested_expression() != null) {
+                if (ctx.emptyNestedExpression() != null) {
                     node.emptyNested = true;
-                } else if (ctx.nested_expression() != null) {
+                } else if (ctx.nestedExpression() != null) {
                     node.squiggly = true;
-                    handleExpressionList(ctx.nested_expression().expression_list(), node);
+                    handleExpressionList(ctx.nestedExpression().expressionList(), node);
                 }
             }
         }
@@ -136,21 +138,23 @@ public class SquigglyParser {
         private SquigglyName createName(SquigglyExpressionParser.FieldContext ctx) {
             SquigglyName name;
 
-            if (ctx.exact_field() != null) {
+            if (ctx.exactField() != null) {
                 name = new ExactName(ctx.getText());
-            } else if (ctx.wildcard_field() != null) {
+            } else if (ctx.wildcardField() != null) {
                 name = new WildcardName(ctx.getText());
-            } else if (ctx.regex_field() != null) {
-                String regexPattern = ctx.regex_field().regex_pattern().getText();
-                Set<String> regexFlags = new HashSet<>(ctx.regex_field().regex_flag().size());
+            } else if (ctx.regexField() != null) {
+                String regexPattern = ctx.regexField().regexPattern().getText();
+                Set<String> regexFlags = new HashSet<>(ctx.regexField().regexFlag().size());
 
-                for (SquigglyExpressionParser.Regex_flagContext regex_flagContext : ctx.regex_field().regex_flag()) {
+                for (SquigglyExpressionParser.RegexFlagContext regex_flagContext : ctx.regexField().regexFlag()) {
                     regexFlags.add(regex_flagContext.getText());
                 }
 
                 name = new RegexName(regexPattern, regexFlags);
-            } else if (ctx.wildcard_shallow_field() != null) {
+            } else if (ctx.wildcardShallowField() != null) {
                 name = AnyShallowName.get();
+            } else if (ctx.variableField() != null) {
+                name = new VariableName(ctx.getText().substring(1));
             } else {
                 throw new IllegalArgumentException("Unhandled field: " + ctx.getText());
             }
@@ -159,11 +163,11 @@ public class SquigglyParser {
         }
 
 
-        private void handleNegatedExpression(SquigglyExpressionParser.Negated_expressionContext ctx, MutableNode parent) {
+        private void handleNegatedExpression(SquigglyExpressionParser.NegatedExpressionContext ctx, MutableNode parent) {
             if (ctx.field() != null) {
                 parent.addChild(new MutableNode(createName(ctx.field())).negated(true));
-            } else if (ctx.dot_path() != null) {
-                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.dot_path().field()) {
+            } else if (ctx.dotPath() != null) {
+                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.dotPath().field()) {
                     parent.squiggly = true;
                     parent = parent.addChild(new MutableNode(createName(fieldContext)).dotPathed(true));
                 }
@@ -214,8 +218,10 @@ public class SquigglyParser {
         private boolean negated;
         private boolean squiggly;
         private boolean emptyNested;
+        @Nullable
         private Map<String, MutableNode> children;
         private boolean dotPathed;
+        @Nullable
         private MutableNode parent;
 
         MutableNode(SquigglyName name) {

@@ -38,7 +38,13 @@ public class PropertiesConfigSource implements  SquigglyConfigSource {
     @Nullable
     @Override
     public String getProperty(String name, @Nullable  String defaultValue) {
-        return MoreObjects.firstNonNull(properties.getProperty(name), defaultValue);
+        String value = properties.getProperty(name);
+
+        if (value == null) {
+            value = defaultValue;
+        }
+
+        return value;
     }
 
     @Nullable
