@@ -20,6 +20,8 @@ import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
@@ -80,10 +82,15 @@ public class SquigglyParser {
     private class Visitor extends SquigglyExpressionBaseVisitor<List<SquigglyNode>> {
         @Override
         public List<SquigglyNode> visitParse(SquigglyExpressionParser.ParseContext ctx) {
-            MutableNode root = new MutableNode(new ExactName("root")).dotPathed(true);
+            MutableNode root = new MutableNode(parseContext(ctx), new ExactName("root")).dotPathed(true);
             handleExpressionList(ctx.expressionList(), root);
             MutableNode analyzedRoot = analyze(root);
             return analyzedRoot.toSquigglyNode().getChildren();
+        }
+
+        private ParseContext parseContext(ParserRuleContext ctx) {
+            Token start = ctx.getStart();
+            return new ParseContext(start.getLine(), start.getCharPositionInLine());
         }
 
         private void handleExpressionList(SquigglyExpressionParser.ExpressionListContext ctx, MutableNode parent) {
@@ -101,30 +108,38 @@ public class SquigglyParser {
             }
 
             List<SquigglyName> names;
+            List<ParserRuleContext> ruleContexts;
 
             if (ctx.field() != null) {
                 names = Collections.singletonList(createName(ctx.field()));
+                ruleContexts = Collections.singletonList(ctx.field());
             } else if (ctx.dottedField() != null) {
                 parent.squiggly = true;
                 for (int i = 0; i < ctx.dottedField().field().size() - 1; i++) {
-                    parent = parent.addChild(new MutableNode(createName(ctx.dottedField().field(i))).dotPathed(true));
+                    parent = parent.addChild(new MutableNode(parseContext(ctx.dottedField()), createName(ctx.dottedField().field(i))).dotPathed(true));
                     parent.squiggly = true;
                 }
                 names = Collections.singletonList(createName(ctx.dottedField().field().get(ctx.dottedField().field().size() - 1)));
+                ruleContexts = Collections.singletonList(ctx.dottedField().field().get(ctx.dottedField().field().size() - 1));
             } else if (ctx.fieldList() != null) {
                 names = new ArrayList<>(ctx.fieldList().field().size());
+                ruleContexts = new ArrayList<>(ctx.fieldList().field().size());
                 for (SquigglyExpressionParser.FieldContext fieldContext : ctx.fieldList().field()) {
                     names.add(createName(fieldContext));
+                    ruleContexts.add(fieldContext);
                 }
             } else if (ctx.wildcardDeepField() != null) {
                 names = Collections.singletonList(AnyDeepName.get());
+                ruleContexts = Collections.singletonList(ctx.wildcardDeepField());
             } else {
+                ruleContexts = Collections.singletonList(ctx);
                 names = Collections.emptyList();
             }
 
-
-            for (SquigglyName name : names) {
-                MutableNode node = parent.addChild(new MutableNode(name));
+            for (int i = 0; i < names.size(); i++) {
+                SquigglyName name = names.get(i);
+                ParserRuleContext ruleContext = ruleContexts.get(i);
+                MutableNode node = parent.addChild(new MutableNode(parseContext(ruleContext), name));
 
                 if (ctx.emptyNestedExpression() != null) {
                     node.emptyNested = true;
@@ -187,11 +202,11 @@ public class SquigglyParser {
 
         private void handleNegatedExpression(SquigglyExpressionParser.NegatedExpressionContext ctx, MutableNode parent) {
             if (ctx.field() != null) {
-                parent.addChild(new MutableNode(createName(ctx.field())).negated(true));
+                parent.addChild(new MutableNode(parseContext(ctx.field()), createName(ctx.field())).negated(true));
             } else if (ctx.dottedField() != null) {
                 for (SquigglyExpressionParser.FieldContext fieldContext : ctx.dottedField().field()) {
                     parent.squiggly = true;
-                    parent = parent.addChild(new MutableNode(createName(fieldContext)).dotPathed(true));
+                    parent = parent.addChild(new MutableNode(parseContext(ctx.dottedField()), createName(fieldContext)).dotPathed(true));
                 }
 
                 parent.negated(true);
@@ -212,11 +227,11 @@ public class SquigglyParser {
             }
 
             if (allNegated) {
-                node.addChild(new MutableNode(newBaseViewName()).dotPathed(node.dotPathed));
+                node.addChild(new MutableNode(node.getContext(), newBaseViewName()).dotPathed(node.dotPathed));
                 MutableNode parent = node.parent;
 
                 while (parent != null) {
-                    parent.addChild(new MutableNode(newBaseViewName()).dotPathed(parent.dotPathed));
+                    parent.addChild(new MutableNode(parent.getContext(), newBaseViewName()).dotPathed(parent.dotPathed));
 
                     if (!parent.dotPathed) {
                         break;
@@ -236,6 +251,7 @@ public class SquigglyParser {
     }
 
     private class MutableNode {
+        private final ParseContext context;
         private SquigglyName name;
         private boolean negated;
         private boolean squiggly;
@@ -246,7 +262,8 @@ public class SquigglyParser {
         @Nullable
         private MutableNode parent;
 
-        MutableNode(SquigglyName name) {
+        MutableNode(ParseContext context, SquigglyName name) {
+            this.context = context;
             this.name = name;
         }
 
@@ -268,11 +285,15 @@ public class SquigglyParser {
 
             }
 
-            return newSquigglyNode(name, childNodes);
+            return newSquigglyNode(context, name, childNodes);
         }
 
-        private SquigglyNode newSquigglyNode(SquigglyName name, List<SquigglyNode> childNodes) {
-            return new SquigglyNode(name, childNodes, negated, squiggly, emptyNested);
+        private SquigglyNode newSquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> childNodes) {
+            return new SquigglyNode(context, name, childNodes, negated, squiggly, emptyNested);
+        }
+
+        public ParseContext getContext() {
+            return context;
         }
 
         public MutableNode dotPathed(boolean dotPathed) {
@@ -319,6 +340,7 @@ public class SquigglyParser {
 
             return childToAdd;
         }
+
     }
 
     private ExactName newBaseViewName() {

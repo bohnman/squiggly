@@ -12,6 +12,7 @@ import com.github.bohnman.squiggly.context.SquigglyContext;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.name.ExactName;
+import com.github.bohnman.squiggly.parser.ParseContext;
 import com.github.bohnman.squiggly.parser.SquigglyNode;
 import com.github.bohnman.squiggly.view.PropertyView;
 import com.google.common.cache.Cache;
@@ -74,7 +75,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
      * Cache that stores previous evaluated matches.
      */
     private final Cache<Pair<Path, String>, Boolean> matchCache;
-    private final List<SquigglyNode> baseViewNodes = Collections.singletonList(new SquigglyNode(new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), false, true, false));
+    private final List<SquigglyNode> baseViewNodes = Collections.singletonList(new SquigglyNode(new ParseContext(1, 1), new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), false, true, false));
     private final Squiggly squiggly;
 
     /**

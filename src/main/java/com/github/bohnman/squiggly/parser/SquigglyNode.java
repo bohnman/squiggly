@@ -16,6 +16,7 @@ import java.util.List;
 @ThreadSafe
 public class SquigglyNode {
 
+    private final ParseContext context;
     private final SquigglyName name;
     private final List<SquigglyNode> children;
     private final boolean squiggly;
@@ -25,6 +26,7 @@ public class SquigglyNode {
     /**
      * Constructor.
      *
+     * @param context  parser context
      * @param name     name of the node
      * @param children child nodes
      * @param negated whether or not the node has been negated
@@ -32,7 +34,8 @@ public class SquigglyNode {
      * @param emptyNested whether of not filter specified {}
      * @see #isSquiggly()
      */
-    public SquigglyNode(SquigglyName name, List<SquigglyNode> children, boolean negated, boolean squiggly, boolean emptyNested) {
+    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, boolean negated, boolean squiggly, boolean emptyNested) {
+        this.context = context;
         this.name = name;
         this.negated = negated;
         this.children = ImmutableList.copyOf(children);
@@ -132,6 +135,6 @@ public class SquigglyNode {
      * @return ndoe
      */
     public SquigglyNode withName(SquigglyName newName) {
-        return new SquigglyNode(newName, children, negated, squiggly, emptyNested);
+        return new SquigglyNode(context, newName, children, negated, squiggly, emptyNested);
     }
 }
