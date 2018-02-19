@@ -13,19 +13,27 @@ import com.github.bohnman.squiggly.filter.SquigglyPropertyFilterMixin;
 import com.github.bohnman.squiggly.filter.repository.CompositeFilterRepository;
 import com.github.bohnman.squiggly.filter.repository.MapFilterRepository;
 import com.github.bohnman.squiggly.filter.repository.SquigglyFilterRepository;
+import com.github.bohnman.squiggly.function.SquigglyFunction;
+import com.github.bohnman.squiggly.function.repository.CompositeFunctionRepository;
+import com.github.bohnman.squiggly.function.repository.MapFunctionRepository;
+import com.github.bohnman.squiggly.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
 import com.github.bohnman.squiggly.serializer.SquigglySerializer;
 import com.github.bohnman.squiggly.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.variable.SquigglyVariableResolver;
+import com.google.common.collect.Streams;
 import net.jcip.annotations.ThreadSafe;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -41,6 +49,7 @@ public class Squiggly {
     private final SquigglyMetrics metrics;
     private final SquigglyContextProvider contextProvider;
     private final SquigglyFilterRepository filterRepository;
+    private final SquigglyFunctionRepository functionRepository;
     private final SquigglyParser parser;
     private final SquigglySerializer serializer;
     private final SquigglyVariableResolver variableResolver;
@@ -49,7 +58,7 @@ public class Squiggly {
             SquigglyConfig config,
             SquigglyContextProvider contextProvider,
             SquigglyFilterRepository filterRepository,
-            SquigglyMetrics metrics,
+            SquigglyFunctionRepository functionRepository, SquigglyMetrics metrics,
             SquigglyParser parser,
             SquigglySerializer serializer,
             SquigglyVariableResolver variableResolver) {
@@ -57,6 +66,7 @@ public class Squiggly {
         this.config = checkNotNull(config);
         this.contextProvider = checkNotNull(contextProvider);
         this.filterRepository = checkNotNull(filterRepository);
+        this.functionRepository = checkNotNull(functionRepository);
         this.metrics = checkNotNull(metrics);
         this.parser = checkNotNull(parser);
         this.serializer = checkNotNull(serializer);
@@ -156,6 +166,15 @@ public class Squiggly {
      */
     public SquigglyFilterRepository getFilterRepository() {
         return filterRepository;
+    }
+
+    /**
+     * Get function repository.
+     *
+     * @return repo
+     */
+    public SquigglyFunctionRepository getFunctionRepository() {
+        return functionRepository;
     }
 
     /**
@@ -287,6 +306,13 @@ public class Squiggly {
         @Nullable
         private SquigglyFilterRepository filterRepository;
 
+        @Nullable
+        private SquigglyFunctionRepository functionRepository;
+
+        private final List<SquigglyFunction<?>> functions = new ArrayList<>();
+
+        private boolean registerDefaultFunctions = true;
+
         private final Map<String, String> savedFilters = new HashMap<>();
 
         @Nullable
@@ -330,6 +356,61 @@ public class Squiggly {
          */
         public B filterRepository(SquigglyFilterRepository filterRepository) {
             this.filterRepository = filterRepository;
+            return getThis();
+        }
+
+        /**
+         * Sets the function repository.
+         *
+         * @param functionRepository function repository
+         * @return builder
+         */
+        public B functionRepository(SquigglyFunctionRepository functionRepository) {
+            this.functionRepository = functionRepository;
+            return getThis();
+        }
+
+        /**
+         * Register a function.
+         *
+         * @param function a function
+         * @return builder
+         */
+        public B function(SquigglyFunction function) {
+            this.functions.add(checkNotNull(function));
+            return getThis();
+        }
+
+        /**
+         * Register multiple functions.
+         *
+         * @param functions functions
+         * @return builder
+         */
+        public B functions(SquigglyFunction... functions) {
+            Arrays.stream(functions).forEach(this::function);
+            return getThis();
+        }
+
+        /**
+         * Register multiple functions.
+         *
+         * @param functions functions
+         * @return builder
+         */
+        public B functions(Iterable<SquigglyFunction> functions) {
+            Streams.stream(functions).forEach(this::function);
+            return getThis();
+        }
+
+        /**
+         * Indicate whether or not to register default functions.
+         *
+         * @param registerDefaultFunctions flag
+         * @return true/false
+         */
+        public B registerDefaultFunction(boolean registerDefaultFunctions) {
+            this.registerDefaultFunctions = registerDefaultFunctions;
             return getThis();
         }
 
@@ -418,13 +499,43 @@ public class Squiggly {
                 filterRepository = new CompositeFilterRepository(this.filterRepository, filterRepository);
             }
 
+            List<SquigglyFunction> defaultFunctions = getDefaultFunctions();
+
+            SquigglyFunctionRepository functionRepository = new MapFunctionRepository(
+                    Streams.concat(defaultFunctions.stream(),
+                            functions.stream()).collect(Collectors.toList()));
+
+            if (this.functionRepository != null) {
+                functionRepository = new CompositeFunctionRepository(this.functionRepository, functionRepository);
+            }
+
             SquigglyVariableResolver variableResolver = new MapVariableResolver(variables);
 
             if (this.variableResolver != null) {
                 variableResolver = new CompositeVariableResolver(this.variableResolver, variableResolver);
             }
 
-            return (S) new Squiggly(config, contextProvider, filterRepository, metrics, parser, serializer, variableResolver);
+            return (S) new Squiggly(
+                    config,
+                    contextProvider,
+                    filterRepository,
+                    functionRepository,
+                    metrics,
+                    parser,
+                    serializer,
+                    variableResolver);
+        }
+
+        private List<SquigglyFunction> getDefaultFunctions() {
+            if (!registerDefaultFunctions) {
+                return Collections.emptyList();
+            }
+
+            List<SquigglyFunction> functions = new ArrayList<>();
+
+            // TODO: finish
+
+            return functions;
         }
 
         @SuppressWarnings("unchecked")

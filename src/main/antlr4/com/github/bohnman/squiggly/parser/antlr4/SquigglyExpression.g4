@@ -1,10 +1,14 @@
 grammar SquigglyExpression;
 
-// Parser Rules ---------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// Parser Rules
+//-----------------------------------------------------------------------------
 
 parse
     : expressionList EOF
     ;
+
+// Expressions
 
 expressionList
     : expression (',' expression)*
@@ -12,124 +16,164 @@ expressionList
 
 expression
     : negatedExpression
-    | fieldList (nestedExpression|emptyNestedExpression)
-    | dotPath (nestedExpression|emptyNestedExpression)
-    | dotPath
-    | field
-    | deep
+    | fieldList functionChain? (nestedExpression|emptyNestedExpression)
+    | dottedField (nestedExpression|emptyNestedExpression|functionChain)
+    | dottedField
+    | field functionChain?
+    | wildcardDeepField
     ;
+
+negatedExpression
+    : '-' field
+    | '-' dottedField
+    ;
+
+nestedExpression
+    : LeftSquiggly expressionList RightSquiggly
+    | LeftBrace expressionList RightBrace
+    ;
+
+emptyNestedExpression
+    : LeftSquiggly RightSquiggly
+    | LeftBrace RightBrace
+    ;
+
+
+// Fields
 
 fieldList
     : '(' field (('|'|',') field)* ')'
     | field
     ;
 
-negatedExpression
-    : '-' field
-    | '-' dotPath
-    ;
 
-nestedExpression
-    : LSquiggly expressionList RSquiggly
-    | LBrace expressionList RBrace
-    ;
-
-emptyNestedExpression
-    : LSquiggly RSquiggly
-    | LBrace RBrace
-    ;
-
-deep
-    : WildcardDeep
-    ;
-
-dotPath
+dottedField
     : field ('.' field)+
     ;
 
+
+
+
 field
-    : exactField
-    | regexField
-    | wildcardShallowField
-    | wildcardField
-    | variableField
-    ;
-
-exactField
     : Identifier
-    ;
-
-regexField
-    : '~' regexPattern '~' regexFlag*
-    | '/' regexPattern '/' regexFlag*
-    ;
-
-regexPattern
-    : ('.' | '|' | ',' | LSquiggly | RSquiggly | LBrace | RBrace | '-' | RegexChar  | Identifier | WildcardShallow)+
-    ;
-
-regexFlag
-    : 'i'
-    ;
-
-variableField
-    : Variable
+    | RegexLiteral
+    | IntegerLiteral
+    | StringLiteral
+    | Variable
+    | WildcardLiteral
+    | wildcardField
     ;
 
 wildcardField
-   : Identifier wildcardChar
-   | Identifier (wildcardChar Identifier)+ wildcardChar?
-   | wildcardChar Identifier
-   | wildcardChar (Identifier wildcardChar)+ Identifier?
+   : Identifier WildcardLiteral
+   | Identifier (WildcardLiteral Identifier)+ WildcardLiteral?
+   | WildcardLiteral Identifier
+   | WildcardLiteral (Identifier WildcardLiteral)+ Identifier?
    ;
 
-wildcardChar
-   : WildcardShallow
-   | '?'
-   ;
+wildcardDeepField
+    : WildcardDeep
+    ;
 
-wildcardShallowField
-    : WildcardShallow
+// Functions
+
+functionChain
+    : ('.' function)+
+    ;
+
+function
+    : functionName LeftParen functionArgs? RightParen
+    ;
+
+functionName
+    : Identifier
+    ;
+
+functionArgs
+    : functionArg (',' functionArg)*
+    ;
+
+functionArg
+    : BooleanLiteral
+    | IntegerLiteral
+    | FloatLiteral
+    | RegexLiteral
+    | StringLiteral
+    | Variable
     ;
 
 
-// Lexer Tokens ---------------------------------------------------------------
-
-fragment Digit
-    : [0-9]
-    ;
-
-fragment Letter
-    : [a-zA-Z]
-    ;
-
-fragment ValidFieldChar
-    : (Letter | Digit | '$' | '_')
-    ;
-
-LBrace
-    : '['
-    ;
-
-RBrace
-    : ']'
-    ;
-
-LSquiggly
-    : '{'
-    ;
-
-RSquiggly
-    : '}'
-    ;
+//-----------------------------------------------------------------------------
+// Lexer Tokens
+//-----------------------------------------------------------------------------
 
 Identifier
-    : ValidFieldChar (ValidFieldChar)*
+    : IdentifierFirst (IdentifierRest)*
     ;
+
+// Variables
 
 Variable
     : ':' Identifier
     ;
+
+// Literals
+
+BooleanLiteral
+    : 'true'
+    | 'false'
+    ;
+
+
+IntegerLiteral
+    : ('-' | '+')? IntegerNumeral
+    ;
+
+FloatLiteral
+    : ('-' | '+')? FloatNumeral
+    ;
+
+RegexLiteral
+    : '/' RegexChar+ '/' RegexFlag*
+    | '~' RegexChar+ '~' RegexFlag*
+    ;
+
+StringLiteral
+    : '"' DoubleQuotedStringCharacters* '"'
+    | '\'' SingleQuotedStringCharacters* '\''
+    ;
+
+WildcardLiteral
+    : WildcardShallow
+    | '?'
+    ;
+
+// Other Tokesn
+
+LeftParen
+    : '('
+    ;
+
+RightParen
+    : ')'
+    ;
+
+LeftBrace
+    : '['
+    ;
+
+RightBrace
+    : ']'
+    ;
+
+LeftSquiggly
+    : '{'
+    ;
+
+RightSquiggly
+    : '}'
+    ;
+
 
 WildcardShallow
     : '*'
@@ -139,6 +183,74 @@ WildcardDeep
     : '**'
     ;
 
-RegexChar
-    : ~('~' | '/')
+
+// Whitespace and Comments
+
+Whitespace
+    : [ \t\n\r]+ -> skip
+    ;
+
+//-----------------------------------------------------------------------------
+// Lexer Fragments
+//-----------------------------------------------------------------------------
+
+fragment IdentifierFirst
+    : [a-zA-Z$_]
+    ;
+
+fragment IdentifierRest
+    : [a-zA-Z$_0-9]
+    ;
+
+// Numbers
+
+fragment Digit : [0-9];
+
+fragment IntegerNumeral
+    : '0'
+    | [1-9] Digit*
+    | [1-9] Digit? Digit? (',' Digit Digit Digit)+
+    ;
+
+fragment FloatNumeral
+    : IntegerNumeral '.' Digit* ExponentPart?
+    | '.' Digit+ ExponentPart?
+    | IntegerNumeral ExponentPart?
+    ;
+
+fragment ExponentPart
+    : [eE] [+-]? Digit+
+    ;
+
+// Regex
+
+fragment RegexChar
+    : ~[/]
+    ;
+
+fragment RegexEscape
+    : '\\' [/]
+    ;
+
+fragment RegexFlag
+    : 'i'
+    ;
+
+
+// Strings
+
+fragment DoubleQuotedStringCharacters
+    :    ~["\\]
+    |    StringEscape
+    ;
+
+
+fragment SingleQuotedStringCharacters
+    :    ~['\\]
+    |    StringEscape
+    ;
+
+
+fragment StringEscape
+    :    '\\' ["'\\]
     ;

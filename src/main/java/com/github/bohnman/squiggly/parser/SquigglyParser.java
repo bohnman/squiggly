@@ -104,19 +104,19 @@ public class SquigglyParser {
 
             if (ctx.field() != null) {
                 names = Collections.singletonList(createName(ctx.field()));
-            } else if (ctx.dotPath() != null) {
+            } else if (ctx.dottedField() != null) {
                 parent.squiggly = true;
-                for (int i = 0; i < ctx.dotPath().field().size() - 1; i++) {
-                    parent = parent.addChild(new MutableNode(createName(ctx.dotPath().field(i))).dotPathed(true));
+                for (int i = 0; i < ctx.dottedField().field().size() - 1; i++) {
+                    parent = parent.addChild(new MutableNode(createName(ctx.dottedField().field(i))).dotPathed(true));
                     parent.squiggly = true;
                 }
-                names = Collections.singletonList(createName(ctx.dotPath().field().get(ctx.dotPath().field().size() - 1)));
+                names = Collections.singletonList(createName(ctx.dottedField().field().get(ctx.dottedField().field().size() - 1)));
             } else if (ctx.fieldList() != null) {
                 names = new ArrayList<>(ctx.fieldList().field().size());
                 for (SquigglyExpressionParser.FieldContext fieldContext : ctx.fieldList().field()) {
                     names.add(createName(fieldContext));
                 }
-            } else if (ctx.deep() != null) {
+            } else if (ctx.wildcardDeepField() != null) {
                 names = Collections.singletonList(AnyDeepName.get());
             } else {
                 names = Collections.emptyList();
@@ -138,23 +138,45 @@ public class SquigglyParser {
         private SquigglyName createName(SquigglyExpressionParser.FieldContext ctx) {
             SquigglyName name;
 
-            if (ctx.exactField() != null) {
-                name = new ExactName(ctx.getText());
+            if (ctx.StringLiteral() != null) {
+                name = new ExactName(ctx.StringLiteral().getText());
+            } else if (ctx.IntegerLiteral() != null) {
+                name = new ExactName(ctx.IntegerLiteral().getText());
+            } else if (ctx.Identifier() != null) {
+                name = new ExactName(ctx.Identifier().getText());
             } else if (ctx.wildcardField() != null) {
-                name = new WildcardName(ctx.getText());
-            } else if (ctx.regexField() != null) {
-                String regexPattern = ctx.regexField().regexPattern().getText();
-                Set<String> regexFlags = new HashSet<>(ctx.regexField().regexFlag().size());
+                name = new WildcardName(ctx.wildcardField().getText());
+            } else if (ctx.RegexLiteral() != null) {
+                String fullPattern = ctx.RegexLiteral().getText();
+                String pattern = fullPattern.substring(1);
+                int slashIdx = pattern.indexOf('/');
 
-                for (SquigglyExpressionParser.RegexFlagContext regex_flagContext : ctx.regexField().regexFlag()) {
-                    regexFlags.add(regex_flagContext.getText());
+                if (slashIdx < 0) {
+                    slashIdx = pattern.indexOf('~');
                 }
 
-                name = new RegexName(regexPattern, regexFlags);
-            } else if (ctx.wildcardShallowField() != null) {
-                name = AnyShallowName.get();
-            } else if (ctx.variableField() != null) {
-                name = new VariableName(ctx.getText().substring(1));
+                Set<String> flags = new HashSet<>();
+
+                if (slashIdx >= 0) {
+                    String flagPart = StringUtils.trim(StringUtils.substring(pattern, slashIdx + 1));
+                    pattern = StringUtils.substring(pattern, 0, slashIdx);
+
+                    if (StringUtils.isNotEmpty(flagPart)) {
+                        for (char flag : flagPart.toCharArray()) {
+                            flags.add(Character.toString(flag));
+                        }
+                    }
+                }
+
+                name = new RegexName(pattern, flags);
+            } else if (ctx.WildcardLiteral() != null) {
+                if ("*".equals(ctx.WildcardLiteral().getText())) {
+                    name = AnyShallowName.get();
+                } else {
+                    name = new WildcardName(ctx.WildcardLiteral().getText());
+                }
+            } else if (ctx.Variable() != null) {
+                name = new VariableName(ctx.Variable().getText().substring(1));
             } else {
                 throw new IllegalArgumentException("Unhandled field: " + ctx.getText());
             }
@@ -166,8 +188,8 @@ public class SquigglyParser {
         private void handleNegatedExpression(SquigglyExpressionParser.NegatedExpressionContext ctx, MutableNode parent) {
             if (ctx.field() != null) {
                 parent.addChild(new MutableNode(createName(ctx.field())).negated(true));
-            } else if (ctx.dotPath() != null) {
-                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.dotPath().field()) {
+            } else if (ctx.dottedField() != null) {
+                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.dottedField().field()) {
                     parent.squiggly = true;
                     parent = parent.addChild(new MutableNode(createName(fieldContext)).dotPathed(true));
                 }
