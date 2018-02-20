@@ -1,3 +1,7 @@
+# 1.3.9 (2018-02-20)
+
+* Fixed exclude filtering issue with deeply nested arrays
+
 # 1.3.8 (2018-01-01)
 
 * Fixed negative dot paths when multiple paths were specified
