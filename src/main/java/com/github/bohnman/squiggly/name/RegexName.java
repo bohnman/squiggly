@@ -1,6 +1,5 @@
 package com.github.bohnman.squiggly.name;
 
-import java.util.Set;
 import java.util.regex.Pattern;
 
 public class RegexName implements SquigglyName {
@@ -9,28 +8,10 @@ public class RegexName implements SquigglyName {
     private final String rawName;
     private final Pattern pattern;
 
-    public RegexName(String name, Set<String> flags) {
+    public RegexName(String name, Pattern pattern) {
         this.name = name;
         this.rawName = name;
-        this.pattern = buildPattern(name, flags);
-    }
-
-    private Pattern buildPattern(String name, Set<String> flags) {
-        int flagMask = 0;
-
-        if (flags != null && !flags.isEmpty()) {
-            for (String flag : flags) {
-                switch (flag) {
-                    case "i":
-                        flagMask |= Pattern.CASE_INSENSITIVE;
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unrecognized flag " + flag + " for pattern " + name);
-                }
-            }
-        }
-
-        return Pattern.compile(name, flagMask);
+        this.pattern = pattern;
     }
 
     @Override

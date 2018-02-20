@@ -75,7 +75,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
      * Cache that stores previous evaluated matches.
      */
     private final Cache<Pair<Path, String>, Boolean> matchCache;
-    private final List<SquigglyNode> baseViewNodes = Collections.singletonList(new SquigglyNode(new ParseContext(1, 1), new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), false, true, false));
+    private final List<SquigglyNode> baseViewNodes = Collections.singletonList(new SquigglyNode(new ParseContext(1, 1), new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), Collections.emptyList(), false, true, false));
     private final Squiggly squiggly;
 
     /**

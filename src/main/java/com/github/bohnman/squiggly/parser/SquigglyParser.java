@@ -32,6 +32,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 
 /**
  * The parser takes a filter expression and compiles it to an Abstract Syntax Tree (AST).  In this parser's case, the
@@ -116,11 +120,13 @@ public class SquigglyParser {
             } else if (ctx.dottedField() != null) {
                 parent.squiggly = true;
                 for (int i = 0; i < ctx.dottedField().field().size() - 1; i++) {
-                    parent = parent.addChild(new MutableNode(parseContext(ctx.dottedField()), createName(ctx.dottedField().field(i))).dotPathed(true));
+                    SquigglyExpressionParser.FieldContext field = ctx.dottedField().field(i);
+                    parent = parent.addChild(new MutableNode(parseContext(field), createName(field)).dotPathed(true));
                     parent.squiggly = true;
                 }
-                names = Collections.singletonList(createName(ctx.dottedField().field().get(ctx.dottedField().field().size() - 1)));
-                ruleContexts = Collections.singletonList(ctx.dottedField().field().get(ctx.dottedField().field().size() - 1));
+                SquigglyExpressionParser.FieldContext lastField = ctx.dottedField().field().get(ctx.dottedField().field().size() - 1);
+                names = Collections.singletonList(createName(lastField));
+                ruleContexts = Collections.singletonList(lastField);
             } else if (ctx.fieldList() != null) {
                 names = new ArrayList<>(ctx.fieldList().field().size());
                 ruleContexts = new ArrayList<>(ctx.fieldList().field().size());
@@ -136,10 +142,19 @@ public class SquigglyParser {
                 names = Collections.emptyList();
             }
 
+            List<FunctionNode> valueFunctions;
+
+            if (ctx.valueFunctionChain() == null) {
+                valueFunctions = Collections.emptyList();
+            } else {
+                valueFunctions = parseValueFunctionChain(ctx.valueFunctionChain());
+            }
+
             for (int i = 0; i < names.size(); i++) {
                 SquigglyName name = names.get(i);
                 ParserRuleContext ruleContext = ruleContexts.get(i);
                 MutableNode node = parent.addChild(new MutableNode(parseContext(ruleContext), name));
+                node.valueFunctions(valueFunctions);
 
                 if (ctx.emptyNestedExpression() != null) {
                     node.emptyNested = true;
@@ -148,6 +163,66 @@ public class SquigglyParser {
                     handleExpressionList(ctx.nestedExpression().expressionList(), node);
                 }
             }
+        }
+
+        private List<FunctionNode> parseValueFunctionChain(SquigglyExpressionParser.ValueFunctionChainContext functionChainContext) {
+            return functionChainContext.function()
+                    .stream()
+                    .map(this::parseValueFunction)
+                    .collect(toList());
+
+        }
+
+        private FunctionNode parseValueFunction(SquigglyExpressionParser.FunctionContext functionContext) {
+            ParseContext context = parseContext(functionContext);
+            FunctionNode.Builder builder = buildBaseFunction(functionContext, context)
+                    .parameter(context, ParameterType.INPUT, ParameterType.INPUT);
+
+            applyParameters(builder, functionContext);
+
+            return builder.build();
+        }
+
+        private FunctionNode.Builder buildBaseFunction(SquigglyExpressionParser.FunctionContext functionContext, ParseContext context) {
+            return FunctionNode.builder()
+                            .context(context)
+                            .name(functionContext.functionName().getText());
+        }
+
+        private void applyParameters(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionContext functionContext) {
+            functionContext.functionParameters().functionParameter().forEach(parameter -> applyParameter(builder, parameter));
+        }
+
+        private void applyParameter(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionParameterContext parameter) {
+            Object value;
+            ParameterType type;
+            ParseContext context = parseContext(parameter);
+
+            if (parameter.BooleanLiteral() != null) {
+                value = "true".equalsIgnoreCase(parameter.getText());
+                type = ParameterType.BOOLEAN;
+            } else if (parameter.FloatLiteral() != null) {
+                value = Float.parseFloat(parameter.getText());
+                type = ParameterType.FLOAT;
+            } else if (parameter.IntegerLiteral() != null) {
+                value = Integer.parseInt(parameter.getText());
+                type = ParameterType.INTEGER;
+            } else if (parameter.RegexLiteral() != null) {
+                String regex = parameter.getText();
+                value = buildPattern(regex);
+                type = ParameterType.REGEX;
+            } else if (parameter.StringLiteral() != null) {
+                value = parameter.getText();
+                type = ParameterType.STRING;
+            } else if (parameter.Variable() != null) {
+                value = parameter.getText().substring(1);
+                type = ParameterType.VARIABLE;
+            } else {
+                throw new IllegalStateException(format("%s: Unknown parameter type [%s]", context, parameter.getText()));
+            }
+
+
+            builder.parameter(context, value, type);
         }
 
         private SquigglyName createName(SquigglyExpressionParser.FieldContext ctx) {
@@ -162,28 +237,11 @@ public class SquigglyParser {
             } else if (ctx.wildcardField() != null) {
                 name = new WildcardName(ctx.wildcardField().getText());
             } else if (ctx.RegexLiteral() != null) {
-                String fullPattern = ctx.RegexLiteral().getText();
-                String pattern = fullPattern.substring(1);
-                int slashIdx = pattern.indexOf('/');
 
-                if (slashIdx < 0) {
-                    slashIdx = pattern.indexOf('~');
-                }
 
-                Set<String> flags = new HashSet<>();
+                Pattern pattern = buildPattern(ctx.RegexLiteral().getText());
 
-                if (slashIdx >= 0) {
-                    String flagPart = StringUtils.trim(StringUtils.substring(pattern, slashIdx + 1));
-                    pattern = StringUtils.substring(pattern, 0, slashIdx);
-
-                    if (StringUtils.isNotEmpty(flagPart)) {
-                        for (char flag : flagPart.toCharArray()) {
-                            flags.add(Character.toString(flag));
-                        }
-                    }
-                }
-
-                name = new RegexName(pattern, flags);
+                name = new RegexName(pattern.pattern(), pattern);
             } else if (ctx.WildcardLiteral() != null) {
                 if ("*".equals(ctx.WildcardLiteral().getText())) {
                     name = AnyShallowName.get();
@@ -197,6 +255,44 @@ public class SquigglyParser {
             }
 
             return name;
+        }
+
+        private Pattern buildPattern(String fullPattern) {
+            String pattern = fullPattern.substring(1);
+            int slashIdx = pattern.indexOf('/');
+
+            if (slashIdx < 0) {
+                slashIdx = pattern.indexOf('~');
+            }
+
+            Set<String> flags = new HashSet<>();
+
+            if (slashIdx >= 0) {
+                String flagPart = StringUtils.trim(StringUtils.substring(pattern, slashIdx + 1));
+                pattern = StringUtils.substring(pattern, 0, slashIdx);
+
+                if (StringUtils.isNotEmpty(flagPart)) {
+                    for (char flag : flagPart.toCharArray()) {
+                        flags.add(Character.toString(flag));
+                    }
+                }
+            }
+
+            int flagMask = 0;
+
+            if (flags != null && !flags.isEmpty()) {
+                for (String flag : flags) {
+                    switch (flag) {
+                        case "i":
+                            flagMask |= Pattern.CASE_INSENSITIVE;
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Unrecognized flag " + flag + " for pattern " + pattern);
+                    }
+                }
+            }
+
+            return Pattern.compile(pattern, flagMask);
         }
 
 
@@ -261,6 +357,7 @@ public class SquigglyParser {
         private boolean dotPathed;
         @Nullable
         private MutableNode parent;
+        private List<FunctionNode> valueFunctions = new ArrayList<>();
 
         MutableNode(ParseContext context, SquigglyName name) {
             this.context = context;
@@ -282,14 +379,9 @@ public class SquigglyParser {
                 for (MutableNode child : children.values()) {
                     childNodes.add(child.toSquigglyNode());
                 }
-
             }
 
-            return newSquigglyNode(context, name, childNodes);
-        }
-
-        private SquigglyNode newSquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> childNodes) {
-            return new SquigglyNode(context, name, childNodes, negated, squiggly, emptyNested);
+            return new SquigglyNode(context, name, childNodes, valueFunctions, negated, squiggly, emptyNested);
         }
 
         public ParseContext getContext() {
@@ -298,6 +390,17 @@ public class SquigglyParser {
 
         public MutableNode dotPathed(boolean dotPathed) {
             this.dotPathed = dotPathed;
+            return this;
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        public MutableNode valueFunctions(List<FunctionNode> functions) {
+            functions.forEach(this::valueFunction);
+            return this;
+        }
+
+        public MutableNode valueFunction(FunctionNode function) {
+            valueFunctions.add(function);
             return this;
         }
 

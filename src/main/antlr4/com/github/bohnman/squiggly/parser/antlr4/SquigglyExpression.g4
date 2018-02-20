@@ -16,10 +16,10 @@ expressionList
 
 expression
     : negatedExpression
-    | fieldList functionChain? (nestedExpression|emptyNestedExpression)
-    | dottedField (nestedExpression|emptyNestedExpression|functionChain)
+    | fieldList valueFunctionChain? (nestedExpression|emptyNestedExpression)
+    | dottedField (nestedExpression|emptyNestedExpression|valueFunctionChain)
     | dottedField
-    | field functionChain?
+    | field valueFunctionChain?
     | wildcardDeepField
     ;
 
@@ -77,23 +77,23 @@ wildcardDeepField
 
 // Functions
 
-functionChain
+valueFunctionChain
     : ('.' function)+
     ;
 
 function
-    : functionName LeftParen functionArgs? RightParen
+    : functionName LeftParen functionParameters? RightParen
     ;
 
 functionName
     : Identifier
     ;
 
-functionArgs
-    : functionArg (',' functionArg)*
+functionParameters
+    : functionParameter (',' functionParameter)*
     ;
 
-functionArg
+functionParameter
     : BooleanLiteral
     | IntegerLiteral
     | FloatLiteral

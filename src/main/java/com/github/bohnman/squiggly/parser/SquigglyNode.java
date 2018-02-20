@@ -2,13 +2,14 @@ package com.github.bohnman.squiggly.parser;
 
 import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.name.AnyShallowName;
-import com.github.bohnman.squiggly.name.ExactName;
 import com.github.bohnman.squiggly.name.SquigglyName;
 import com.github.bohnman.squiggly.name.VariableName;
 import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A squiggly node represents a component of a filter expression.
@@ -19,6 +20,7 @@ public class SquigglyNode {
     private final ParseContext context;
     private final SquigglyName name;
     private final List<SquigglyNode> children;
+    private final List<FunctionNode> valueFunctions;
     private final boolean squiggly;
     private final boolean negated;
     private final boolean emptyNested;
@@ -29,16 +31,18 @@ public class SquigglyNode {
      * @param context  parser context
      * @param name     name of the node
      * @param children child nodes
+     * @param valueFunctions value functions
      * @param negated whether or not the node has been negated
      * @param squiggly whether or not a node is squiggly
      * @param emptyNested whether of not filter specified {}
      * @see #isSquiggly()
      */
-    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, boolean negated, boolean squiggly, boolean emptyNested) {
-        this.context = context;
+    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested) {
+        this.context = checkNotNull(context);
         this.name = name;
         this.negated = negated;
         this.children = ImmutableList.copyOf(children);
+        this.valueFunctions = ImmutableList.copyOf(valueFunctions);
         this.squiggly = squiggly;
         this.emptyNested = emptyNested;
     }
@@ -51,6 +55,15 @@ public class SquigglyNode {
      */
     public int match(String otherName) {
         return name.match(otherName);
+    }
+
+    /**
+     * Get context.
+     *
+     * @return parse context
+     */
+    public ParseContext getContext() {
+        return context;
     }
 
     /**
@@ -69,6 +82,15 @@ public class SquigglyNode {
      */
     public List<SquigglyNode> getChildren() {
         return children;
+    }
+
+    /**
+     * Get the value functions.
+     *
+     * @return value functions.
+     */
+    public List<FunctionNode> getValueFunctions() {
+        return valueFunctions;
     }
 
     /**
@@ -135,6 +157,6 @@ public class SquigglyNode {
      * @return ndoe
      */
     public SquigglyNode withName(SquigglyName newName) {
-        return new SquigglyNode(context, newName, children, negated, squiggly, emptyNested);
+        return new SquigglyNode(context, newName, children, valueFunctions, negated, squiggly, emptyNested);
     }
 }
