@@ -321,6 +321,12 @@ public class SquigglyPropertyFilterTest {
     }
 
     @Test
+    public void testFunction() {
+        filter("id,actions.limit(2){firstName}");
+        System.out.println(stringify());
+    }
+
+    @Test
     public void testJsonUnwrapped() {
         filter("innerText");
         assertEquals("{\"innerText\":\"innerValue\"}", stringify(new Outer("outerValue", "innerValue")));

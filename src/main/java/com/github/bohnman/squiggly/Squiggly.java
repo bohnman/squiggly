@@ -8,12 +8,19 @@ import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.config.source.SquigglyConfigSource;
 import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.convert.ConverterRecord;
+import com.github.bohnman.squiggly.convert.DefaultConversionService;
+import com.github.bohnman.squiggly.convert.DefaultConverters;
+import com.github.bohnman.squiggly.convert.NullSafeConverterRecord;
+import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.filter.SquigglyPropertyFilterMixin;
 import com.github.bohnman.squiggly.filter.repository.CompositeFilterRepository;
 import com.github.bohnman.squiggly.filter.repository.MapFilterRepository;
 import com.github.bohnman.squiggly.filter.repository.SquigglyFilterRepository;
+import com.github.bohnman.squiggly.function.DefaultFunctions;
 import com.github.bohnman.squiggly.function.SquigglyFunction;
+import com.github.bohnman.squiggly.function.SquigglyFunctions;
 import com.github.bohnman.squiggly.function.repository.CompositeFunctionRepository;
 import com.github.bohnman.squiggly.function.repository.MapFunctionRepository;
 import com.github.bohnman.squiggly.function.repository.SquigglyFunctionRepository;
@@ -33,9 +40,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Provides various way of registering a {@link SquigglyPropertyFilter} with a Jackson ObjectMapper.
@@ -46,6 +55,7 @@ public class Squiggly {
     private final BeanInfoIntrospector beanInfoIntrospector;
     private final SquigglyPropertyFilter filter;
     private final SquigglyConfig config;
+    private final SquigglyConversionService conversionService;
     private final SquigglyMetrics metrics;
     private final SquigglyContextProvider contextProvider;
     private final SquigglyFilterRepository filterRepository;
@@ -57,6 +67,7 @@ public class Squiggly {
     public Squiggly(
             SquigglyConfig config,
             SquigglyContextProvider contextProvider,
+            SquigglyConversionService conversionService,
             SquigglyFilterRepository filterRepository,
             SquigglyFunctionRepository functionRepository, SquigglyMetrics metrics,
             SquigglyParser parser,
@@ -64,6 +75,7 @@ public class Squiggly {
             SquigglyVariableResolver variableResolver) {
         this.beanInfoIntrospector = new BeanInfoIntrospector(config, metrics);
         this.config = checkNotNull(config);
+        this.conversionService = checkNotNull(conversionService);
         this.contextProvider = checkNotNull(contextProvider);
         this.filterRepository = checkNotNull(filterRepository);
         this.functionRepository = checkNotNull(functionRepository);
@@ -139,6 +151,15 @@ public class Squiggly {
      */
     public SquigglyConfig getConfig() {
         return config;
+    }
+
+    /**
+     * Get the conversion service.
+     *
+     * @return conversion service
+     */
+    public SquigglyConversionService getConversionService() {
+        return conversionService;
     }
 
     /**
@@ -296,6 +317,7 @@ public class Squiggly {
      * @param <B> the builder type
      * @param <S> the squiggly type
      */
+    @SuppressWarnings("TypeParameterHidesVisibleType")
     public static class Builder<B extends Builder<B, S>, S extends Squiggly> {
 
         private final List<SquigglyConfigSource> configSources = new ArrayList<>();
@@ -304,12 +326,17 @@ public class Squiggly {
         private SquigglyContextProvider contextProvider;
 
         @Nullable
+        private Function<List<ConverterRecord>, SquigglyConversionService> conversionService;
+
+        @Nullable
         private SquigglyFilterRepository filterRepository;
 
         @Nullable
         private SquigglyFunctionRepository functionRepository;
 
         private final List<SquigglyFunction<?>> functions = new ArrayList<>();
+
+        private boolean registerDefaultConverters = true;
 
         private boolean registerDefaultFunctions = true;
 
@@ -322,6 +349,8 @@ public class Squiggly {
         private SquigglyVariableResolver variableResolver;
 
         private final Map<String, Object> variables = new HashMap<>();
+
+        private List<ConverterRecord> converterRecords = new ArrayList<>();
 
         private Builder() {
         }
@@ -345,6 +374,47 @@ public class Squiggly {
          */
         public B context(SquigglyContextProvider contextProvider) {
             this.contextProvider = contextProvider;
+            return getThis();
+        }
+
+        /**
+         * Supply a conversion service using a factory method.
+         *
+         * @param factory factory method
+         * @return builder
+         */
+        public B conversionService(Function<List<ConverterRecord>, SquigglyConversionService> factory) {
+            this.conversionService = factory;
+            return getThis();
+        }
+
+        /**
+         * Adds a converter.
+         *
+         * @param source    source class
+         * @param target    target class
+         * @param converter converter
+         * @param <S>       source type
+         * @param <T>       target type
+         * @return builder
+         */
+        public <S, T> B converter(Class<S> source, Class<T> target, Function<S, T> converter) {
+            this.converterRecords.add(new ConverterRecord(source, target, converter));
+            return getThis();
+        }
+
+        /**
+         * Adds a null safe converter.
+         *
+         * @param source    source class
+         * @param target    target class
+         * @param converter converter
+         * @param <S>       source type
+         * @param <T>       target type
+         * @return builder
+         */
+        public <S, T> B nullSafeConverter(Class<S> source, Class<T> target, Function<S, T> converter) {
+            this.converterRecords.add(new NullSafeConverterRecord(source, target, converter));
             return getThis();
         }
 
@@ -376,7 +446,7 @@ public class Squiggly {
          * @param function a function
          * @return builder
          */
-        public B function(SquigglyFunction function) {
+        public B function(SquigglyFunction<?> function) {
             this.functions.add(checkNotNull(function));
             return getThis();
         }
@@ -387,7 +457,7 @@ public class Squiggly {
          * @param functions functions
          * @return builder
          */
-        public B functions(SquigglyFunction... functions) {
+        public B functions(SquigglyFunction<?>... functions) {
             Arrays.stream(functions).forEach(this::function);
             return getThis();
         }
@@ -398,8 +468,19 @@ public class Squiggly {
          * @param functions functions
          * @return builder
          */
-        public B functions(Iterable<SquigglyFunction> functions) {
+        public B functions(Iterable<SquigglyFunction<?>> functions) {
             Streams.stream(functions).forEach(this::function);
+            return getThis();
+        }
+
+        /**
+         * Indicate whether or not to register default functions.
+         *
+         * @param registerDefaultConverters flag
+         * @return true/false
+         */
+        public B registerDefaultConverters(boolean registerDefaultConverters) {
+            this.registerDefaultConverters = registerDefaultConverters;
             return getThis();
         }
 
@@ -409,7 +490,7 @@ public class Squiggly {
          * @param registerDefaultFunctions flag
          * @return true/false
          */
-        public B registerDefaultFunction(boolean registerDefaultFunctions) {
+        public B registerDefaultFunctions(boolean registerDefaultFunctions) {
             this.registerDefaultFunctions = registerDefaultFunctions;
             return getThis();
         }
@@ -499,11 +580,11 @@ public class Squiggly {
                 filterRepository = new CompositeFilterRepository(this.filterRepository, filterRepository);
             }
 
-            List<SquigglyFunction> defaultFunctions = getDefaultFunctions();
+            List<SquigglyFunction<Object>> defaultFunctions = getDefaultFunctions();
 
             SquigglyFunctionRepository functionRepository = new MapFunctionRepository(
                     Streams.concat(defaultFunctions.stream(),
-                            functions.stream()).collect(Collectors.toList()));
+                            functions.stream()).collect(toList()));
 
             if (this.functionRepository != null) {
                 functionRepository = new CompositeFunctionRepository(this.functionRepository, functionRepository);
@@ -515,9 +596,22 @@ public class Squiggly {
                 variableResolver = new CompositeVariableResolver(this.variableResolver, variableResolver);
             }
 
+            List<ConverterRecord> defaultConverterRecords = registerDefaultConverters ? DefaultConverters.get() : Collections.emptyList();
+            List<ConverterRecord> allConverterRecords = Stream.concat(defaultConverterRecords.stream(), converterRecords.stream())
+                    .collect(toList());
+
+            SquigglyConversionService conversionService;
+
+            if (this.conversionService == null) {
+                conversionService = new DefaultConversionService(config, allConverterRecords);
+            } else {
+                conversionService = this.conversionService.apply(allConverterRecords);
+            }
+
             return (S) new Squiggly(
                     config,
                     contextProvider,
+                    conversionService,
                     filterRepository,
                     functionRepository,
                     metrics,
@@ -526,16 +620,12 @@ public class Squiggly {
                     variableResolver);
         }
 
-        private List<SquigglyFunction> getDefaultFunctions() {
+        private List<SquigglyFunction<Object>> getDefaultFunctions() {
             if (!registerDefaultFunctions) {
                 return Collections.emptyList();
             }
 
-            List<SquigglyFunction> functions = new ArrayList<>();
-
-            // TODO: finish
-
-            return functions;
+            return SquigglyFunctions.create(DefaultFunctions.class, SquigglyFunction.RegistrationStrategy.MANUAL);
         }
 
         @SuppressWarnings("unchecked")

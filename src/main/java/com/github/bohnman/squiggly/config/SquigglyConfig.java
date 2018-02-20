@@ -35,8 +35,9 @@ public class SquigglyConfig {
 
     private final CacheBuilderSpec parserNodeCacheSpec;
 
-    private boolean propertyAddNonAnnotatedFieldsToBaseView;
+    private final boolean propertyAddNonAnnotatedFieldsToBaseView;
     private final CacheBuilderSpec propertyDescriptorCacheSpec;
+    private final CacheBuilderSpec convertCacheSpec;
 
     public SquigglyConfig(SquigglyConfigSource... sources) {
         this(Arrays.asList(sources));
@@ -62,6 +63,7 @@ public class SquigglyConfig {
         Map<String, String> propsMap = Maps.newHashMap();
         Map<String, String> locationMap = Maps.newHashMap();
 
+        convertCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.convert.cache.spec");
         filterImplicitlyIncludeBaseFields = getBool(source, propsMap, locationMap, "squiggly.filter.implicitlyIncludeBaseFields");
         filterImplicitlyIncludeBaseFieldsInView = getBool(source, propsMap, locationMap, "squiggly.filter.implicitlyIncludeBaseFieldsInView");
         filterPathCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.filter.pathCache.spec");
@@ -104,6 +106,15 @@ public class SquigglyConfig {
         } catch (NumberFormatException e) {
             throw new RuntimeException("Unable to convert " + value + " to int for key " + key);
         }
+    }
+
+    /**
+     * Gets the convert cache specification.
+     *
+     * @return convert cache specification
+     */
+    public CacheBuilderSpec getConvertCacheSpec() {
+        return convertCacheSpec;
     }
 
     /**

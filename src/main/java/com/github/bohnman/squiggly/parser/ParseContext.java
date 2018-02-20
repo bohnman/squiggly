@@ -21,4 +21,9 @@ public class ParseContext {
     public int getColumn() {
         return column;
     }
+
+    @Override
+    public String toString() {
+        return "[" + line + ':' + column + ']';
+    }
 }

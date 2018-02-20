@@ -79,7 +79,8 @@ public class SquigglyFunctions {
     }
 
     public static SquigglyFunction<Object> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases) {
-        return create(method, owner, name, aliases, owner.getClass().getAnnotation(SquigglyClass.class));
+        Class<?> ownerClass = (owner instanceof  Class) ? (Class) owner : owner.getClass();
+        return create(method, owner, name, aliases, ownerClass.getAnnotation(SquigglyClass.class));
     }
 
     private static SquigglyFunction<Object> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyClass classAnnotation) {
@@ -129,10 +130,11 @@ public class SquigglyFunctions {
 
     public static List<SquigglyFunction<Object>> create(Object owner, SquigglyFunction.RegistrationStrategy registrationStrategy) {
         boolean ownerStatic = owner instanceof Class;
+        Class<?> ownerClass = (owner instanceof  Class) ? (Class) owner : owner.getClass();
 
-        SquigglyClass classAnnotation = owner.getClass().getAnnotation(SquigglyClass.class);
+        SquigglyClass classAnnotation = ownerClass.getAnnotation(SquigglyClass.class);
 
-        return Arrays.stream(owner.getClass().getDeclaredMethods())
+        return Arrays.stream(ownerClass.getDeclaredMethods())
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .filter(method -> ownerStatic && Modifier.isStatic(method.getModifiers()))
                 .map(method -> {

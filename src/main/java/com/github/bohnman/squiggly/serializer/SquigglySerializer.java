@@ -15,4 +15,9 @@ public interface SquigglySerializer {
     default void serializeAsExcludedField(Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
         writer.serializeAsOmittedField(pojo, jgen, provider);
     }
+
+    default void serializeAsConvertedField(Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer, Object value) throws Exception {
+        jgen.writeFieldName(writer.getName());
+        jgen.writeObject(value);
+    }
 }

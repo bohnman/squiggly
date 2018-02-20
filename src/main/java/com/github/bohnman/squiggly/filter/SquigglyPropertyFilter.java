@@ -6,12 +6,16 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.github.bohnman.squiggly.Person;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.bean.BeanInfo;
 import com.github.bohnman.squiggly.context.SquigglyContext;
+import com.github.bohnman.squiggly.function.FunctionRequest;
+import com.github.bohnman.squiggly.function.SquigglyFunction;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.name.ExactName;
+import com.github.bohnman.squiggly.parser.FunctionNode;
 import com.github.bohnman.squiggly.parser.ParseContext;
 import com.github.bohnman.squiggly.parser.SquigglyNode;
 import com.github.bohnman.squiggly.view.PropertyView;
@@ -22,6 +26,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -70,11 +75,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static final String FILTER_ID = "squigglyFilter";
+    private static final SquigglyNode NEVER_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), false, false, false);
+    private static final SquigglyNode ALWAYS_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), false, false, false);
 
     /**
      * Cache that stores previous evaluated matches.
      */
-    private final Cache<Pair<Path, String>, Boolean> matchCache;
+    private final Cache<Pair<Path, String>, SquigglyNode> matchCache;
     private final List<SquigglyNode> baseViewNodes = Collections.singletonList(new SquigglyNode(new ParseContext(1, 1), new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), Collections.emptyList(), false, true, false));
     private final Squiggly squiggly;
 
@@ -123,15 +130,15 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         throw new UnsupportedOperationException("Cannot call include without JsonGenerator");
     }
 
-    private boolean include(final PropertyWriter writer, final JsonGenerator jgen) {
+    private SquigglyNode match(final PropertyWriter writer, final JsonGenerator jgen) {
         if (!squiggly.getContextProvider().isFilteringEnabled()) {
-            return true;
+            return ALWAYS_MATCH;
         }
 
         JsonStreamContext streamContext = getStreamContext(jgen);
 
         if (streamContext == null) {
-            return true;
+            return ALWAYS_MATCH;
         }
 
         Path path = getPath(writer, streamContext);
@@ -140,30 +147,31 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
 
         if (AnyDeepName.ID.equals(filter)) {
-            return true;
+            return ALWAYS_MATCH;
         }
 
         if (path.isCachable()) {
             // cache the match result using the path and filter expression
             Pair<Path, String> pair = Pair.of(path, filter);
-            Boolean match = matchCache.getIfPresent(pair);
+            SquigglyNode match = matchCache.getIfPresent(pair);
 
             if (match == null) {
-                match = pathMatches(path, context);
+                match = matchPath(path, context);
             }
 
             matchCache.put(pair, match);
             return match;
         }
 
-        return pathMatches(path, context);
+        return matchPath(path, context);
     }
 
     // perform the actual matching
-    private boolean pathMatches(Path path, SquigglyContext context) {
+    private SquigglyNode matchPath(Path path, SquigglyContext context) {
         List<SquigglyNode> nodes = context.getNodes();
         Set<String> viewStack = null;
         SquigglyNode viewNode = null;
+        SquigglyNode match = null;
 
         int pathSize = path.getElements().size();
         int lastIdx = pathSize - 1;
@@ -178,15 +186,14 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
                     Set<String> propertyNames = getPropertyNamesFromViewStack(element, viewStack);
 
                     if (!propertyNames.contains(element.getName())) {
-                        return false;
+                        return NEVER_MATCH;
                     }
                 }
 
             } else if (nodes.isEmpty()) {
-                return false;
+                return NEVER_MATCH;
             } else {
-
-                SquigglyNode match = findBestSimpleNode(element, nodes);
+                match = findBestSimpleNode(element, nodes);
 
                 if (match == null) {
                     match = findBestViewNode(element, nodes);
@@ -198,19 +205,20 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
                 } else if (match.isAnyShallow()) {
                     viewNode = match;
                 } else if (match.isAnyDeep()) {
-                    return true;
+                    return match;
                 }
 
                 if (match == null) {
                     if (isJsonUnwrapped(element)) {
+                        match = ALWAYS_MATCH;
                         continue;
                     }
 
-                    return false;
+                    return NEVER_MATCH;
                 }
 
                 if (match.isNegated()) {
-                    return false;
+                    return NEVER_MATCH;
                 }
 
                 nodes = match.getChildren();
@@ -221,7 +229,11 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             }
         }
 
-        return true;
+        if (match == null) {
+            match = NEVER_MATCH;
+        }
+
+        return match;
     }
 
 
@@ -319,11 +331,39 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     @Override
     public void serializeAsField(final Object pojo, final JsonGenerator jgen, final SerializerProvider provider,
                                  final PropertyWriter writer) throws Exception {
-        if (include(writer, jgen)) {
-            squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
+        SquigglyNode match = match(writer, jgen);
+
+        if (match != null && match != NEVER_MATCH) {
+            if (match.getValueFunctions().isEmpty() || !(writer instanceof BeanPropertyWriter)) {
+                squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
+            } else {
+                BeanPropertyWriter beanPropertyWriter = (BeanPropertyWriter) writer;
+                Object value = executionFunctions(match, beanPropertyWriter.get(pojo));
+                squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, value);
+            }
+
+
         } else if (!jgen.canOmitFields()) {
             squiggly.getSerializer().serializeAsExcludedField(pojo, jgen, provider, writer);
         }
+    }
+
+    private Object executionFunctions(SquigglyNode node, Object value) {
+        for (FunctionNode functionNode : node.getValueFunctions()) {
+            value = executeFunction(functionNode, value);
+        }
+
+        return value;
+    }
+
+    private Object executeFunction(FunctionNode functionNode, Object value) {
+        SquigglyFunction<Object> function = squiggly.getFunctionRepository().findByName(functionNode.getName());
+
+        if (function == null) {
+            throw new IllegalStateException(String.format("%s: Unrecognized function [%s]", functionNode.getContext(), functionNode.getName()));
+        }
+
+        return function.apply(new FunctionRequest(value));
     }
 
     /*

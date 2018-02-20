@@ -37,7 +37,7 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
     @Override
     public Object apply(FunctionRequest request) {
         try {
-            return method.invoke(owner);
+            return method.invoke(owner, request.getInput());
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(format("Error executing [%s].", method), e);
         }
