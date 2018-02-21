@@ -83,14 +83,14 @@ import static java.lang.String.format;
 public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static final String FILTER_ID = "squigglyFilter";
-    private static final SquigglyNode NEVER_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), false, false, false);
-    private static final SquigglyNode ALWAYS_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), false, false, false);
+    private static final SquigglyNode NEVER_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, false, false);
+    private static final SquigglyNode ALWAYS_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, false, false);
 
     /**
      * Cache that stores previous evaluated matches.
      */
     private final Cache<Pair<Path, String>, SquigglyNode> matchCache;
-    private final List<SquigglyNode> baseViewNodes = Collections.singletonList(new SquigglyNode(new ParseContext(1, 1), new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), Collections.emptyList(), false, true, false));
+    private final List<SquigglyNode> baseViewNodes = Collections.singletonList(new SquigglyNode(new ParseContext(1, 1), new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, true, false));
     private final Squiggly squiggly;
 
     /**
@@ -342,26 +342,25 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         SquigglyNode match = match(writer, jgen);
 
         if (match != null && match != NEVER_MATCH) {
-            if (match.getValueFunctions().isEmpty() || !(writer instanceof BeanPropertyWriter)) {
+            if ((match.getKeyFunctions().isEmpty() && match.getValueFunctions().isEmpty()) || !(writer instanceof BeanPropertyWriter)) {
                 squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
             } else {
                 BeanPropertyWriter beanPropertyWriter = (BeanPropertyWriter) writer;
-                Object value = executionFunctions(match, beanPropertyWriter.get(pojo));
-                squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, value);
+                String name = "" + executeFunctions(match.getKeyFunctions(), writer.getName());
+                Object value = executeFunctions(match.getValueFunctions(), beanPropertyWriter.get(pojo));
+                squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
             }
-
-
         } else if (!jgen.canOmitFields()) {
             squiggly.getSerializer().serializeAsExcludedField(pojo, jgen, provider, writer);
         }
     }
 
-    private Object executionFunctions(SquigglyNode node, Object value) {
-        for (FunctionNode functionNode : node.getValueFunctions()) {
-            value = executeFunction(functionNode, value);
+    private Object executeFunctions(List<FunctionNode> functions, Object input) {
+        for (FunctionNode functionNode : functions) {
+            input = executeFunction(functionNode, input);
         }
 
-        return value;
+        return input;
     }
 
     private Object executeFunction(FunctionNode functionNode, Object input) {
@@ -668,19 +667,36 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     public static void main(String[] args) {
-        ObjectMapper mapper = Squiggly.init(new ObjectMapper(), "nickNames.foo(2)");
+        ObjectMapper mapper = Squiggly.init(new ObjectMapper(), "firstName,nickNames[name:limit(1).limit(1)]");
         System.out.println(SquigglyUtils.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
+    }
+
+    private static class NickName {
+        private final String name;
+
+        public NickName(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     private static class Person {
         private final String firstName;
         private final String lastName;
-        private List<String> nickNames;
+        private List<NickName> nickNames;
 
         public Person(String firstName, String lastName, String... nickNames) {
             this.firstName = firstName;
             this.lastName = lastName;
-            this.nickNames = Arrays.asList(nickNames);
+            this.nickNames = Arrays.stream(nickNames).map(NickName::new).collect(Collectors.toList());
         }
 
         public String getFirstName() {
@@ -691,7 +707,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             return lastName;
         }
 
-        public List<String> getNickNames() {
+        public List<NickName> getNickNames() {
             return nickNames;
         }
     }

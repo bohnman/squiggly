@@ -142,18 +142,24 @@ public class SquigglyParser {
                 names = Collections.emptyList();
             }
 
-            List<FunctionNode> valueFunctions;
+            List<FunctionNode> keyFunctions = Collections.emptyList();
+            List<FunctionNode> valueFunctions = Collections.emptyList();
 
-            if (ctx.valueFunctionChain() == null) {
-                valueFunctions = Collections.emptyList();
-            } else {
-                valueFunctions = parseValueFunctionChain(ctx.valueFunctionChain());
+            if (ctx.functionChain() != null) {
+                if (ctx.functionChain().keyFunctionChain() != null) {
+                    keyFunctions = parseKeyFunctionChain(ctx.functionChain().keyFunctionChain());
+                }
+                
+                if (ctx.functionChain().valueFunctionChain() != null) {
+                    valueFunctions = parseValueFunctionChain(ctx.functionChain().valueFunctionChain());    
+                }
             }
 
             for (int i = 0; i < names.size(); i++) {
                 SquigglyName name = names.get(i);
                 ParserRuleContext ruleContext = ruleContexts.get(i);
                 MutableNode node = parent.addChild(new MutableNode(parseContext(ruleContext), name));
+                node.keyFunctions(keyFunctions);
                 node.valueFunctions(valueFunctions);
 
                 if (ctx.emptyNestedExpression() != null) {
@@ -163,6 +169,24 @@ public class SquigglyParser {
                     handleExpressionList(ctx.nestedExpression().expressionList(), node);
                 }
             }
+        }
+
+        private List<FunctionNode> parseKeyFunctionChain(SquigglyExpressionParser.KeyFunctionChainContext functionChainContext) {
+            return functionChainContext.function()
+                    .stream()
+                    .map(this::parseKeyFunction)
+                    .collect(toList());
+
+        }
+
+        private FunctionNode parseKeyFunction(SquigglyExpressionParser.FunctionContext functionContext) {
+            ParseContext context = parseContext(functionContext);
+            FunctionNode.Builder builder = buildBaseFunction(functionContext, context)
+                    .parameter(context, ParameterType.INPUT, ParameterType.INPUT);
+
+            applyParameters(builder, functionContext);
+
+            return builder.build();
         }
 
         private List<FunctionNode> parseValueFunctionChain(SquigglyExpressionParser.ValueFunctionChainContext functionChainContext) {
@@ -361,6 +385,7 @@ public class SquigglyParser {
         private boolean dotPathed;
         @Nullable
         private MutableNode parent;
+        private List<FunctionNode> keyFunctions = new ArrayList<>();
         private List<FunctionNode> valueFunctions = new ArrayList<>();
 
         MutableNode(ParseContext context, SquigglyName name) {
@@ -385,7 +410,7 @@ public class SquigglyParser {
                 }
             }
 
-            return new SquigglyNode(context, name, childNodes, valueFunctions, negated, squiggly, emptyNested);
+            return new SquigglyNode(context, name, childNodes, keyFunctions, valueFunctions, negated, squiggly, emptyNested);
         }
 
         public ParseContext getContext() {
@@ -394,6 +419,17 @@ public class SquigglyParser {
 
         public MutableNode dotPathed(boolean dotPathed) {
             this.dotPathed = dotPathed;
+            return this;
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        public MutableNode keyFunctions(List<FunctionNode> functions) {
+            functions.forEach(this::keyFunction);
+            return this;
+        }
+
+        public MutableNode keyFunction(FunctionNode function) {
+            keyFunctions.add(function);
             return this;
         }
 

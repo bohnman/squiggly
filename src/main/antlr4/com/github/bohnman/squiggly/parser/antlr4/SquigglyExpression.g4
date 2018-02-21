@@ -16,11 +16,10 @@ expressionList
 
 expression
     : negatedExpression
-    | fieldList valueFunctionChain? (nestedExpression|emptyNestedExpression)
-    | dottedField (nestedExpression|emptyNestedExpression|valueFunctionChain)
-    | dottedField
-    | field valueFunctionChain?
-    | wildcardDeepField
+    | fieldList functionChain? (nestedExpression|emptyNestedExpression)
+    | dottedField functionChain? (nestedExpression|emptyNestedExpression)?
+    | field functionChain?
+    | wildcardDeepField functionChain?
     ;
 
 negatedExpression
@@ -77,8 +76,18 @@ wildcardDeepField
 
 // Functions
 
+functionChain
+    : keyFunctionChain ':' valueFunctionChain
+    | keyFunctionChain
+    | '.' valueFunctionChain
+    ;
+
+keyFunctionChain
+    : ':' function ('.' function)*
+    ;
+
 valueFunctionChain
-    : ('.' function)+
+    : function ('.' function)*
     ;
 
 function

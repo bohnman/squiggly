@@ -20,6 +20,7 @@ public class SquigglyNode {
     private final ParseContext context;
     private final SquigglyName name;
     private final List<SquigglyNode> children;
+    private final List<FunctionNode> keyFunctions;
     private final List<FunctionNode> valueFunctions;
     private final boolean squiggly;
     private final boolean negated;
@@ -31,17 +32,19 @@ public class SquigglyNode {
      * @param context  parser context
      * @param name     name of the node
      * @param children child nodes
+     * @param keyFunctions key functions
      * @param valueFunctions value functions
      * @param negated whether or not the node has been negated
      * @param squiggly whether or not a node is squiggly
      * @param emptyNested whether of not filter specified {}
      * @see #isSquiggly()
      */
-    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested) {
+    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested) {
         this.context = checkNotNull(context);
         this.name = name;
         this.negated = negated;
         this.children = ImmutableList.copyOf(children);
+        this.keyFunctions = ImmutableList.copyOf(keyFunctions);
         this.valueFunctions = ImmutableList.copyOf(valueFunctions);
         this.squiggly = squiggly;
         this.emptyNested = emptyNested;
@@ -82,6 +85,15 @@ public class SquigglyNode {
      */
     public List<SquigglyNode> getChildren() {
         return children;
+    }
+
+    /**
+     * Get the key functions.
+     *
+     * @return key functions
+     */
+    public List<FunctionNode> getKeyFunctions() {
+        return keyFunctions;
     }
 
     /**
@@ -157,6 +169,6 @@ public class SquigglyNode {
      * @return ndoe
      */
     public SquigglyNode withName(SquigglyName newName) {
-        return new SquigglyNode(context, newName, children, valueFunctions, negated, squiggly, emptyNested);
+        return new SquigglyNode(context, newName, children, keyFunctions, valueFunctions, negated, squiggly, emptyNested);
     }
 }
