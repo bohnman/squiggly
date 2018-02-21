@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.function;
 
 import com.github.bohnman.squiggly.function.annotation.SquigglyClass;
+import com.github.bohnman.squiggly.function.annotation.SquigglyMethod;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
@@ -22,8 +23,8 @@ public class SquigglyFunctions {
     private SquigglyFunctions() {
     }
 
-    public static <T> SquigglyFunction<T> create(String name, Function<FunctionRequest, T> function) {
-        return new AbstractSquigglyFunction<T>(name) {
+    public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionRequest, T> function) {
+        return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionRequest.class).build())) {
             @Override
             public T apply(FunctionRequest request) {
                 return function.apply(request);
@@ -31,8 +32,9 @@ public class SquigglyFunctions {
         };
     }
 
-    public static <T> SquigglyFunction<T> create(String name, Function<FunctionRequest, T> function, String... aliases) {
-        return new AbstractSquigglyFunction<T>(name, aliases) {
+    public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionRequest, T> function, String... aliases) {
+        return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionRequest.class).build()), aliases) {
+
             @Override
             public T apply(FunctionRequest request) {
                 return function.apply(request);
@@ -40,8 +42,8 @@ public class SquigglyFunctions {
         };
     }
 
-    public static <T> SquigglyFunction<T> create(String name, Function<FunctionRequest, T> function, Iterable<String> aliases) {
-        return new AbstractSquigglyFunction<T>(name, aliases) {
+    public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionRequest, T> function, Iterable<String> aliases) {
+        return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionRequest.class).build()), aliases) {
             @Override
             public T apply(FunctionRequest request) {
                 return function.apply(request);
@@ -84,10 +86,10 @@ public class SquigglyFunctions {
     }
 
     private static SquigglyFunction<Object> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyClass classAnnotation) {
-        return create(method, owner, name, aliases, classAnnotation, method.getAnnotation(com.github.bohnman.squiggly.function.annotation.SquigglyFunction.class));
+        return create(method, owner, name, aliases, classAnnotation, method.getAnnotation(SquigglyMethod.class));
     }
 
-    private static SquigglyFunction<Object> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyClass classAnnotation, @Nullable com.github.bohnman.squiggly.function.annotation.SquigglyFunction functionAnnotation) {
+    private static SquigglyFunction<Object> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyClass classAnnotation, @Nullable SquigglyMethod functionAnnotation) {
         if (functionAnnotation != null && functionAnnotation.ignore()) {
             throw new IllegalArgumentException(format("Method [%s] is marked as ignored.", method));
         }
@@ -138,7 +140,7 @@ public class SquigglyFunctions {
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .filter(method -> ownerStatic && Modifier.isStatic(method.getModifiers()))
                 .map(method -> {
-                    com.github.bohnman.squiggly.function.annotation.SquigglyFunction functonAnnotation = method.getAnnotation(com.github.bohnman.squiggly.function.annotation.SquigglyFunction.class);
+                    SquigglyMethod functonAnnotation = method.getAnnotation(SquigglyMethod.class);
 
                     if (functonAnnotation == null && SquigglyFunction.RegistrationStrategy.MANUAL == registrationStrategy) {
                         return null;

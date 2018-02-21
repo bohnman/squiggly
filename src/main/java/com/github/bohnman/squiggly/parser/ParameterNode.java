@@ -37,6 +37,14 @@ public class ParameterNode {
         return type;
     }
 
+    @Override
+    public String toString() {
+        return "{" +
+                "value=" + value +
+                ", type=" + type +
+                '}';
+    }
+
     public static Builder builder() {
         return new Builder();
     }

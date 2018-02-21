@@ -190,7 +190,11 @@ public class SquigglyParser {
         }
 
         private void applyParameters(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionContext functionContext) {
-            functionContext.functionParameters().functionParameter().forEach(parameter -> applyParameter(builder, parameter));
+            SquigglyExpressionParser.FunctionParametersContext functionParametersContext = functionContext.functionParameters();
+
+            if (functionParametersContext != null) {
+                functionParametersContext.functionParameter().forEach(parameter -> applyParameter(builder, parameter));
+            }
         }
 
         private void applyParameter(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionParameterContext parameter) {

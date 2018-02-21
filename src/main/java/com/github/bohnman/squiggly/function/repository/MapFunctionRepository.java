@@ -1,24 +1,24 @@
 package com.github.bohnman.squiggly.function.repository;
 
 import com.github.bohnman.squiggly.function.SquigglyFunction;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 public class MapFunctionRepository implements SquigglyFunctionRepository {
 
-    private final ImmutableMap<String, SquigglyFunction<Object>> functionMap;
+    private final ListMultimap<String, SquigglyFunction<Object>> functionMap;
 
-    public MapFunctionRepository(SquigglyFunction... functions) {
+    public MapFunctionRepository(SquigglyFunction<?>... functions) {
         this(Arrays.asList(functions));
     }
 
     @SuppressWarnings("unchecked")
-    public <T> MapFunctionRepository(Iterable<SquigglyFunction> functions) {
-        Map<String, SquigglyFunction<Object>> functionMap = new HashMap<>();
+    public <T> MapFunctionRepository(Iterable<SquigglyFunction<?>> functions) {
+        ListMultimap<String, SquigglyFunction<Object>> functionMap = ArrayListMultimap.create();
 
         for (SquigglyFunction<?> function : functions) {
             functionMap.put(function.getName(), (SquigglyFunction) function);
@@ -28,12 +28,11 @@ public class MapFunctionRepository implements SquigglyFunctionRepository {
             }
         }
 
-        this.functionMap = ImmutableMap.copyOf(functionMap);
+        this.functionMap = Multimaps.unmodifiableListMultimap(functionMap);
     }
 
-    @Nullable
     @Override
-    public SquigglyFunction<Object> findByName(String name) {
+    public List<SquigglyFunction<Object>> findByName(String name) {
         return functionMap.get(name);
     }
 }

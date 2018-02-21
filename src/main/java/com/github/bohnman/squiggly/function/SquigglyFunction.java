@@ -9,6 +9,10 @@ public interface SquigglyFunction<T> extends Function<FunctionRequest, T> {
 
     List<String> getAliases();
 
+    Class<?> getReturnType();
+
+    List<SquigglyParameter> getParameters();
+
     enum RegistrationStrategy {
         AUTO,
         MANUAL

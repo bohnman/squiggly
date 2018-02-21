@@ -114,7 +114,7 @@ Identifier
 // Variables
 
 Variable
-    : ':' Identifier
+    : '@' Identifier
     ;
 
 // Literals

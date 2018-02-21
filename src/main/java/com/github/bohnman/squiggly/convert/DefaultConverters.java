@@ -8,6 +8,8 @@ import java.util.function.Function;
 public class DefaultConverters {
 
     private static final List<ConverterRecord> RECORDS = ImmutableList.of(
+            nullSafe(Integer.class, int.class, Integer::intValue),
+
 
             // Byte    
             nullSafe(Byte.class, Integer.class, Byte::intValue),

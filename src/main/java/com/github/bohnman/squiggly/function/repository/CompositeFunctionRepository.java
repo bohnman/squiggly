@@ -3,8 +3,8 @@ package com.github.bohnman.squiggly.function.repository;
 import com.github.bohnman.squiggly.function.SquigglyFunction;
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class CompositeFunctionRepository implements SquigglyFunctionRepository {
@@ -19,19 +19,18 @@ public class CompositeFunctionRepository implements SquigglyFunctionRepository {
         this.repositories = ImmutableList.copyOf(repositories);
     }
 
-    @Nullable
     @Override
-    public SquigglyFunction<Object> findByName(String name) {
-        SquigglyFunction<Object> function = null;
+    public List<SquigglyFunction<Object>> findByName(String name) {
+        List<SquigglyFunction<Object>> functions = Collections.emptyList();
 
         for (SquigglyFunctionRepository repository : repositories) {
-            function = repository.findByName(name);
+            functions = repository.findByName(name);
 
-            if (function != null) {
+            if (!functions.isEmpty()) {
                 break;
             }
         }
 
-        return function;
+        return functions;
     }
 }

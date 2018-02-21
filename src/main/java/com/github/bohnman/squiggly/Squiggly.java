@@ -558,55 +558,16 @@ public class Squiggly {
          */
         @SuppressWarnings("unchecked")
         public S build() {
-            SquigglyContextProvider contextProvider = this.contextProvider;
             SquigglyConfig config = new SquigglyConfig(configSources);
+            SquigglyContextProvider contextProvider = buildContextProvider();
+            SquigglyConversionService conversionService = buildConversionService(config);
+            SquigglyFilterRepository filterRepository = buildFilterRepository();
+            SquigglyFunctionRepository functionRepository = buildFunctionRepository();
             SquigglyMetrics metrics = new SquigglyMetrics();
             SquigglyParser parser = new SquigglyParser(config, metrics);
-            SquigglySerializer serializer = this.serializer;
+            SquigglySerializer serializer = buildSerializer();
+            SquigglyVariableResolver variableResolver = buildVariableResolver();
 
-            if (contextProvider == null) {
-                contextProvider = new SimpleSquigglyContextProvider();
-            }
-
-
-            if (serializer == null) {
-                serializer = new SquigglySerializer() {
-                };
-            }
-
-            SquigglyFilterRepository filterRepository = new MapFilterRepository(savedFilters);
-
-            if (this.filterRepository != null) {
-                filterRepository = new CompositeFilterRepository(this.filterRepository, filterRepository);
-            }
-
-            List<SquigglyFunction<Object>> defaultFunctions = getDefaultFunctions();
-
-            SquigglyFunctionRepository functionRepository = new MapFunctionRepository(
-                    Streams.concat(defaultFunctions.stream(),
-                            functions.stream()).collect(toList()));
-
-            if (this.functionRepository != null) {
-                functionRepository = new CompositeFunctionRepository(this.functionRepository, functionRepository);
-            }
-
-            SquigglyVariableResolver variableResolver = new MapVariableResolver(variables);
-
-            if (this.variableResolver != null) {
-                variableResolver = new CompositeVariableResolver(this.variableResolver, variableResolver);
-            }
-
-            List<ConverterRecord> defaultConverterRecords = registerDefaultConverters ? DefaultConverters.get() : Collections.emptyList();
-            List<ConverterRecord> allConverterRecords = Stream.concat(defaultConverterRecords.stream(), converterRecords.stream())
-                    .collect(toList());
-
-            SquigglyConversionService conversionService;
-
-            if (this.conversionService == null) {
-                conversionService = new DefaultConversionService(config, allConverterRecords);
-            } else {
-                conversionService = this.conversionService.apply(allConverterRecords);
-            }
 
             return (S) new Squiggly(
                     config,
@@ -620,12 +581,89 @@ public class Squiggly {
                     variableResolver);
         }
 
-        private List<SquigglyFunction<Object>> getDefaultFunctions() {
+        private SquigglySerializer buildSerializer() {
+            SquigglySerializer serializer = this.serializer;
+
+            if (serializer == null) {
+                serializer = new SquigglySerializer() {
+                };
+            }
+            return serializer;
+        }
+
+        private SquigglyContextProvider buildContextProvider() {
+            SquigglyContextProvider contextProvider = this.contextProvider;
+
+            if (contextProvider == null) {
+                contextProvider = new SimpleSquigglyContextProvider();
+            }
+            return contextProvider;
+        }
+
+        private SquigglyConversionService buildConversionService(SquigglyConfig config) {
+            List<ConverterRecord> defaultConverterRecords = registerDefaultConverters ? DefaultConverters.get() : Collections.emptyList();
+            List<ConverterRecord> allConverterRecords = Stream.concat(defaultConverterRecords.stream(), converterRecords.stream())
+                    .collect(toList());
+
+            if (this.conversionService == null) {
+                return new DefaultConversionService(config, allConverterRecords);
+            }
+
+            return this.conversionService.apply(allConverterRecords);
+        }
+
+        private SquigglyVariableResolver buildVariableResolver() {
+            SquigglyVariableResolver variableResolver = new MapVariableResolver(variables);
+
+            if (this.variableResolver != null) {
+                variableResolver = new CompositeVariableResolver(this.variableResolver, variableResolver);
+            }
+            return variableResolver;
+        }
+
+        private SquigglyFilterRepository buildFilterRepository() {
+            SquigglyFilterRepository filterRepository = new MapFilterRepository(savedFilters);
+
+            if (this.filterRepository != null) {
+                filterRepository = new CompositeFilterRepository(this.filterRepository, filterRepository);
+            }
+            return filterRepository;
+        }
+
+        private SquigglyFunctionRepository buildFunctionRepository() {
+            List<SquigglyFunction<?>> defaultFunctions = getDefaultFunctions();
+            List<SquigglyFunctionRepository> functionRepositories = new ArrayList<>(3);
+
+            if (!functions.isEmpty()) {
+                functionRepositories.add(new MapFunctionRepository(functions));
+            }
+
+            if (this.functionRepository != null) {
+                functionRepositories.add(this.functionRepository);
+            }
+
+            if (!defaultFunctions.isEmpty()) {
+                functionRepositories.add(new MapFunctionRepository(defaultFunctions));
+            }
+
+            if (functionRepositories.isEmpty()) {
+                return new MapFunctionRepository();
+            }
+
+            if (functionRepositories.size() == 1) {
+                return functionRepositories.get(0);
+            }
+
+            return new CompositeFunctionRepository(functionRepositories);
+        }
+
+        @SuppressWarnings("unchecked")
+        private List<SquigglyFunction<?>> getDefaultFunctions() {
             if (!registerDefaultFunctions) {
                 return Collections.emptyList();
             }
 
-            return SquigglyFunctions.create(DefaultFunctions.class, SquigglyFunction.RegistrationStrategy.MANUAL);
+            return (List) SquigglyFunctions.create(DefaultFunctions.class, SquigglyFunction.RegistrationStrategy.MANUAL);
         }
 
         @SuppressWarnings("unchecked")

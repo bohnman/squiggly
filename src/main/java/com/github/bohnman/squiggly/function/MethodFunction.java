@@ -3,8 +3,10 @@ package com.github.bohnman.squiggly.function;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -28,16 +30,24 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
     }
 
     public MethodFunction(Method method, Object owner, String name, Iterable<String> aliases) {
-        super(name, aliases);
+        super(name, method.getReturnType(),
+                Arrays.stream(method.getParameters())
+                        .map(MethodFunction::toParameter)
+                        .collect(Collectors.toList()),
+                aliases);
         this.method = checkNotNull(method);
         this.owner = checkNotNull(owner);
         checkArgument(Modifier.isPublic(method.getModifiers()), format("Method [%s] must be public.", method));
     }
 
+    private static SquigglyParameter toParameter(Parameter parameter) {
+        return new SquigglyParameter(parameter.getType(), parameter.isVarArgs());
+    }
+
     @Override
     public Object apply(FunctionRequest request) {
         try {
-            return method.invoke(owner, request.getInput());
+            return method.invoke(owner, request.getParameters().toArray());
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(format("Error executing [%s].", method), e);
         }

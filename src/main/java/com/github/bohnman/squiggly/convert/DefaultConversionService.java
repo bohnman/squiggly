@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class DefaultConversionService implements SquigglyConversionService {
 
     private static ConverterRecord NO_MATCH = new ConverterRecord(Object.class, Object.class, Function.identity());
@@ -40,12 +42,11 @@ public class DefaultConversionService implements SquigglyConversionService {
         }
 
         Class<?> superSource = source.getSuperclass();
-
-        ConverterRecord record = load(new Key(superSource, key.target));
+        ConverterRecord record = superSource == null ? NO_MATCH : cache.getUnchecked(new Key(superSource, key.target));
 
         if (record == NO_MATCH || superSource == Object.class) {
             for (Class<?> ifaceClass : source.getInterfaces()) {
-                ConverterRecord ifaceRecord = load(new Key(ifaceClass, key.target));
+                ConverterRecord ifaceRecord = cache.getUnchecked(new Key(ifaceClass, key.target));
 
                 if (ifaceRecord != NO_MATCH && (record == NO_MATCH || ifaceRecord.getSource() != Object.class)) {
                     record = ifaceRecord;
@@ -60,6 +61,10 @@ public class DefaultConversionService implements SquigglyConversionService {
     @Override
     public boolean canConvert(Class<?> source, Class<?> target) {
         if (source == target) {
+            return true;
+        }
+
+        if (target == Object.class) {
             return true;
         }
 
@@ -83,6 +88,10 @@ public class DefaultConversionService implements SquigglyConversionService {
             return (T) value;
         }
 
+        if (target == Object.class) {
+            return (T) value;
+        }
+
         ConverterRecord record = cache.getUnchecked(new Key(value.getClass(), target));
 
         if (record == NO_MATCH) {
@@ -98,8 +107,8 @@ public class DefaultConversionService implements SquigglyConversionService {
         private final Class<?> target;
 
         public Key(Class<?> source, Class<?> target) {
-            this.source = source;
-            this.target = target;
+            this.source = checkNotNull(source);
+            this.target = checkNotNull(target);
         }
 
         public static Key from(ConverterRecord record) {

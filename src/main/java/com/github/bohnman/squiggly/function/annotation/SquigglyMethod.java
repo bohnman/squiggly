@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface SquigglyFunction {
+public @interface SquigglyMethod {
     String value() default "";
     String[] aliases() default "";
     boolean ignore() default false;
