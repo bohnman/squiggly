@@ -119,11 +119,11 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
 
     public static void main(String[] args) {
-        ObjectMapper mapper = Squiggly.init(new ObjectMapper(), "firstName,nickNames.pick(1){name:reverse()}");
+        ObjectMapper mapper = Squiggly.init(new ObjectMapper(), "nickNames.slice(2).first().keys()");
         System.out.println(SquigglyUtils.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
     }
 
-    private static class NickName {
+    public static class NickName {
         private final String name;
 
         public NickName(String name) {

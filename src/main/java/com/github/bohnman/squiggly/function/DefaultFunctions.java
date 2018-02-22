@@ -12,8 +12,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -29,15 +32,11 @@ import java.util.stream.Stream;
 
 public class DefaultFunctions {
 
-    public static void main(String[] args) {
-        Object array = new int[]{4, 5, 6};
-    }
-
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     // Collection Functions
     @SquigglyMethod
-    public Object first(Object value) {
+    public static Object first(Object value) {
         if (value == null) {
             return null;
         }
@@ -62,7 +61,7 @@ public class DefaultFunctions {
     }
 
     @SquigglyMethod
-    public Object last(Object value) {
+    public static Object last(Object value) {
         if (value == null) {
             return null;
         }
@@ -88,6 +87,10 @@ public class DefaultFunctions {
 
     @SquigglyMethod
     public static Object keys(Object value) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+
         if (value.getClass().isArray()) {
             int length = ArrayWrappers.create(value).size();
             int[] keys = new int[length];
@@ -109,26 +112,34 @@ public class DefaultFunctions {
             return keys;
         }
 
-        if (value instanceof Map) {
-            return Lists.newArrayList(((Map) value).keySet());
-        }
-
-        return Collections.emptyList();
+        return Lists.newArrayList(toMap(value).keySet());
     }
 
     @SquigglyMethod
-    Object values(Object value) {
-        if (value instanceof Map) {
-            return Lists.newArrayList(((Map) value).values());
+    public static Object values(Object value) {
+        if (value == null) {
+            return Collections.emptyList();
         }
 
-        return value;
+        if (value.getClass().isArray()) {
+            return value;
+        }
+
+        if (value instanceof Iterable) {
+            return value;
+        }
+
+        return Lists.newArrayList(toMap(value).values());
     }
 
 
     @SuppressWarnings("unchecked")
     @SquigglyMethod
     public static Object pick(Object value, Object... indexes) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+
         if (value instanceof String) {
             String string = (String) value;
             List<Integer> actualIndexes = normalizeIndexes(string.length(), indexes);
@@ -165,7 +176,7 @@ public class DefaultFunctions {
             return newList;
         }
 
-        return null;
+        return Collections.emptyList();
     }
 
 
@@ -192,7 +203,6 @@ public class DefaultFunctions {
         return value;
     }
 
-    // TODO: pick
     // TODO: sort/orderBy
     // TODO: filter/where
     // TODO: keys Jtwig
@@ -224,6 +234,10 @@ public class DefaultFunctions {
 
     @SquigglyMethod
     public static Object slice(Object value, int start) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+
         if (value instanceof String) {
             return StringUtils.substring((String) value, start);
         }
@@ -236,20 +250,24 @@ public class DefaultFunctions {
             return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart).getArray();
         }
 
-        if (value instanceof Iterable) {
-            Iterable iterable = (Iterable) value;
-            List list = (iterable instanceof List) ? (List) iterable : Lists.newArrayList(iterable);
-            int realStart = normalizeIndex(start, list.size());
-            int realEnd = list.size();
-            return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
+        if (!(value instanceof Iterable)) {
+            value = Collections.singletonList(value);
         }
 
-        return value;
+        Iterable iterable = (Iterable) value;
+        List list = (iterable instanceof List) ? (List) iterable : Lists.newArrayList(iterable);
+        int realStart = normalizeIndex(start, list.size());
+        int realEnd = list.size();
+        return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
     }
 
 
     @SquigglyMethod
     public static Object slice(Object value, int start, int end) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+
         if (value instanceof String) {
             return StringUtils.substring((String) value, start, end);
         }
@@ -262,15 +280,15 @@ public class DefaultFunctions {
             return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart, realEnd).getArray();
         }
 
-        if (value instanceof Iterable) {
-            Iterable iterable = (Iterable) value;
-            List list = (iterable instanceof List) ? (List) iterable : Lists.newArrayList(iterable);
-            int realStart = normalizeIndex(start, list.size());
-            int realEnd = normalizeIndex(end, list.size());
-            return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
+        if (!(value instanceof Iterable)) {
+            value = Collections.singletonList(value);
         }
 
-        return value;
+        Iterable iterable = (Iterable) value;
+        List list = (iterable instanceof List) ? (List) iterable : Lists.newArrayList(iterable);
+        int realStart = normalizeIndex(start, list.size());
+        int realEnd = normalizeIndex(end, list.size());
+        return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
     }
 
     // String Functions
@@ -606,12 +624,12 @@ public class DefaultFunctions {
     //-------------------------------------------------------------------------
 
     @SquigglyMethod("defaultEmpty")
-    public Object defaultEmpty(Object o1, Object o2) {
+    public static Object defaultEmpty(Object o1, Object o2) {
         return isEmpty(o1) ? o2 : o1;
     }
 
     @SquigglyMethod("defaultEmpty")
-    public Object defaultEmpty(Object o1, Object o2, Object... oN) {
+    public static Object defaultEmpty(Object o1, Object o2, Object... oN) {
         Object value = isEmpty(o1) ? o2 : o1;
 
         if (isEmpty(value)) {
@@ -648,12 +666,12 @@ public class DefaultFunctions {
 
 
     @SquigglyMethod("default")
-    public Object defaultObject(Object o1, Object o2) {
+    public static Object defaultObject(Object o1, Object o2) {
         return (o1 == null) ? o2 : o1;
     }
 
     @SquigglyMethod("default")
-    public Object defaultObject(Object o1, Object o2, Object... oN) {
+    public static Object defaultObject(Object o1, Object o2, Object... oN) {
         Object value = (o1 == null) ? o2 : o1;
 
         if (value == null) {
@@ -691,7 +709,7 @@ public class DefaultFunctions {
 
 
     private static List<Integer> normalizeIndexes(int len, Object... indexes) {
-        return  Stream.of(indexes)
+        return Stream.of(indexes)
                 .flatMap(index -> {
                     if (index instanceof Number) {
                         int actualIndex = normalizeIndex(((Number) index).intValue(), len, -1, len);
@@ -727,4 +745,29 @@ public class DefaultFunctions {
     }
 
 
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> toMap(Object value) {
+        if (value == null || value instanceof String) {
+            return Collections.emptyMap();
+        }
+
+        if (value instanceof Map) {
+            return (Map) value;
+        }
+
+        try {
+            return Arrays.stream(Introspector.getBeanInfo(value.getClass()).getPropertyDescriptors())
+                    .filter(propertyDescriptor -> propertyDescriptor.getReadMethod() != null)
+                    .filter(propertyDescriptor -> !propertyDescriptor.getName().equals("class"))
+                    .collect(Collectors.toMap(PropertyDescriptor::getName, pd -> {
+                        try {
+                            return pd.getReadMethod().invoke(value);
+                        } catch (IllegalAccessException | InvocationTargetException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }));
+        } catch (Exception e) {
+            return Collections.emptyMap();
+        }
+    }
 }
