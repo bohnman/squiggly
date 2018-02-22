@@ -14,6 +14,7 @@ import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionBaseVisitor;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionLexer;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionParser;
 import com.github.bohnman.squiggly.util.antlr4.ThrowingErrorListener;
+import com.github.bohnman.squiggly.util.datatype.IntRange;
 import com.github.bohnman.squiggly.view.PropertyView;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -22,6 +23,7 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
@@ -182,7 +184,7 @@ public class SquigglyParser {
         private FunctionNode parseKeyFunction(SquigglyExpressionParser.FunctionContext functionContext) {
             ParseContext context = parseContext(functionContext);
             FunctionNode.Builder builder = buildBaseFunction(functionContext, context)
-                    .parameter(context, ParameterType.INPUT, ParameterType.INPUT);
+                    .parameter(context, ParameterNodeType.INPUT, ParameterNodeType.INPUT);
 
             applyParameters(builder, functionContext);
 
@@ -200,7 +202,7 @@ public class SquigglyParser {
         private FunctionNode parseValueFunction(SquigglyExpressionParser.FunctionContext functionContext) {
             ParseContext context = parseContext(functionContext);
             FunctionNode.Builder builder = buildBaseFunction(functionContext, context)
-                    .parameter(context, ParameterType.INPUT, ParameterType.INPUT);
+                    .parameter(context, ParameterNodeType.INPUT, ParameterNodeType.INPUT);
 
             applyParameters(builder, functionContext);
 
@@ -223,28 +225,41 @@ public class SquigglyParser {
 
         private void applyParameter(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionParameterContext parameter) {
             Object value;
-            ParameterType type;
+            ParameterNodeType type;
             ParseContext context = parseContext(parameter);
 
             if (parameter.BooleanLiteral() != null) {
                 value = "true".equalsIgnoreCase(parameter.getText());
-                type = ParameterType.BOOLEAN;
+                type = ParameterNodeType.BOOLEAN;
             } else if (parameter.FloatLiteral() != null) {
                 value = Float.parseFloat(parameter.getText());
-                type = ParameterType.FLOAT;
+                type = ParameterNodeType.FLOAT;
             } else if (parameter.IntegerLiteral() != null) {
                 value = Integer.parseInt(parameter.getText());
-                type = ParameterType.INTEGER;
+                type = ParameterNodeType.INTEGER;
             } else if (parameter.RegexLiteral() != null) {
                 String regex = parameter.getText();
                 value = buildPattern(regex);
-                type = ParameterType.REGEX;
+                type = ParameterNodeType.REGEX;
             } else if (parameter.StringLiteral() != null) {
                 value = parameter.getText();
-                type = ParameterType.STRING;
+                type = ParameterNodeType.STRING;
             } else if (parameter.Variable() != null) {
                 value = parameter.getText().substring(1);
-                type = ParameterType.VARIABLE;
+                type = ParameterNodeType.VARIABLE;
+            } else if (parameter.intRange() != null) {
+                List<TerminalNode> integers = parameter.intRange().IntegerLiteral();
+                if (integers.isEmpty()) {
+                    value = new IntRange(null, null);
+                } else if (integers.size() == 1) {
+                    value = new IntRange(Integer.parseInt(integers.get(0).getText()), null);
+                } else {
+                    int start = Integer.parseInt(integers.get(0).getText());
+                    int end = Integer.parseInt(integers.get(1).getText());
+                    value = new IntRange(start, end);
+                }
+
+                type = ParameterNodeType.INT_RANGE;
             } else {
                 throw new IllegalStateException(format("%s: Unknown parameter type [%s]", context, parameter.getText()));
             }

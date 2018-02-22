@@ -228,22 +228,12 @@ public class FunctionInvoker {
 
     private Object toParameter(FunctionNode functionNode, Object input, ParameterNode parameterNode) {
         switch (parameterNode.getType()) {
-            case BOOLEAN:
-                return parameterNode.getValue();
-            case FLOAT:
-                return parameterNode.getValue();
             case INPUT:
                 return input;
-            case INTEGER:
-                return parameterNode.getValue();
-            case REGEX:
-                return parameterNode.getValue();
-            case STRING:
-                return parameterNode.getValue();
             case VARIABLE:
                 return variableResolver.resolveVariable(parameterNode.getValue().toString());
             default:
-                throw new IllegalStateException(format("%s: Unhanded parameter node type [%s]", parameterNode.getContext(), parameterNode.getType()));
+                return parameterNode.getValue();
         }
     }
 }

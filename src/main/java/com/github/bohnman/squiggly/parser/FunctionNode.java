@@ -59,7 +59,7 @@ public class FunctionNode {
             return this;
         }
 
-        public Builder parameter(ParseContext context, Object value, ParameterType type) {
+        public Builder parameter(ParseContext context, Object value, ParameterNodeType type) {
             int index = parameters.size();
             ParameterNode parameter = ParameterNode.builder()
                     .context(context)

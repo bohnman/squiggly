@@ -105,12 +105,16 @@ functionParameters
 functionParameter
     : BooleanLiteral
     | IntegerLiteral
+    | intRange
     | FloatLiteral
     | RegexLiteral
     | StringLiteral
     | Variable
     ;
 
+intRange
+    : '[' IntegerLiteral ':' IntegerLiteral? ']'
+    ;
 
 //-----------------------------------------------------------------------------
 // Lexer Tokens

@@ -9,10 +9,10 @@ public class ParameterNode {
     private final ParseContext context;
     private final int index;
     private final Object value;
-    private final ParameterType type;
+    private final ParameterNodeType type;
 
 
-    public ParameterNode(ParseContext context, int index, Object value, ParameterType type) {
+    public ParameterNode(ParseContext context, int index, Object value, ParameterNodeType type) {
         this.context = checkNotNull(context);
         checkArgument(index >= 0, "index must be >= 0");
         this.index = index;
@@ -33,7 +33,7 @@ public class ParameterNode {
         return value;
     }
 
-    public ParameterType getType() {
+    public ParameterNodeType getType() {
         return type;
     }
 
@@ -58,7 +58,7 @@ public class ParameterNode {
         private Object value;
 
         @Nullable
-        private ParameterType type;
+        private ParameterNodeType type;
 
         private Builder() {
         }
@@ -78,7 +78,7 @@ public class ParameterNode {
             return this;
         }
 
-        public Builder type(ParameterType type) {
+        public Builder type(ParameterNodeType type) {
             this.type = type;
             return this;
         }

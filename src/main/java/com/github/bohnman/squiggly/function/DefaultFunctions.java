@@ -5,6 +5,8 @@ import com.github.bohnman.squiggly.function.annotation.SquigglyMethod;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.github.bohnman.squiggly.util.array.ArrayWrapper;
 import com.github.bohnman.squiggly.util.array.ArrayWrappers;
+import com.github.bohnman.squiggly.util.datatype.IntRange;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -12,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -22,11 +23,14 @@ import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class DefaultFunctions {
 
     public static void main(String[] args) {
-        Object array = new int[] {4, 5, 6};
+        Object array = new int[]{4, 5, 6};
     }
 
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -82,6 +86,7 @@ public class DefaultFunctions {
         return value;
     }
 
+    @SquigglyMethod
     public static Object keys(Object value) {
         if (value.getClass().isArray()) {
             int length = ArrayWrappers.create(value).size();
@@ -112,9 +117,57 @@ public class DefaultFunctions {
     }
 
     @SquigglyMethod
-    public static Object pick(Object... indexes) {
+    Object values(Object value) {
+        if (value instanceof Map) {
+            return Lists.newArrayList(((Map) value).values());
+        }
+
+        return value;
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @SquigglyMethod
+    public static Object pick(Object value, Object... indexes) {
+        if (value instanceof String) {
+            String string = (String) value;
+            List<Integer> actualIndexes = normalizeIndexes(string.length(), indexes);
+            if (actualIndexes.isEmpty()) return "";
+            StringBuilder builder = new StringBuilder(actualIndexes.size());
+            for (Integer actualIndex : actualIndexes) {
+                builder.append(string.charAt(actualIndex));
+            }
+
+            return builder.toString();
+        }
+
+        if (value.getClass().isArray()) {
+            ArrayWrapper wrapper = ArrayWrappers.create(value);
+            List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), indexes);
+            if (actualIndexes.isEmpty()) return wrapper.create(0);
+            ArrayWrapper newWrapper = wrapper.create(actualIndexes.size());
+            for (int i = 0; i < actualIndexes.size(); i++) {
+                newWrapper.set(i, wrapper.get(actualIndexes.get(i)));
+            }
+            return newWrapper.getArray();
+        }
+
+        if (value instanceof Iterable) {
+            List list = (value instanceof List) ? (List) value : Lists.newArrayList(value);
+            List<Integer> actualIndexes = normalizeIndexes(list.size(), indexes);
+            if (actualIndexes.isEmpty()) return Collections.emptyList();
+            List newList = new ArrayList(actualIndexes.size());
+
+            for (Integer actualIndex : actualIndexes) {
+                newList.add(list.get(actualIndex));
+            }
+
+            return newList;
+        }
+
         return null;
     }
+
 
     @SquigglyMethod
     public static Object reverse(Object value) {
@@ -153,6 +206,21 @@ public class DefaultFunctions {
         }
     }
 
+    @SquigglyMethod
+    public static Object slice(Object value, IntRange range) {
+        if (range == null) {
+            return value;
+        }
+
+        int start = MoreObjects.firstNonNull(range.getStart(), 0);
+
+        if (range.getEnd() == null) {
+            return slice(value, start);
+        }
+
+        return slice(value, start, range.getEnd());
+    }
+
 
     @SquigglyMethod
     public static Object slice(Object value, int start) {
@@ -164,7 +232,8 @@ public class DefaultFunctions {
             ArrayWrapper wrapper = ArrayWrappers.create(value);
             int len = wrapper.size();
             int realStart = normalizeIndex(start, len);
-            return wrapper.slice(realStart).getArray();
+            int realEnd = len;
+            return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart).getArray();
         }
 
         if (value instanceof Iterable) {
@@ -172,7 +241,7 @@ public class DefaultFunctions {
             List list = (iterable instanceof List) ? (List) iterable : Lists.newArrayList(iterable);
             int realStart = normalizeIndex(start, list.size());
             int realEnd = list.size();
-            return (realStart <= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
+            return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
         }
 
         return value;
@@ -190,7 +259,7 @@ public class DefaultFunctions {
             int len = wrapper.size();
             int realStart = normalizeIndex(start, len);
             int realEnd = normalizeIndex(end, len);
-            return wrapper.slice(realStart, realEnd).getArray();
+            return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart, realEnd).getArray();
         }
 
         if (value instanceof Iterable) {
@@ -198,24 +267,11 @@ public class DefaultFunctions {
             List list = (iterable instanceof List) ? (List) iterable : Lists.newArrayList(iterable);
             int realStart = normalizeIndex(start, list.size());
             int realEnd = normalizeIndex(end, list.size());
-            return (realStart <= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
+            return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
         }
 
         return value;
     }
-
-    private static int normalizeIndex(int index, int length) {
-        if (length == 0) {
-            return 0;
-        }
-
-        if (index < 0) {
-            return Math.max(0, length + index);
-        }
-
-        return Math.min(index, length);
-    }
-
 
     // String Functions
 
@@ -634,10 +690,40 @@ public class DefaultFunctions {
     // TODO: parseDate
 
 
-    @SquigglyMethod
-    public static Object foo(Object value, String... args) {
-        System.out.println("foo(" + value + ")" + Arrays.toString(args));
-        return value;
+    private static List<Integer> normalizeIndexes(int len, Object... indexes) {
+        return  Stream.of(indexes)
+                .flatMap(index -> {
+                    if (index instanceof Number) {
+                        int actualIndex = normalizeIndex(((Number) index).intValue(), len, -1, len);
+                        return actualIndex < 0 ? Stream.empty() : Stream.of(actualIndex);
+                    }
+
+                    if (index instanceof IntRange) {
+                        IntRange range = (IntRange) index;
+                        int start = normalizeIndex(MoreObjects.firstNonNull(range.getStart(), 0), len);
+                        int end = normalizeIndex(MoreObjects.firstNonNull(range.getEnd(), len), len);
+                        return (start >= end) ? Stream.empty() : IntStream.range(start, end).boxed();
+                    }
+
+                    return Stream.empty();
+                })
+                .collect(Collectors.toList());
+    }
+
+    private static int normalizeIndex(int index, int length) {
+        return normalizeIndex(index, length, 0, length);
+    }
+
+    private static int normalizeIndex(int index, int length, int min, int max) {
+        if (length == 0) {
+            return 0;
+        }
+
+        if (index < 0) {
+            return Math.max(0, length + index);
+        }
+
+        return Math.min(index, length);
     }
 
 
