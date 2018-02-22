@@ -12,3 +12,4 @@ public @interface SquigglyMethod {
     String[] aliases() default "";
     boolean ignore() default false;
 }
+

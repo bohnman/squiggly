@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.bohnman.squiggly.util.array.ArrayWrappers;
 import net.jcip.annotations.ThreadSafe;
 
 import javax.annotation.Nullable;
@@ -29,5 +30,17 @@ public class SquigglyUtils {
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    public static String toString(Object o) {
+        if (o == null) {
+            return null;
+        }
+
+        if (o.getClass().isArray()) {
+            return ArrayWrappers.create(o).toString();
+        }
+
+        return o.toString();
     }
 }
