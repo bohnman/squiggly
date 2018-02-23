@@ -16,10 +16,10 @@ expressionList
 
 expression
     : negatedExpression
-    | fieldList functionChain? (nestedExpression|emptyNestedExpression)
-    | dottedField functionChain? (nestedExpression|emptyNestedExpression)?
-    | field functionChain?
-    | wildcardDeepField functionChain?
+    | fieldList fieldFunctionChain? (nestedExpression|emptyNestedExpression)
+    | dottedField fieldFunctionChain? (nestedExpression|emptyNestedExpression)?
+    | field fieldFunctionChain?
+    | wildcardDeepField fieldFunctionChain?
     ;
 
 negatedExpression
@@ -45,13 +45,9 @@ fieldList
     | field
     ;
 
-
 dottedField
     : field ('.' field)+
     ;
-
-
-
 
 field
     : Identifier
@@ -76,18 +72,31 @@ wildcardDeepField
 
 // Functions
 
-functionChain
+fieldFunctionChain
     : keyFunctionChain ':' valueFunctionChain
     | keyFunctionChain
-    | '.' valueFunctionChain
+    | functionSeparator valueFunctionChain
     ;
 
 keyFunctionChain
-    : ':' function ('.' function)*
+    : ':' functionChain
     ;
 
 valueFunctionChain
-    : function ('.' function)*
+    : functionChain
+    ;
+
+functionChain
+    : function (functionWithSeparator)*
+    ;
+
+functionWithSeparator
+    : functionSeparator function
+    ;
+
+functionSeparator
+    : '.'
+    | '?.'
     ;
 
 function
@@ -103,32 +112,102 @@ functionParameters
     ;
 
 functionParameter
-    : BooleanLiteral
-    | IntegerLiteral
-    | intRange
-    | FloatLiteral
-    | RegexLiteral
-    | StringLiteral
-    | Variable
+    : arg
     ;
 
 intRange
-    : '[' IntegerLiteral ':' IntegerLiteral? ']'
+    : '[' intRangeArg ':' intRangeArg? ']'
+    ;
+
+intRangeArg
+    : IntegerLiteral
+    | Variable
+    ;
+
+// Closures
+
+closure
+    : Identifier '->' closureBody
+    | '(' Identifier (',' Identifier)* ')' '->' closureBody
+    ;
+
+closureBody
+    : arg
+    ;
+
+arg
+    : BooleanLiteral
+    | closure
+    | FloatLiteral
+    | functionChain
+    | propertyChain
+    | IntegerLiteral
+    | intRange
+    | RegexLiteral
+    | StringLiteral
+    | Variable
+    | prefixOperator arg
+    | arg binaryOperator arg
+    | argGroupStart arg argGroupEnd
+    ;
+
+argGroupStart
+    : '('
+    ;
+
+argGroupEnd
+    : ')'
+    ;
+
+
+// Operators
+binaryOperator
+    : '+'
+    | '-'
+    | '*'
+    | '/'
+    | '%'
+    | ('=' | '==')
+    | ('!=' | '<>')
+    | '<'
+    | '<='
+    | '>'
+    | '>='
+    | '=~'
+    | '!~'
+    | ('or' | '||')
+    | ('and' | '&&')
+    ;
+
+prefixOperator
+    : ('not' | '!')
+    ;
+
+propertyChain
+    : initialPropertyAccessor propertyAccessor* (functionSeparator functionChain)?
+    ;
+
+initialPropertyAccessor
+    : Identifier
+    | 'this[' StringLiteral ']'
+    | 'this'
+    | propertySortDirection initialPropertyAccessor
+    ;
+
+propertySortDirection
+    : '+'
+    | '-'
+    ;
+
+propertyAccessor
+    : '.' Identifier
+    | '[' StringLiteral ']'
+    | propertySortDirection propertyAccessor
     ;
 
 //-----------------------------------------------------------------------------
 // Lexer Tokens
 //-----------------------------------------------------------------------------
-
-Identifier
-    : IdentifierFirst (IdentifierRest)*
-    ;
-
-// Variables
-
-Variable
-    : '@' Identifier
-    ;
 
 // Literals
 
@@ -161,6 +240,16 @@ WildcardLiteral
     | '?'
     ;
 
+Identifier
+    : IdentifierFirst (IdentifierRest)*
+    ;
+
+// Variables
+
+Variable
+    : '@' Identifier
+    ;
+
 // Other Tokesn
 
 LeftParen
@@ -187,7 +276,6 @@ RightSquiggly
     : '}'
     ;
 
-
 WildcardShallow
     : '*'
     ;
@@ -195,7 +283,6 @@ WildcardShallow
 WildcardDeep
     : '**'
     ;
-
 
 // Whitespace and Comments
 
