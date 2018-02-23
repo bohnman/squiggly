@@ -3,7 +3,7 @@ package com.github.bohnman.squiggly.parser;
 public enum ArgumentNodeType {
     BOOLEAN,
     FLOAT,
-    FUNCTION,
+    FUNCTION_CHAIN,
     INPUT,
     INT_RANGE,
     INTEGER,

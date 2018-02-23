@@ -7,6 +7,8 @@ import com.github.bohnman.squiggly.function.SquigglyParameter;
 import com.github.bohnman.squiggly.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.parser.FunctionNode;
 import com.github.bohnman.squiggly.parser.ArgumentNode;
+import com.github.bohnman.squiggly.parser.IntRangeNode;
+import com.github.bohnman.squiggly.util.datatype.IntRange;
 import com.github.bohnman.squiggly.variable.SquigglyVariableResolver;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ObjectArrays;
@@ -38,7 +40,21 @@ public class FunctionInvoker {
         this.variableResolver = checkNotNull(variableResolver);
     }
 
-    public Object invoke(FunctionNode functionNode, Object input) {
+    public Object invoke(Object input, Iterable<FunctionNode> functionNodes) {
+        Object value = input;
+
+        for (FunctionNode functionNode : functionNodes) {
+            if (functionNode.isIgnoreNulls() && value == null) {
+                break;
+            }
+
+            value = invoke(value, functionNode);
+        }
+
+        return value;
+    }
+
+    public Object invoke(Object input, FunctionNode functionNode) {
         List<SquigglyFunction<Object>> functions = functionRepository.findByName(functionNode.getName());
 
         if (functions.isEmpty()) {
@@ -227,13 +243,29 @@ public class FunctionInvoker {
     }
 
     private Object toParameter(FunctionNode functionNode, Object input, ArgumentNode argumentNode) {
+        return getValue(argumentNode, input);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object getValue(ArgumentNode argumentNode, Object input) {
         switch (argumentNode.getType()) {
+            case FUNCTION_CHAIN:
+                return invoke(input, (List<FunctionNode>) argumentNode.getValue());
             case INPUT:
                 return input;
+            case INT_RANGE:
+                IntRangeNode rangeNode = (IntRangeNode) argumentNode.getValue();
+                Integer start = (rangeNode.getStart() == null) ? null : getValue(rangeNode.getStart(), input, Integer.class);
+                Integer end = (rangeNode.getEnd() == null) ? null : getValue(rangeNode.getEnd(), input, Integer.class);
+                return new IntRange(start, end);
             case VARIABLE:
                 return variableResolver.resolveVariable(argumentNode.getValue().toString());
             default:
                 return argumentNode.getValue();
         }
+    }
+
+    private <T> T getValue(ArgumentNode argumentNode, Object input, Class<T> targetType) {
+        return conversionService.convert(getValue(argumentNode, input), targetType);
     }
 }

@@ -52,9 +52,9 @@ dottedField
 field
     : Identifier
     | RegexLiteral
-    | IntegerLiteral
+    | ('+' | '-')? IntegerLiteral
     | StringLiteral
-    | Variable
+    | variable
     | WildcardLiteral
     | wildcardField
     ;
@@ -105,6 +105,8 @@ function
 
 functionName
     : Identifier
+    | binaryNamedOperator
+    | prefixSymboledOperator
     ;
 
 functionParameters
@@ -120,15 +122,15 @@ intRange
     ;
 
 intRangeArg
-    : IntegerLiteral
-    | Variable
+    : ('+' | '-') IntegerLiteral
+    | variable
     ;
 
 // Closures
 
 closure
-    : Variable '->' closureBody
-    | '(' Variable (',' Variable)* ')' '->' closureBody
+    : variable '->' closureBody
+    | '(' variable (',' variable)* ')' '->' closureBody
     ;
 
 closureBody
@@ -136,19 +138,31 @@ closureBody
     ;
 
 arg
-    : BooleanLiteral
+    : literal
     | closure
-    | FloatLiteral
-    | functionChain
-    | propertyChain
-    | IntegerLiteral
+    | argChain
+    | variable
     | intRange
-    | RegexLiteral
-    | StringLiteral
-    | variableChain
     | prefixOperator arg
     | arg binaryOperator arg
     | argGroupStart arg argGroupEnd
+    ;
+
+literal
+    : BooleanLiteral
+    | ('+' | '-')? FloatLiteral
+    | ('+' | '-')? IntegerLiteral
+    | RegexLiteral
+    | StringLiteral
+    ;
+
+argChain
+    : (literal | intRange) (functionSeparator functionChain)?
+    | variable (functionSeparator functionChain)?
+    | variable propertyChain (functionSeparator functionChain)?
+    | propertyChain (functionSeparator functionChain)?
+    | directionalPropertyChain
+    | functionChain
     ;
 
 argGroupStart
@@ -160,38 +174,77 @@ argGroupEnd
     ;
 
 
-// Operators
 binaryOperator
-    : ('+'   | 'add')
-    | ('-'   | 'sub')
-    | ('*'   | 'mul')
-    | ('/'   | 'div')
-    | ('%'   | 'mod')
-    | ('=='  | 'eq')
-    | ('!='  | 'ne')
-    | ('<'   | 'lt')
-    | ('<='  | 'lte')
-    | ('>'   | 'gt')
-    | ('>='  | 'gte')
-    | ('=~'  | 'match')
-    | ('!~'  | 'nmatch')
-    | ('or'  | '||')
-    | ('and' | '&&')
+    : binaryNamedOperator
+    | binarySymboledOperator
     ;
 
+// Operators
+binaryNamedOperator
+    : 'add'
+    | 'sub'
+    | 'mul'
+    | 'div'
+    | 'mod'
+    | 'eq'
+    | 'ne'
+    | 'lt'
+    | 'lte'
+    | 'gt'
+    | 'gte'
+    | 'match'
+    | 'nmatch'
+    | 'or'
+    | 'and'
+    ;
+
+binarySymboledOperator
+    : '+'
+    | '-'
+    | '*'
+    | '/'
+    | '%'
+    | '=='
+    | '!='
+    | '<'
+    | '<='
+    | '>'
+    | '>='
+    | '=~'
+    | '!~'
+    | '||'
+    | '&&'
+    ;
+
+
+
 prefixOperator
-    : ('not' | '!')
+    : prefixNamedOperator
+    | prefixSymboledOperator
+    ;
+
+prefixNamedOperator
+    : 'not'
+    ;
+
+prefixSymboledOperator
+    : '!'
+    ;
+
+
+
+directionalPropertyChain
+    : propertySortDirection propertyChain
     ;
 
 propertyChain
-    : initialPropertyAccessor propertyAccessor* (functionSeparator functionChain)?
+    : initialPropertyAccessor propertyAccessor*
     ;
 
 initialPropertyAccessor
-    : ('@.') Identifier
-    | '@[' StringLiteral ']'
+    : ('@.')? Identifier
+    | '@[' StringLiteral | Variable ']'
     | '@'
-    | propertySortDirection initialPropertyAccessor
     ;
 
 propertySortDirection
@@ -202,11 +255,10 @@ propertySortDirection
 propertyAccessor
     : '.' Identifier
     | '[' StringLiteral ']'
-    | propertySortDirection propertyAccessor
     ;
 
-variableChain
-    : Variable propertyAccessor* (functionSeparator functionChain)?
+variable
+    : Variable
     ;
 
 //-----------------------------------------------------------------------------
@@ -222,11 +274,11 @@ BooleanLiteral
 
 
 IntegerLiteral
-    : ('-' | '+')? IntegerNumeral
+    : IntegerNumeral
     ;
 
 FloatLiteral
-    : ('-' | '+')? FloatNumeral
+    : FloatNumeral
     ;
 
 RegexLiteral
@@ -295,6 +347,7 @@ Whitespace
     : [ \t\n\r]+ -> skip
     ;
 
+
 //-----------------------------------------------------------------------------
 // Lexer Fragments
 //-----------------------------------------------------------------------------
@@ -318,14 +371,10 @@ fragment IntegerNumeral
     ;
 
 fragment FloatNumeral
-    : IntegerNumeral '.' Digit* ExponentPart?
-    | '.' Digit+ ExponentPart?
-    | IntegerNumeral ExponentPart?
+    : IntegerNumeral '.' Digit+
+    | '.' Digit+
     ;
 
-fragment ExponentPart
-    : [eE] [+-]? Digit+
-    ;
 
 // Regex
 

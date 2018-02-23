@@ -370,15 +370,6 @@ public class DefaultFunctions {
         return Collections.singletonList(value);
     }
 
-    @SquigglyMethod
-    public static String repeat(String string, Integer times) {
-        if (times == null) {
-            times = 0;
-        }
-
-        return StringUtils.repeat(string, times);
-    }
-
 
     @SquigglyMethod
     public static Object parseJson(String json) {
@@ -390,22 +381,8 @@ public class DefaultFunctions {
     }
 
     @SquigglyMethod
-    public static String repeat(String string, String seperator, Integer times) {
-        if (times == null) {
-            times = 0;
-        }
-
-        return StringUtils.repeat(string, seperator, times);
-    }
-
-    @SquigglyMethod
-    public static String leftPad(String value, int size, String padding) {
-        return StringUtils.leftPad(value, size, padding);
-    }
-
-    @SquigglyMethod
-    public static String rightPad(String value, int size, String padding) {
-        return StringUtils.rightPad(value, size, padding);
+    public static Object replace(Object object, Object replace) {
+        return replace;
     }
 
     @SquigglyMethod
@@ -623,12 +600,17 @@ public class DefaultFunctions {
     // Object Functions
     //-------------------------------------------------------------------------
 
-    @SquigglyMethod("defaultEmpty")
+    @SquigglyMethod
+    public static Object identity(Object object) {
+        return object;
+    }
+
+    @SquigglyMethod
     public static Object defaultEmpty(Object o1, Object o2) {
         return isEmpty(o1) ? o2 : o1;
     }
 
-    @SquigglyMethod("defaultEmpty")
+    @SquigglyMethod
     public static Object defaultEmpty(Object o1, Object o2, Object... oN) {
         Object value = isEmpty(o1) ? o2 : o1;
 

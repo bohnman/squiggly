@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.filter.function.FunctionInvoker;
 import com.github.bohnman.squiggly.filter.match.SquigglyNodeMatcher;
-import com.github.bohnman.squiggly.parser.FunctionNode;
 import com.github.bohnman.squiggly.parser.SquigglyNode;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import net.jcip.annotations.ThreadSafe;
@@ -100,8 +99,8 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
                 squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
             } else {
                 BeanPropertyWriter beanPropertyWriter = (BeanPropertyWriter) writer;
-                String name = "" + executeFunctions(match.getKeyFunctions(), writer.getName());
-                Object value = executeFunctions(match.getValueFunctions(), beanPropertyWriter.get(pojo));
+                String name = "" + functionInvoker.invoke(writer.getName(), match.getKeyFunctions());
+                Object value = functionInvoker.invoke(beanPropertyWriter.get(pojo), match.getValueFunctions());
                 squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
             }
         } else if (!jgen.canOmitFields()) {
@@ -109,17 +108,8 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
     }
 
-    private Object executeFunctions(List<FunctionNode> functions, Object input) {
-        for (FunctionNode functionNode : functions) {
-            input = functionInvoker.invoke(functionNode, input);
-        }
-
-        return input;
-    }
-
-
     public static void main(String[] args) {
-        ObjectMapper mapper = Squiggly.init(new ObjectMapper(), "'nickNames'");
+        ObjectMapper mapper = Squiggly.init(new ObjectMapper(), "nickNames.slice(0 add 1)");
         System.out.println(SquigglyUtils.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
     }
 

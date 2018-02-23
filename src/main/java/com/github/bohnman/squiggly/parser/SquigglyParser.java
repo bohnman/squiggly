@@ -44,6 +44,7 @@ import static java.lang.String.format;
 @ThreadSafe
 public class SquigglyParser {
 
+    public static final String IDENTITY_FUNCTION = "identity";
     // Caches parsed filter expressions
     private final Cache<String, List<SquigglyNode>> cache;
 
@@ -149,7 +150,7 @@ public class SquigglyParser {
                 if (ctx.fieldFunctionChain().keyFunctionChain() != null) {
                     keyFunctions = parseKeyFunctionChain(ctx.fieldFunctionChain().keyFunctionChain());
                 }
-                
+
                 if (ctx.fieldFunctionChain().valueFunctionChain() != null) {
                     valueFunctions = parseValueFunctionChain(ctx.fieldFunctionChain().valueFunctionChain(), ctx.fieldFunctionChain().functionSeparator());
                 }
@@ -189,7 +190,7 @@ public class SquigglyParser {
             functions.add(parseFunction(chainContext.function(), separatorContext, input));
 
             chainContext.functionWithSeparator().forEach(ctx -> {
-                functions.add(parseFunction(ctx.function(), ctx.functionSeparator(), false));
+                functions.add(parseFunction(ctx.function(), ctx.functionSeparator(), true));
             });
 
             return functions;
@@ -205,14 +206,18 @@ public class SquigglyParser {
 
             applyParameters(builder, functionContext);
 
+            if (separatorContext != null && "?.".equals(separatorContext.getText())) {
+                builder.ignoreNulls(true);
+            }
+
             return builder.build();
         }
 
 
         private FunctionNode.Builder buildBaseFunction(SquigglyExpressionParser.FunctionContext functionContext, ParseContext context) {
             return FunctionNode.builder()
-                            .context(context)
-                            .name(functionContext.functionName().getText());
+                    .context(context)
+                    .name(functionContext.functionName().getText());
         }
 
         private void applyParameters(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionContext functionContext) {
@@ -225,51 +230,135 @@ public class SquigglyParser {
 
         private void applyParameter(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionParameterContext parameter) {
             ArgumentNode.Builder arg = buildArg(parameter.arg());
-
-
+            builder.parameter(arg);
         }
 
         private ArgumentNode.Builder buildArg(SquigglyExpressionParser.ArgContext arg) {
+            System.out.println("BUILD ARG");
             Object value;
             ArgumentNodeType type;
 
-            if (arg.BooleanLiteral() != null) {
-                return buildBoolean(arg);
-            }
-
-            if (arg.FloatLiteral() != null) {
-                return buildFloat(arg);
-            }
-
-            if (arg.functionChain() != null) {
-                return buildFunctionChain(arg.functionChain());
-            }
-
-            if (arg.propertyChain() != null) {
-                return buildPropertyChain(arg.propertyChain());
-            }
-
-            if (arg.IntegerLiteral() != null) {
-                return buildInteger(arg);
-            }
-
-            if (arg.RegexLiteral() != null) {
-                return buildRegex(arg);
-            }
-
-            if (arg.StringLiteral() != null) {
-                return buildString(arg);
-            }
-
-            if (arg.variableChain() != null) {
-                return buildVariable(arg);
+            if (arg.argChain() != null) {
+                return buildArgChain(arg.argChain());
             }
 
             if (arg.intRange() != null) {
                 return buildIntRange(arg.intRange());
             }
 
+            if (arg.literal() != null) {
+                return buildLiteral(arg.literal());
+            }
+
+            if (arg.variable() != null) {
+                return buildVariable(arg.variable());
+            }
+
+            if (arg.arg() != null && !arg.arg().isEmpty()) {
+                return handleSubArg(arg);
+            }
+
+
             throw new IllegalStateException(format("%s: Unknown arg type [%s]", parseContext(arg), arg.getText()));
+        }
+
+        private ArgumentNode.Builder handleSubArg(SquigglyExpressionParser.ArgContext arg) {
+            if (arg.binaryOperator() != null) {
+                String op = getOp(arg, arg.binaryOperator().getText());
+                System.out.println("BINARY OP " + op);
+                return null;
+            }
+
+            if (arg.prefixOperator() != null) {
+                // TODO: finish
+                return null;
+            }
+
+            if (arg.argGroupStart() != null) {
+                return buildArg(arg.arg(0));
+            }
+
+            throw new IllegalStateException(format("%s: Unknown sub-arg type [%s]", parseContext(arg), arg.getText()));
+        }
+
+        private String getOp(ParserRuleContext context, String text) {
+            switch (text) {
+                case "add":
+                case "+":
+                    return "add";
+                case "sub":
+                case "-":
+                    return "sub";
+                case "mul":
+                case "*":
+                    return "mul";
+                case "div":
+                case "/":
+                    return "div";
+                case "mod":
+                case "%":
+                    return "mod";
+                case "eq":
+                case "==":
+                    return "equals";
+                case "ne":
+                case "!=":
+                    return "nequals";
+                case "lt":
+                case "<":
+                    return "lt";
+                case "lte":
+                case "<=":
+                    return "lte";
+                case "gt":
+                case ">":
+                    return "gt";
+                case "gte":
+                case ">=":
+                    return "gte";
+                case "match":
+                case "=~":
+                    return "match";
+                case "nmatch":
+                case "!~":
+                    return "nmatch";
+                case "or":
+                case "||":
+                    return "or";
+                case "and":
+                case "&&":
+                    return "and";
+                case "not":
+                case "!":
+                    return "not";
+                default:
+                    throw new IllegalStateException(format("%s: unknown op [%s]", parseContext(context), context.getText()));
+            }
+        }
+
+        private ArgumentNode.Builder buildLiteral(SquigglyExpressionParser.LiteralContext context) {
+            if (context.BooleanLiteral() != null) {
+                return buildBoolean(context);
+            }
+
+
+            if (context.FloatLiteral() != null) {
+                return buildFloat(context);
+            }
+
+            if (context.IntegerLiteral() != null) {
+                return buildInteger(context);
+            }
+
+            if (context.RegexLiteral() != null) {
+                return buildRegex(context);
+            }
+
+            if (context.StringLiteral() != null) {
+                return buildString(context);
+            }
+
+            throw new IllegalStateException(format("%s: Unknown literal type [%s]", parseContext(context), context.getText()));
         }
 
         private ArgumentNode.Builder buildIntRange(SquigglyExpressionParser.IntRangeContext context) {
@@ -290,8 +379,8 @@ public class SquigglyParser {
         }
 
         private ArgumentNode.Builder buildIntRangeArg(SquigglyExpressionParser.IntRangeArgContext context) {
-            if (context.Variable() != null) {
-                return buildVariable(context);
+            if (context.variable() != null) {
+                return buildVariable(context.variable());
             }
 
             if (context.IntegerLiteral() != null) {
@@ -316,17 +405,58 @@ public class SquigglyParser {
             return baseArg(context, ArgumentNodeType.FLOAT).value(Float.parseFloat(context.getText()));
         }
 
-        private ArgumentNode.Builder buildFunctionChain(SquigglyExpressionParser.FunctionChainContext context) {
-            return baseArg(context, ArgumentNodeType.FUNCTION);
+        private ArgumentNode.Builder buildArgChain(SquigglyExpressionParser.ArgChainContext context) {
+            int functionLength = (context.functionChain() == null) ? 0 : context.functionChain().functionWithSeparator().size();
+            functionLength += 2;
+            List<FunctionNode> functionNodes = new ArrayList<>(functionLength);
+
+            if (context.literal() != null) {
+                functionNodes.add(FunctionNode.builder()
+                        .context(parseContext(context.literal()))
+                        .name(IDENTITY_FUNCTION)
+                        .parameter(buildLiteral(context.literal()))
+                        .build()
+                );
+            }
+
+            if (context.intRange() != null) {
+                functionNodes.add(FunctionNode.builder()
+                        .context(parseContext(context.intRange()))
+                        .name(IDENTITY_FUNCTION)
+                        .parameter(buildIntRange(context.intRange()))
+                        .build()
+                );
+            }
+
+            if (context.variable() != null) {
+                functionNodes.add(FunctionNode.builder()
+                        .context(parseContext(context.intRange()))
+                        .name(IDENTITY_FUNCTION)
+                        .parameter(buildVariable(context.variable()))
+                        .build()
+                );
+            }
+
+            if (context.propertyChain() != null) {
+                // TODO: finish
+            }
+
+            if (context.directionalPropertyChain() != null) {
+                // TODO: finish
+            }
+
+            if (context.functionChain() != null) {
+                functionNodes.addAll(parseFunctionChain(context.functionChain(), context.functionSeparator(), !functionNodes.isEmpty()));
+            }
+
+            return baseArg(context, ArgumentNodeType.FUNCTION_CHAIN)
+                    .value(functionNodes);
         }
 
         private ArgumentNode.Builder buildInteger(ParserRuleContext context) {
             return baseArg(context, ArgumentNodeType.INTEGER).value(Integer.parseInt(context.getText()));
         }
 
-        private ArgumentNode.Builder buildPropertyChain(SquigglyExpressionParser.PropertyChainContext propertyChainContext) {
-            return null;
-        }
 
         private ArgumentNode.Builder buildRegex(ParserRuleContext context) {
             return baseArg(context, ArgumentNodeType.REGEX).value(buildPattern(context.getText()));
@@ -356,7 +486,7 @@ public class SquigglyParser {
             return text;
         }
 
-        private ArgumentNode.Builder buildVariable(ParserRuleContext context) {
+        private ArgumentNode.Builder buildVariable(SquigglyExpressionParser.VariableContext context) {
             return baseArg(context, ArgumentNodeType.VARIABLE).value(unescapeString(context.getText().substring(1)));
         }
 
@@ -383,8 +513,8 @@ public class SquigglyParser {
                 } else {
                     name = new WildcardName(ctx.WildcardLiteral().getText());
                 }
-            } else if (ctx.Variable() != null) {
-                name = new VariableName(ctx.Variable().getText().substring(1));
+            } else if (ctx.variable() != null) {
+                name = new VariableName(unescapeString(ctx.variable().Variable().getText().substring(1)));
             } else {
                 throw new IllegalArgumentException("Unhandled field: " + ctx.getText());
             }

@@ -50,7 +50,7 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>4.6</version>
+            <version>4.7</version>
         </dependency>
 
         <dependency>
@@ -111,7 +111,7 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.6</version>
+                <version>4.7</version>
                 <configuration>
                     <outputDirectory>${basedir}/src/generated/java</outputDirectory>
                     <visitor>true</visitor>
