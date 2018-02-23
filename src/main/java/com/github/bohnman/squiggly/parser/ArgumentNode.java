@@ -5,14 +5,14 @@ import javax.annotation.Nullable;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class ParameterNode {
+public class ArgumentNode {
     private final ParseContext context;
     private final int index;
     private final Object value;
-    private final ParameterNodeType type;
+    private final ArgumentNodeType type;
 
 
-    public ParameterNode(ParseContext context, int index, Object value, ParameterNodeType type) {
+    public ArgumentNode(ParseContext context, int index, Object value, ArgumentNodeType type) {
         this.context = checkNotNull(context);
         checkArgument(index >= 0, "index must be >= 0");
         this.index = index;
@@ -33,7 +33,7 @@ public class ParameterNode {
         return value;
     }
 
-    public ParameterNodeType getType() {
+    public ArgumentNodeType getType() {
         return type;
     }
 
@@ -58,7 +58,7 @@ public class ParameterNode {
         private Object value;
 
         @Nullable
-        private ParameterNodeType type;
+        private ArgumentNodeType type;
 
         private Builder() {
         }
@@ -78,13 +78,13 @@ public class ParameterNode {
             return this;
         }
 
-        public Builder type(ParameterNodeType type) {
+        public Builder type(ArgumentNodeType type) {
             this.type = type;
             return this;
         }
 
-        public ParameterNode builder() {
-            return new ParameterNode(context, index, value, type);
+        public ArgumentNode build() {
+            return new ArgumentNode(context, index, value, type);
         }
     }
 }

@@ -1,8 +1,9 @@
 package com.github.bohnman.squiggly.parser;
 
-public enum ParameterNodeType {
+public enum ArgumentNodeType {
     BOOLEAN,
     FLOAT,
+    FUNCTION,
     INPUT,
     INT_RANGE,
     INTEGER,

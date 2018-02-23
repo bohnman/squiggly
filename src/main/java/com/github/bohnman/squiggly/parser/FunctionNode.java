@@ -12,9 +12,9 @@ public class FunctionNode {
 
     private final ParseContext context;
     private final String name;
-    private final List<ParameterNode> parameters;
+    private final List<ArgumentNode> parameters;
 
-    public FunctionNode(ParseContext context, String name, List<ParameterNode> parameters) {
+    public FunctionNode(ParseContext context, String name, List<ArgumentNode> parameters) {
         this.context = checkNotNull(context);
         this.name = checkNotNull(name);
         this.parameters = ImmutableList.copyOf(checkNotNull(parameters));
@@ -28,7 +28,7 @@ public class FunctionNode {
         return name;
     }
 
-    public List<ParameterNode> getParameters() {
+    public List<ArgumentNode> getParameters() {
         return parameters;
     }
 
@@ -44,7 +44,7 @@ public class FunctionNode {
         @Nullable
         private String name;
 
-        private List<ParameterNode> parameters = new ArrayList<>();
+        private List<ArgumentNode> parameters = new ArrayList<>();
 
         private Builder() {
         }
@@ -59,15 +59,9 @@ public class FunctionNode {
             return this;
         }
 
-        public Builder parameter(ParseContext context, Object value, ParameterNodeType type) {
+        public Builder parameter(ArgumentNode.Builder arg) {
             int index = parameters.size();
-            ParameterNode parameter = ParameterNode.builder()
-                    .context(context)
-                    .index(index)
-                    .value(value)
-                    .type(type)
-                    .builder();
-            parameters.add(parameter);
+            parameters.add(arg.index(index).build());
             return this;
         }
 

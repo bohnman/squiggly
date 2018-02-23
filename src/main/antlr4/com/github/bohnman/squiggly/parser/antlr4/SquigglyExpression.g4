@@ -127,8 +127,8 @@ intRangeArg
 // Closures
 
 closure
-    : Identifier '->' closureBody
-    | '(' Identifier (',' Identifier)* ')' '->' closureBody
+    : Variable '->' closureBody
+    | '(' Variable (',' Variable)* ')' '->' closureBody
     ;
 
 closureBody
@@ -145,7 +145,7 @@ arg
     | intRange
     | RegexLiteral
     | StringLiteral
-    | Variable
+    | variableChain
     | prefixOperator arg
     | arg binaryOperator arg
     | argGroupStart arg argGroupEnd
@@ -162,20 +162,20 @@ argGroupEnd
 
 // Operators
 binaryOperator
-    : '+'
-    | '-'
-    | '*'
-    | '/'
-    | '%'
-    | ('=' | '==')
-    | ('!=' | '<>')
-    | '<'
-    | '<='
-    | '>'
-    | '>='
-    | '=~'
-    | '!~'
-    | ('or' | '||')
+    : ('+'   | 'add')
+    | ('-'   | 'sub')
+    | ('*'   | 'mul')
+    | ('/'   | 'div')
+    | ('%'   | 'mod')
+    | ('=='  | 'eq')
+    | ('!='  | 'ne')
+    | ('<'   | 'lt')
+    | ('<='  | 'lte')
+    | ('>'   | 'gt')
+    | ('>='  | 'gte')
+    | ('=~'  | 'match')
+    | ('!~'  | 'nmatch')
+    | ('or'  | '||')
     | ('and' | '&&')
     ;
 
@@ -188,9 +188,9 @@ propertyChain
     ;
 
 initialPropertyAccessor
-    : Identifier
-    | 'this[' StringLiteral ']'
-    | 'this'
+    : ('@.') Identifier
+    | '@[' StringLiteral ']'
+    | '@'
     | propertySortDirection initialPropertyAccessor
     ;
 
@@ -203,6 +203,10 @@ propertyAccessor
     : '.' Identifier
     | '[' StringLiteral ']'
     | propertySortDirection propertyAccessor
+    ;
+
+variableChain
+    : Variable propertyAccessor* (functionSeparator functionChain)?
     ;
 
 //-----------------------------------------------------------------------------
@@ -248,6 +252,7 @@ Identifier
 
 Variable
     : '@' Identifier
+    | '@' StringLiteral
     ;
 
 // Other Tokesn

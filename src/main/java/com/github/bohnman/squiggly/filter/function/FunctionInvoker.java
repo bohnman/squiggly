@@ -6,7 +6,7 @@ import com.github.bohnman.squiggly.function.SquigglyFunction;
 import com.github.bohnman.squiggly.function.SquigglyParameter;
 import com.github.bohnman.squiggly.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.parser.FunctionNode;
-import com.github.bohnman.squiggly.parser.ParameterNode;
+import com.github.bohnman.squiggly.parser.ArgumentNode;
 import com.github.bohnman.squiggly.variable.SquigglyVariableResolver;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ObjectArrays;
@@ -222,18 +222,18 @@ public class FunctionInvoker {
     private List<Object> toParameters(FunctionNode functionNode, Object input) {
         return functionNode.getParameters()
                 .stream()
-                .map(parameterNode -> toParameter(functionNode, input, parameterNode))
+                .map(argumentNode -> toParameter(functionNode, input, argumentNode))
                 .collect(Collectors.toList());
     }
 
-    private Object toParameter(FunctionNode functionNode, Object input, ParameterNode parameterNode) {
-        switch (parameterNode.getType()) {
+    private Object toParameter(FunctionNode functionNode, Object input, ArgumentNode argumentNode) {
+        switch (argumentNode.getType()) {
             case INPUT:
                 return input;
             case VARIABLE:
-                return variableResolver.resolveVariable(parameterNode.getValue().toString());
+                return variableResolver.resolveVariable(argumentNode.getValue().toString());
             default:
-                return parameterNode.getValue();
+                return argumentNode.getValue();
         }
     }
 }
