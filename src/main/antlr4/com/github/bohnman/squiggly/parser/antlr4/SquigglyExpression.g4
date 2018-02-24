@@ -89,10 +89,10 @@ valueFunctionChain
     ;
 
 functionChain
-    : function (functionWithSeparator)*
+    : function (argChainLink)*
     ;
 
-functionWithSeparator
+functionAccessor
     : accessOperator function
     ;
 
@@ -141,11 +141,8 @@ lambdaArg
     ;
 
 arg
-    : literal
+    : argChain
     | lambda
-    | argChain
-    | variable
-    | intRange
     | prefixOperator arg
     | arg binaryOperator arg
     | argGroupStart arg argGroupEnd
@@ -160,17 +157,14 @@ literal
     ;
 
 argChain
-    : (literal | intRange) (accessOperator functionChain)?
-    | variable (accessOperator functionChain)?
-    | variable propertyChain (accessOperator functionChain)?
-    | propertyChain (accessOperator functionChain)?
-    | directionalPropertyChain
-    | functionChain
+    : (literal | intRange | variable | initialPropertyAccessor | function) argChainLink*
+    | propertySortDirection (variable | initialPropertyAccessor | function) argChainLink*
     ;
 
 
 argChainLink
-    :
+    : propertyAccessor
+    | functionAccessor
     ;
 
 argGroupStart
@@ -196,6 +190,7 @@ binaryOperator
 
 binaryNamedOperator
     : AddName
+    | AndName
     | SubtractName
     | MultiplyName
     | DivideName
@@ -209,7 +204,6 @@ binaryNamedOperator
     | MatchName
     | MatchNotName
     | OrName
-    | AndName
     ;
 
 binarySymboledOperator
@@ -245,17 +239,9 @@ prefixSymboledOperator
     : Not
     ;
 
-directionalPropertyChain
-    : propertySortDirection propertyChain
-    ;
-
-propertyChain
-    : initialPropertyAccessor propertyAccessor*
-    ;
-
 initialPropertyAccessor
-    : AtDot? Identifier
-    | AtBrackLeft StringLiteral | Variable BracketRight
+    : (AtDot | AtDotSafe)? Identifier
+    | (AtBrackLeft | AtBrackLeftSafe) (StringLiteral | Variable) BracketRight
     | At
     ;
 
@@ -265,8 +251,8 @@ propertySortDirection
     ;
 
 propertyAccessor
-    : Dot Identifier
-    | BracketLeft StringLiteral BracketRight
+    : (Dot | SafeNavigation) Identifier
+    | (BracketLeft | BracketLeftSafe) (StringLiteral | Variable) BracketRight
     ;
 
 variable
@@ -276,6 +262,68 @@ variable
 //-----------------------------------------------------------------------------
 // Lexer Tokens
 //-----------------------------------------------------------------------------
+
+// Keywords
+
+AddName: 'add';
+AndName: 'and';
+EqualsName: 'eq';
+EqualsNotName: 'ne';
+DivideName: 'div';
+GreaterThanEqualsName: 'gte';
+GreaterThanName: 'gt';
+LessThanEqualsName: 'lte';
+LessThanName: 'lt';
+MatchName: 'match';
+MatchNotName: 'nmatch';
+ModulusName: 'mod';
+MultiplyName: 'mul';
+NotName: 'not';
+OrName: 'or';
+SubtractName: 'sub';
+
+// Symbols
+
+Add: '+';
+And: '&&';
+AngleLeft: '<';
+AngleRight: '>';
+At: '@';
+AtBrackLeft: '@[';
+AtBrackLeftSafe: '@?[';
+AtDot: '@.';
+AtDotSafe: '@?.';
+BracketLeft: '[';
+BracketLeftSafe: '?[';
+BracketRight: ']';
+Colon: ':';
+Comma: ',';
+Dot: '.';
+Equals: '==';
+EqualsNot: '!=';
+GreaterThanEquals: '>=';
+Lambda: '->';
+LessThanEquals: '<=';
+Match: '=~';
+MatchNot: '!~';
+Modulus: '%';
+Not: '!';
+ParenLeft: '(';
+ParentRight: ')';
+Pipe: '|';
+QuestionMark: '?';
+QuoteSingle: '\'';
+QuoteDouble: '"';
+SafeNavigation: '?.';
+SlashForward: '/';
+Subtract: '-';
+SquigglyLeft: '{';
+SquigglyRight: '}';
+Tilde: '~';
+Underscore: '_';
+WildcardShallow: '*';
+WildcardDeep: '**';
+Or: '||';
 
 
 // Literals
@@ -319,65 +367,6 @@ Variable
     : At Identifier
     | At StringLiteral
     ;
-
-// Keywords
-
-AddName: 'add';
-AndName: 'and';
-EqualsName: 'eq';
-EqualsNotName: 'ne';
-DivideName: 'div';
-GreaterThanEqualsName: 'gte';
-GreaterThanName: 'gt';
-LessThanEqualsName: 'lte';
-LessThanName: 'lt';
-MatchName: 'match';
-MatchNotName: 'nmatch';
-ModulusName: 'mod';
-MultiplyName: 'mul';
-NotName: 'not';
-OrName: 'or';
-SubtractName: 'sub';
-
-// Symbols
-
-Add: '+';
-And: '&&';
-AngleLeft: '<';
-AngleRight: '>';
-At: '@';
-AtBrackLeft: '@[';
-AtDot: '@.';
-BracketLeft: '[';
-BracketRight: ']';
-Colon: ':';
-Comma: ',';
-Dot: '.';
-Equals: '==';
-EqualsNot: '!=';
-GreaterThanEquals: '>=';
-Lambda: '->';
-LessThanEquals: '<=';
-Match: '=~';
-MatchNot: '!~';
-Modulus: '%';
-Not: '!';
-ParenLeft: '(';
-ParentRight: ')';
-Pipe: '|';
-QuestionMark: '?';
-QuoteSingle: '\'';
-QuoteDouble: '"';
-SafeNavigation: '?.';
-SlashForward: '/';
-Subtract: '-';
-SquigglyLeft: '{';
-SquigglyRight: '}';
-Tilde: '~';
-Underscore: '_';
-WildcardShallow: '*';
-WildcardDeep: '**';
-Or: '||';
 
 // Whitespace and Comments
 

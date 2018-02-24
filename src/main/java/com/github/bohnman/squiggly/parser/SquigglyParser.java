@@ -153,7 +153,7 @@ public class SquigglyParser {
                 }
 
                 if (ctx.fieldFunctionChain().valueFunctionChain() != null) {
-                    valueFunctions = parseValueFunctionChain(ctx.fieldFunctionChain().valueFunctionChain(), ctx.fieldFunctionChain().functionSeparator());
+                    valueFunctions = parseValueFunctionChain(ctx.fieldFunctionChain().valueFunctionChain(), ctx.fieldFunctionChain().accessOperator());
                 }
             }
 
@@ -177,8 +177,8 @@ public class SquigglyParser {
             return parseFunctionChain(functionChainContext.functionChain(), null, true);
         }
 
-        private List<FunctionNode> parseValueFunctionChain(SquigglyExpressionParser.ValueFunctionChainContext functionChainContext, SquigglyExpressionParser.FunctionSeparatorContext separatorContext) {
-            return parseFunctionChain(functionChainContext.functionChain(), separatorContext, true);
+        private List<FunctionNode> parseValueFunctionChain(SquigglyExpressionParser.ValueFunctionChainContext functionChainContext, SquigglyExpressionParser.AccessOperatorContext accessOperatorContext) {
+            return parseFunctionChain(functionChainContext.functionChain(), accessOperatorContext, true);
         }
 
         private List<FunctionNode> parseFunctionChain(SquigglyExpressionParser.FunctionChainContext chainContext) {
@@ -186,18 +186,31 @@ public class SquigglyParser {
         }
 
         @SuppressWarnings("CodeBlock2Expr")
-        private List<FunctionNode> parseFunctionChain(SquigglyExpressionParser.FunctionChainContext chainContext, SquigglyExpressionParser.FunctionSeparatorContext separatorContext, boolean input) {
-            List<FunctionNode> functions = new ArrayList<>(chainContext.functionWithSeparator().size() + 1);
-            functions.add(parseFunction(chainContext.function(), separatorContext, input));
+        private List<FunctionNode> parseFunctionChain(SquigglyExpressionParser.FunctionChainContext chainContext, @Nullable SquigglyExpressionParser.AccessOperatorContext operatorContext, boolean input) {
+            List<FunctionNode> functions = new ArrayList<>(chainContext.argChainLink().size() + 1);
+            functions.add(parseFunction(chainContext.function(), operatorContext, input));
 
-            chainContext.functionWithSeparator().forEach(ctx -> {
-                functions.add(parseFunction(ctx.function(), ctx.functionSeparator(), true));
+            chainContext.argChainLink().forEach(ctx -> {
+                functions.add(parseFunction(ctx, true));
             });
 
             return functions;
         }
 
-        private FunctionNode parseFunction(SquigglyExpressionParser.FunctionContext functionContext, SquigglyExpressionParser.FunctionSeparatorContext separatorContext, boolean input) {
+        private FunctionNode parseFunction(SquigglyExpressionParser.ArgChainLinkContext context, boolean input) {
+            if (context.functionAccessor() != null) {
+                return parseFunction(context.functionAccessor().function(), context.functionAccessor().accessOperator(), input);
+            }
+
+            if (context.propertyAccessor() != null) {
+                // TODO: finish
+                return null;
+            }
+
+            throw new IllegalStateException(format("%s: unknown arg chain link [%s]", parseContext(context), context.getText()));
+        }
+
+        private FunctionNode parseFunction(SquigglyExpressionParser.FunctionContext functionContext, SquigglyExpressionParser.AccessOperatorContext operatorContext, boolean input) {
             ParseContext context = parseContext(functionContext);
             FunctionNode.Builder builder = buildBaseFunction(functionContext, context);
 
@@ -207,7 +220,7 @@ public class SquigglyParser {
 
             applyParameters(builder, functionContext);
 
-            if (separatorContext != null && "?.".equals(separatorContext.getText())) {
+            if (operatorContext != null && "?.".equals(operatorContext.getText())) {
                 builder.ignoreNulls(true);
             }
 
@@ -240,18 +253,6 @@ public class SquigglyParser {
 
             if (arg.argChain() != null) {
                 return buildArgChain(arg.argChain());
-            }
-
-            if (arg.intRange() != null) {
-                return buildIntRange(arg.intRange());
-            }
-
-            if (arg.literal() != null) {
-                return buildLiteral(arg.literal());
-            }
-
-            if (arg.variable() != null) {
-                return buildVariable(arg.variable());
             }
 
             if (arg.lambda() != null) {
@@ -458,7 +459,7 @@ public class SquigglyParser {
         }
 
         private ArgumentNode.Builder buildArgChain(SquigglyExpressionParser.ArgChainContext context) {
-            int functionLength = (context.functionChain() == null) ? 0 : context.functionChain().functionWithSeparator().size();
+            int functionLength = (context.argChainLink() == null) ? 0 : context.argChainLink().size();
             functionLength += 2;
             List<FunctionNode> functionNodes = new ArrayList<>(functionLength);
 
@@ -489,16 +490,20 @@ public class SquigglyParser {
                 );
             }
 
-            if (context.propertyChain() != null) {
+            if (context.initialPropertyAccessor() != null) {
                 // TODO: finish
             }
 
-            if (context.directionalPropertyChain() != null) {
+            if (context.propertySortDirection() != null) {
                 // TODO: finish
             }
 
-            if (context.functionChain() != null) {
-                functionNodes.addAll(parseFunctionChain(context.functionChain(), context.functionSeparator(), !functionNodes.isEmpty()));
+            if (context.argChainLink() != null) {
+                boolean input = !functionNodes.isEmpty();
+
+                for (SquigglyExpressionParser.ArgChainLinkContext linkContext : context.argChainLink()) {
+                    functionNodes.add(parseFunction(linkContext, input));
+                }
             }
 
             return baseArg(context, ArgumentNodeType.FUNCTION_CHAIN)
