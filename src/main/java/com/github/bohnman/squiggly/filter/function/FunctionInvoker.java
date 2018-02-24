@@ -1,7 +1,6 @@
 package com.github.bohnman.squiggly.filter.function;
 
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
-import com.github.bohnman.squiggly.function.DefaultFunctions;
 import com.github.bohnman.squiggly.function.FunctionRequest;
 import com.github.bohnman.squiggly.function.SquigglyFunction;
 import com.github.bohnman.squiggly.function.SquigglyParameter;
@@ -10,7 +9,7 @@ import com.github.bohnman.squiggly.parser.ArgumentNode;
 import com.github.bohnman.squiggly.parser.FunctionNode;
 import com.github.bohnman.squiggly.parser.IntRangeNode;
 import com.github.bohnman.squiggly.parser.LambdaNode;
-import com.github.bohnman.squiggly.util.function.Lambda;
+import com.github.bohnman.squiggly.function.Lambda;
 import com.github.bohnman.squiggly.util.range.IntRange;
 import com.github.bohnman.squiggly.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.variable.MapVariableResolver;

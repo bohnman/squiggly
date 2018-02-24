@@ -5,7 +5,6 @@ import com.github.bohnman.squiggly.function.annotation.SquigglyMethod;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.github.bohnman.squiggly.util.array.ArrayWrapper;
 import com.github.bohnman.squiggly.util.array.ArrayWrappers;
-import com.github.bohnman.squiggly.util.function.Lambda;
 import com.github.bohnman.squiggly.util.range.IntRange;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
@@ -489,57 +488,6 @@ public class DefaultFunctions {
         return Math.abs(n.doubleValue());
     }
 
-    @SquigglyMethod
-    public static Number add(Number n1, Number n2) {
-        if (n1 == null) {
-            return null;
-        }
-
-        if (n2 == null) {
-            return n1;
-        }
-
-        return n1.doubleValue() + n2.doubleValue();
-    }
-
-    @SquigglyMethod
-    public static Number subtract(Number n1, Number n2) {
-        if (n1 == null) {
-            return null;
-        }
-
-        if (n2 == null) {
-            return n1;
-        }
-
-        return n1.doubleValue() - n2.doubleValue();
-    }
-
-    @SquigglyMethod
-    public static Number multiply(Number n1, Number n2) {
-        if (n1 == null) {
-            return null;
-        }
-
-        if (n2 == null) {
-            return 0;
-        }
-
-        return n1.doubleValue() * n2.doubleValue();
-    }
-
-    @SquigglyMethod
-    public static Number divide(Number n1, Number n2) {
-        if (n1 == null) {
-            return null;
-        }
-
-        if (n2 == null) {
-            return 0;
-        }
-
-        return n1.doubleValue() / n2.doubleValue();
-    }
 
     @SquigglyMethod
     public static Number ceil(Number n) {
@@ -627,11 +575,6 @@ public class DefaultFunctions {
     //-------------------------------------------------------------------------
     // Object Functions
     //-------------------------------------------------------------------------
-
-    @SquigglyMethod
-    public static Object identity(Object object) {
-        return object;
-    }
 
     @SquigglyMethod
     public static Object defaultEmpty(Object o1, Object o2) {

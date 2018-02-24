@@ -18,6 +18,7 @@ import com.github.bohnman.squiggly.filter.SquigglyPropertyFilterMixin;
 import com.github.bohnman.squiggly.filter.repository.CompositeFilterRepository;
 import com.github.bohnman.squiggly.filter.repository.MapFilterRepository;
 import com.github.bohnman.squiggly.filter.repository.SquigglyFilterRepository;
+import com.github.bohnman.squiggly.function.CoreFunctions;
 import com.github.bohnman.squiggly.function.DefaultFunctions;
 import com.github.bohnman.squiggly.function.SquigglyFunction;
 import com.github.bohnman.squiggly.function.SquigglyFunctions;
@@ -659,11 +660,17 @@ public class Squiggly {
 
         @SuppressWarnings("unchecked")
         private List<SquigglyFunction<?>> getDefaultFunctions() {
+            List<SquigglyFunction<Object>> coreFunctions = SquigglyFunctions.create(CoreFunctions.class, SquigglyFunction.RegistrationStrategy.MANUAL);
+
+
             if (!registerDefaultFunctions) {
-                return Collections.emptyList();
+                return (List) coreFunctions;
             }
 
-            return (List) SquigglyFunctions.create(DefaultFunctions.class, SquigglyFunction.RegistrationStrategy.MANUAL);
+            List<SquigglyFunction<Object>> defaultFunctions = SquigglyFunctions.create(DefaultFunctions.class, SquigglyFunction.RegistrationStrategy.MANUAL);
+
+            return Stream.concat(coreFunctions.stream(), defaultFunctions.stream())
+                    .collect(toList());
         }
 
         @SuppressWarnings("unchecked")
