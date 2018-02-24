@@ -11,7 +11,7 @@ parse
 // Expressions
 
 expressionList
-    : expression (',' expression)*
+    : expression (Comma expression)*
     ;
 
 expression
@@ -23,30 +23,30 @@ expression
     ;
 
 negatedExpression
-    : '-' field
-    | '-' dottedField
+    : Subtract field
+    | Subtract dottedField
     ;
 
 nestedExpression
-    : LeftSquiggly expressionList RightSquiggly
-    | LeftBrace expressionList RightBrace
+    : SquigglyLeft expressionList SquigglyRight
+    | BracketLeft expressionList BracketRight
     ;
 
 emptyNestedExpression
-    : LeftSquiggly RightSquiggly
-    | LeftBrace RightBrace
+    : SquigglyLeft SquigglyRight
+    | BracketLeft BracketRight
     ;
 
 
 // Fields
 
 fieldList
-    : '(' field (('|'|',') field)* ')'
+    : ParenLeft field ((Pipe|Comma) field)* ParentRight
     | field
     ;
 
 dottedField
-    : field ('.' field)+
+    : field (Dot field)+
     ;
 
 field
@@ -54,7 +54,7 @@ field
     | binaryNamedOperator
     | prefixNamedOperator
     | RegexLiteral
-    | ('+' | '-')? IntegerLiteral
+    | (Add | Subtract)? IntegerLiteral
     | StringLiteral
     | variable
     | WildcardLiteral
@@ -75,13 +75,13 @@ wildcardDeepField
 // Functions
 
 fieldFunctionChain
-    : keyFunctionChain ':' valueFunctionChain
+    : keyFunctionChain Colon valueFunctionChain
     | keyFunctionChain
-    | functionSeparator valueFunctionChain
+    | accessOperator valueFunctionChain
     ;
 
 keyFunctionChain
-    : ':' functionChain
+    : Colon functionChain
     ;
 
 valueFunctionChain
@@ -93,16 +93,12 @@ functionChain
     ;
 
 functionWithSeparator
-    : functionSeparator function
+    : accessOperator function
     ;
 
-functionSeparator
-    : '.'
-    | '?.'
-    ;
 
 function
-    : functionName LeftParen functionParameters? RightParen
+    : functionName ParenLeft functionParameters? ParentRight
     ;
 
 functionName
@@ -112,7 +108,7 @@ functionName
     ;
 
 functionParameters
-    : functionParameter (',' functionParameter)*
+    : functionParameter (Comma functionParameter)*
     ;
 
 functionParameter
@@ -120,19 +116,19 @@ functionParameter
     ;
 
 intRange
-    : '[' intRangeArg ':' intRangeArg? ']'
+    : BracketLeft intRangeArg Colon intRangeArg? BracketRight
     ;
 
 intRangeArg
-    : ('+' | '-') IntegerLiteral
+    : (Add | Subtract) IntegerLiteral
     | variable
     ;
 
 // Closures
 
 lambda
-    : lambdaArg '->' lambdaBody
-    | '(' (lambdaArg (',' lambdaArg)*)? ')' '->' lambdaBody
+    : lambdaArg Lambda lambdaBody
+    | ParenLeft (lambdaArg (Comma lambdaArg)*)? ParentRight Lambda lambdaBody
     ;
 
 lambdaBody
@@ -141,7 +137,7 @@ lambdaBody
 
 lambdaArg
     : variable
-    | '_'
+    | Underscore
     ;
 
 arg
@@ -157,70 +153,81 @@ arg
 
 literal
     : BooleanLiteral
-    | ('+' | '-')? FloatLiteral
-    | ('+' | '-')? IntegerLiteral
+    | (Add | Subtract)? FloatLiteral
+    | (Add | Subtract)? IntegerLiteral
     | RegexLiteral
     | StringLiteral
     ;
 
 argChain
-    : (literal | intRange) (functionSeparator functionChain)?
-    | variable (functionSeparator functionChain)?
-    | variable propertyChain (functionSeparator functionChain)?
-    | propertyChain (functionSeparator functionChain)?
+    : (literal | intRange) (accessOperator functionChain)?
+    | variable (accessOperator functionChain)?
+    | variable propertyChain (accessOperator functionChain)?
+    | propertyChain (accessOperator functionChain)?
     | directionalPropertyChain
     | functionChain
     ;
 
+
+argChainLink
+    :
+    ;
+
 argGroupStart
-    : '('
+    : ParenLeft
     ;
 
 argGroupEnd
-    : ')'
+    : ParentRight
     ;
 
+
+// Operators
+accessOperator
+    : Dot
+    | SafeNavigation
+    ;
 
 binaryOperator
     : binaryNamedOperator
     | binarySymboledOperator
     ;
 
-// Operators
+
 binaryNamedOperator
-    : 'add'
-    | 'sub'
-    | 'mul'
-    | 'div'
-    | 'mod'
-    | 'eq'
-    | 'ne'
-    | 'lt'
-    | 'lte'
-    | 'gt'
-    | 'gte'
-    | 'match'
-    | 'nmatch'
-    | 'or'
-    | 'and'
+    : AddName
+    | SubtractName
+    | MultiplyName
+    | DivideName
+    | ModulusName
+    | EqualsName
+    | EqualsNotName
+    | LessThanName
+    | LessThanEqualsName
+    | GreaterThanName
+    | GreaterThanEqualsName
+    | MatchName
+    | MatchNotName
+    | OrName
+    | AndName
     ;
 
 binarySymboledOperator
-    : '+'
-    | '-'
-    | '*'
-    | '/'
-    | '%'
-    | '=='
-    | '!='
-    | '<'
-    | '<='
-    | '>'
-    | '>='
-    | '=~'
-    | '!~'
-    | '||'
-    | '&&'
+    : Add
+    | Subtract
+    | WildcardShallow   // multiply
+    | SlashForward      // divide
+    | Modulus
+    | Equals
+    | EqualsNot
+    | AngleLeft         // less than
+    | LessThanEquals
+    | AngleRight        // greater than
+    | GreaterThanEquals
+    | Match
+    | MatchNot
+    | Or
+    | And
     ;
 
 
@@ -231,14 +238,12 @@ prefixOperator
     ;
 
 prefixNamedOperator
-    : 'not'
+    : NotName
     ;
 
 prefixSymboledOperator
-    : '!'
+    : Not
     ;
-
-
 
 directionalPropertyChain
     : propertySortDirection propertyChain
@@ -249,19 +254,19 @@ propertyChain
     ;
 
 initialPropertyAccessor
-    : ('@.')? Identifier
-    | '@[' StringLiteral | Variable ']'
-    | '@'
+    : AtDot? Identifier
+    | AtBrackLeft StringLiteral | Variable BracketRight
+    | At
     ;
 
 propertySortDirection
-    : '+'
-    | '-'
+    : Add
+    | Subtract
     ;
 
 propertyAccessor
-    : '.' Identifier
-    | '[' StringLiteral ']'
+    : Dot Identifier
+    | BracketLeft StringLiteral BracketRight
     ;
 
 variable
@@ -271,6 +276,7 @@ variable
 //-----------------------------------------------------------------------------
 // Lexer Tokens
 //-----------------------------------------------------------------------------
+
 
 // Literals
 
@@ -289,18 +295,18 @@ FloatLiteral
     ;
 
 RegexLiteral
-    : '/' RegexChar+ '/' RegexFlag*
-    | '~' RegexChar+ '~' RegexFlag*
+    : SlashForward RegexChar+ SlashForward RegexFlag*
+    | Tilde RegexChar+ Tilde RegexFlag*
     ;
 
 StringLiteral
-    : '"' DoubleQuotedStringCharacters* '"'
-    | '\'' SingleQuotedStringCharacters* '\''
+    : QuoteDouble DoubleQuotedStringCharacters* QuoteDouble
+    | QuoteSingle SingleQuotedStringCharacters* QuoteSingle
     ;
 
 WildcardLiteral
     : WildcardShallow
-    | '?'
+    | QuestionMark
     ;
 
 Identifier
@@ -310,43 +316,68 @@ Identifier
 // Variables
 
 Variable
-    : '@' Identifier
-    | '@' StringLiteral
+    : At Identifier
+    | At StringLiteral
     ;
 
-// Other Tokesn
+// Keywords
 
-LeftParen
-    : '('
-    ;
+AddName: 'add';
+AndName: 'and';
+EqualsName: 'eq';
+EqualsNotName: 'ne';
+DivideName: 'div';
+GreaterThanEqualsName: 'gte';
+GreaterThanName: 'gt';
+LessThanEqualsName: 'lte';
+LessThanName: 'lt';
+MatchName: 'match';
+MatchNotName: 'nmatch';
+ModulusName: 'mod';
+MultiplyName: 'mul';
+NotName: 'not';
+OrName: 'or';
+SubtractName: 'sub';
 
-RightParen
-    : ')'
-    ;
+// Symbols
 
-LeftBrace
-    : '['
-    ;
-
-RightBrace
-    : ']'
-    ;
-
-LeftSquiggly
-    : '{'
-    ;
-
-RightSquiggly
-    : '}'
-    ;
-
-WildcardShallow
-    : '*'
-    ;
-
-WildcardDeep
-    : '**'
-    ;
+Add: '+';
+And: '&&';
+AngleLeft: '<';
+AngleRight: '>';
+At: '@';
+AtBrackLeft: '@[';
+AtDot: '@.';
+BracketLeft: '[';
+BracketRight: ']';
+Colon: ':';
+Comma: ',';
+Dot: '.';
+Equals: '==';
+EqualsNot: '!=';
+GreaterThanEquals: '>=';
+Lambda: '->';
+LessThanEquals: '<=';
+Match: '=~';
+MatchNot: '!~';
+Modulus: '%';
+Not: '!';
+ParenLeft: '(';
+ParentRight: ')';
+Pipe: '|';
+QuestionMark: '?';
+QuoteSingle: '\'';
+QuoteDouble: '"';
+SafeNavigation: '?.';
+SlashForward: '/';
+Subtract: '-';
+SquigglyLeft: '{';
+SquigglyRight: '}';
+Tilde: '~';
+Underscore: '_';
+WildcardShallow: '*';
+WildcardDeep: '**';
+Or: '||';
 
 // Whitespace and Comments
 
