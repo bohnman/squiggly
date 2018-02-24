@@ -51,8 +51,7 @@ dottedField
 
 field
     : Identifier
-    | binaryNamedOperator
-    | prefixNamedOperator
+    | namedOperator
     | RegexLiteral
     | (Add | Subtract)? IntegerLiteral
     | StringLiteral
@@ -103,8 +102,7 @@ function
 
 functionName
     : Identifier
-    | binaryNamedOperator
-    | prefixSymboledOperator
+    | namedOperator
     ;
 
 functionParameters
@@ -143,8 +141,13 @@ lambdaArg
 arg
     : argChain
     | lambda
-    | prefixOperator arg
-    | arg binaryOperator arg
+    | (NotName | Not) arg
+    | arg (WildcardShallow | MultiplyName | SlashForward | DivideName | Modulus | ModulusName) arg
+    | arg (Add | AddName | Subtract | SubtractName) arg
+    | arg (AngleLeft | LessThanName | LessThanEquals | LessThanEqualsName | AngleRight | GreaterThanName | GreaterThanEquals | GreaterThanEqualsName) arg
+    | arg (Equals | EqualsEquals | EqualsName | EqualsNot | EqualsNotSql | EqualsNotName | Match | MatchName | MatchNot | MatchNotName) arg
+    | arg (And | AndName) arg
+    | arg (Or | OrName) arg
     | argGroupStart arg argGroupEnd
     ;
 
@@ -182,13 +185,9 @@ accessOperator
     | SafeNavigation
     ;
 
-binaryOperator
-    : binaryNamedOperator
-    | binarySymboledOperator
-    ;
 
 
-binaryNamedOperator
+namedOperator
     : AddName
     | AndName
     | SubtractName
@@ -204,40 +203,9 @@ binaryNamedOperator
     | MatchName
     | MatchNotName
     | OrName
+    | NotName
     ;
 
-binarySymboledOperator
-    : Add
-    | Subtract
-    | WildcardShallow   // multiply
-    | SlashForward      // divide
-    | Modulus
-    | Equals
-    | EqualsNot
-    | AngleLeft         // less than
-    | LessThanEquals
-    | AngleRight        // greater than
-    | GreaterThanEquals
-    | Match
-    | MatchNot
-    | Or
-    | And
-    ;
-
-
-
-prefixOperator
-    : prefixNamedOperator
-    | prefixSymboledOperator
-    ;
-
-prefixNamedOperator
-    : NotName
-    ;
-
-prefixSymboledOperator
-    : Not
-    ;
 
 initialPropertyAccessor
     : (AtDot | AtDotSafe)? Identifier
@@ -299,8 +267,10 @@ BracketRight: ']';
 Colon: ':';
 Comma: ',';
 Dot: '.';
-Equals: '==';
+Equals: '=';
+EqualsEquals: '==';
 EqualsNot: '!=';
+EqualsNotSql: '<>';
 GreaterThanEquals: '>=';
 Lambda: '->';
 LessThanEquals: '<=';

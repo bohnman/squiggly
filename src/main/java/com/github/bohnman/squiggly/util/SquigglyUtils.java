@@ -185,15 +185,16 @@ public class SquigglyUtils {
         }
 
 
-        return getPropertyDescriptors(o.getClass())
+        return getReadablePropertyDescriptors(o.getClass())
                 .filter(propertyDescriptor -> propertyDescriptor.getName().equals(keyString))
+                .map(propertyDescriptor -> invoke(propertyDescriptor.getReadMethod(), o))
                 .findFirst()
                 .orElse(null);
 
     }
 
 
-    public static Stream<PropertyDescriptor> getPropertyDescriptors(Class<?> beanClass)  {
+    public static Stream<PropertyDescriptor> getReadablePropertyDescriptors(Class<?> beanClass)  {
         try {
             return Arrays.stream(Introspector.getBeanInfo(beanClass).getPropertyDescriptors())
                     .filter(propertyDescriptor -> propertyDescriptor.getReadMethod() != null)

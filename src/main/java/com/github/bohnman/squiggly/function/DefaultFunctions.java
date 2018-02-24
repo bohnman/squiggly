@@ -65,7 +65,6 @@ public class DefaultFunctions {
                 .collect(toList());
     }
 
-
     @SquigglyMethod(aliases = "where")
     @SuppressWarnings("unchecked")
     public static Object filter(Object value, Predicate predicate) {
@@ -786,7 +785,7 @@ public class DefaultFunctions {
         }
 
         try {
-            return SquigglyUtils.getPropertyDescriptors(value.getClass())
+            return SquigglyUtils.getReadablePropertyDescriptors(value.getClass())
                     .collect(Collectors.toMap(PropertyDescriptor::getName,
                             pd -> SquigglyUtils.invoke(pd.getReadMethod(), value)));
         } catch (Exception e) {

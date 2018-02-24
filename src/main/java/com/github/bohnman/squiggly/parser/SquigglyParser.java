@@ -22,6 +22,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,7 +53,7 @@ public class SquigglyParser {
     public static final String OP_BRACKET_LEFT_SAFE = "?[";
     public static final String OP_SAFE_NAVIGATION = "?.";
     public static final String OP_AT_DOT_SAFE = "@?.";
-    public static final String OP_AT= "@";
+    public static final String OP_AT = "@";
 
     // Caches parsed filter expressions
     private final Cache<String, List<SquigglyNode>> cache;
@@ -230,7 +231,7 @@ public class SquigglyParser {
                 value = context.Identifier().getText();
                 type = ArgumentNodeType.STRING;
             } else if (context.StringLiteral() != null) {
-                value = context.StringLiteral().getText();
+                value = unescapeString(context.StringLiteral().getText());
                 type = ArgumentNodeType.STRING;
             } else if (context.variable() != null) {
                 value = buildVariableValue(context.variable());
@@ -253,7 +254,7 @@ public class SquigglyParser {
                     .parameter(baseArg(context, type).value(value));
         }
 
-        private FunctionNode.Builder buildPropertyFunction(SquigglyExpressionParser.InitialPropertyAccessorContext context, boolean input) {
+        private FunctionNode.Builder buildPropertyFunction(SquigglyExpressionParser.InitialPropertyAccessorContext context) {
             Object value;
             ArgumentNodeType type;
 
@@ -275,7 +276,7 @@ public class SquigglyParser {
                 value = context.Identifier().getText();
                 type = ArgumentNodeType.STRING;
             } else if (context.StringLiteral() != null) {
-                value = context.StringLiteral().getText();
+                value = unescapeString(context.StringLiteral().getText());
                 type = ArgumentNodeType.STRING;
             } else if (context.variable() != null) {
                 value = buildVariableValue(context.variable());
@@ -287,7 +288,7 @@ public class SquigglyParser {
                 throw new IllegalStateException(format("%s: Cannot find initial property name [%s]", parseContext(context), context.getText()));
             }
 
-            return buildBasePropertyFunction(context, op, input)
+            return buildBasePropertyFunction(context, op, true)
                     .parameter(baseArg(context, type).value(value));
         }
 
@@ -391,105 +392,102 @@ public class SquigglyParser {
         }
 
         private ArgumentNode.Builder buildSubArg(SquigglyExpressionParser.ArgContext arg) {
-            if (arg.binaryOperator() != null) {
-                return buildBinaryExpression(arg);
-            }
-
-            if (arg.prefixOperator() != null) {
-                return buildPrefixExpression(arg);
-            }
-
             if (arg.argGroupStart() != null) {
                 return buildArg(arg.arg(0));
             }
 
-            throw new IllegalStateException(format("%s: Unknown sub-arg type [%s]", parseContext(arg), arg.getText()));
+            return buildArgExpression(arg);
         }
 
-        private ArgumentNode.Builder buildPrefixExpression(SquigglyExpressionParser.ArgContext arg) {
-            String op = getOp(arg.prefixOperator(), arg.prefixOperator().getText());
+        private ArgumentNode.Builder buildArgExpression(SquigglyExpressionParser.ArgContext arg) {
+            String op = getOp(arg);
 
             ParseContext parseContext = parseContext(arg);
 
-            FunctionNode functionNode = FunctionNode.builder()
+            FunctionNode.Builder functionNode = FunctionNode.builder()
                     .context(parseContext)
-                    .name(op)
-                    .parameter(buildArg(arg.arg(0)))
-                    .build();
+                    .name(op);
+
+            arg.arg().forEach(p -> functionNode.parameter(buildArg(p)));
 
             return baseArg(arg, ArgumentNodeType.FUNCTION_CHAIN)
-                    .value(Collections.singletonList(functionNode));
+                    .value(Collections.singletonList(functionNode.build()));
         }
 
-        private ArgumentNode.Builder buildBinaryExpression(SquigglyExpressionParser.ArgContext arg) {
-            String op = getOp(arg.binaryOperator(), arg.binaryOperator().getText());
-
-            ParseContext parseContext = parseContext(arg);
-
-            FunctionNode functionNode = FunctionNode.builder()
-                    .context(parseContext)
-                    .name(op)
-                    .parameter(buildArg(arg.arg(0)))
-                    .parameter(buildArg(arg.arg(1)))
-                    .build();
-
-            return baseArg(arg, ArgumentNodeType.FUNCTION_CHAIN)
-                    .value(Collections.singletonList(functionNode));
-        }
-
-        private String getOp(ParserRuleContext context, String text) {
-            switch (text) {
-                case "add":
-                case "+":
-                    return "add";
-                case "sub":
-                case "-":
-                    return "sub";
-                case "mul":
-                case "*":
-                    return "mul";
-                case "div":
-                case "/":
-                    return "div";
-                case "mod":
-                case "%":
-                    return "mod";
-                case "eq":
-                case "==":
-                    return "equals";
-                case "ne":
-                case "!=":
-                    return "nequals";
-                case "lt":
-                case "<":
-                    return "lt";
-                case "lte":
-                case "<=":
-                    return "lte";
-                case "gt":
-                case ">":
-                    return "gt";
-                case "gte":
-                case ">=":
-                    return "gte";
-                case "match":
-                case "=~":
-                    return "match";
-                case "nmatch":
-                case "!~":
-                    return "nmatch";
-                case "or":
-                case "||":
-                    return "or";
-                case "and":
-                case "&&":
-                    return "and";
-                case "not":
-                case "!":
-                    return "not";
-                default:
-                    throw new IllegalStateException(format("%s: unknown op [%s]", parseContext(context), context.getText()));
+        private String getOp(SquigglyExpressionParser.ArgContext arg) {
+            if (matchOp(arg.Not(), arg.NotName())) {
+                return "not";
             }
+
+            if (matchOp(arg.Add(), arg.AddName())) {
+                return "add";
+            }
+
+            if (matchOp(arg.Subtract(), arg.SubtractName())) {
+                return "sub";
+            }
+
+            if (matchOp(arg.WildcardShallow(), arg.MultiplyName())) {
+                return "mul";
+            }
+
+            if (matchOp(arg.SlashForward(), arg.DivideName())) {
+                return "div";
+            }
+
+            if (matchOp(arg.Modulus(), arg.ModulusName())) {
+                return "mod";
+            }
+
+            if (matchOp(arg.Equals(), arg.EqualsEquals(), arg.EqualsName())) {
+                return "equals";
+            }
+
+            if (matchOp(arg.EqualsNot(), arg.EqualsNotName(), arg.EqualsNotSql())) {
+                return "nequals";
+            }
+
+            if (matchOp(arg.AngleLeft(), arg.LessThanName())) {
+                return "lt";
+            }
+
+            if (matchOp(arg.LessThanEquals(), arg.LessThanEqualsName())) {
+                return "lte";
+            }
+
+            if (matchOp(arg.AngleRight(), arg.GreaterThanName())) {
+                return "gt";
+            }
+
+            if (matchOp(arg.GreaterThanEquals(), arg.GreaterThanEqualsName())) {
+                return "gte";
+            }
+
+            if (matchOp(arg.Match(), arg.MatchName())) {
+                return "match";
+            }
+
+            if (matchOp(arg.MatchNot(), arg.MatchNotName())) {
+                return "nmatch";
+            }
+
+            if (matchOp(arg.Or(), arg.OrName())) {
+                return "or";
+            }
+
+            if (matchOp(arg.And(), arg.AndName())) {
+                return "and";
+            }
+
+            throw new IllegalStateException(format("%s: unknown op [%s]", parseContext(arg), arg.getText()));
+        }
+
+        private boolean matchOp(TerminalNode token1, TerminalNode token2) {
+            return token1 != null || token2 != null;
+        }
+
+        private boolean matchOp(TerminalNode token1, TerminalNode token2, TerminalNode token3) {
+            return token1 != null || token2 != null  || token3 != null;
         }
 
         private ArgumentNode.Builder buildLiteral(SquigglyExpressionParser.LiteralContext context) {
@@ -600,13 +598,7 @@ public class SquigglyParser {
             }
 
             if (context.initialPropertyAccessor() != null) {
-                functionNodes.add(
-                        buildPropertyFunction(
-                                context.initialPropertyAccessor(),
-                                !functionNodes.isEmpty()
-                        ).ascending(ascending)
-                        .build()
-                );
+                functionNodes.add(buildPropertyFunction(context.initialPropertyAccessor()).ascending(ascending).build());
             }
 
             if (context.argChainLink() != null) {
@@ -669,10 +661,8 @@ public class SquigglyParser {
                 name = new ExactName(unescapeString(ctx.StringLiteral().getText()));
             } else if (ctx.IntegerLiteral() != null) {
                 name = new ExactName(ctx.IntegerLiteral().getText());
-            } else if (ctx.binaryNamedOperator() != null) {
-                name = new ExactName(ctx.binaryNamedOperator().getText());
-            } else if (ctx.prefixNamedOperator() != null) {
-                name = new ExactName(ctx.prefixNamedOperator().getText());
+            } else if (ctx.namedOperator() != null) {
+                name = new ExactName(ctx.namedOperator().getText());
             } else if (ctx.Identifier() != null) {
                 name = new ExactName(ctx.Identifier().getText());
             } else if (ctx.wildcardField() != null) {

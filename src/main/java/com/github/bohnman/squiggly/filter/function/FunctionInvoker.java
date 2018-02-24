@@ -10,6 +10,7 @@ import com.github.bohnman.squiggly.parser.FunctionNode;
 import com.github.bohnman.squiggly.parser.FunctionNodeType;
 import com.github.bohnman.squiggly.parser.IntRangeNode;
 import com.github.bohnman.squiggly.parser.LambdaNode;
+import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.github.bohnman.squiggly.util.function.GenericFunction;
 import com.github.bohnman.squiggly.util.function.Lambda;
 import com.github.bohnman.squiggly.util.function.Property;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -66,6 +68,11 @@ public class FunctionInvoker {
     }
 
     public Object invoke(@Nullable Object input, FunctionNode functionNode) {
+        if (functionNode.getType().equals(FunctionNodeType.PROPERTY)) {
+            return invokeProperty(input, functionNode);
+        }
+
+
         List<SquigglyFunction<Object>> functions = functionRepository.findByName(functionNode.getName());
 
         if (functions.isEmpty()) {
@@ -73,7 +80,7 @@ public class FunctionInvoker {
         }
 
         List<Object> requestedParameters = toParameters(functionNode, input);
-        SquigglyFunction<Object> winner = findBestCandidateFunction(functionNode, requestedParameters, functions);
+        SquigglyFunction<Object> winner = findBestCandidateFunction(functionNode, input, requestedParameters, functions);
 
         if (winner == null) {
             throw new IllegalStateException(format("%s: Unable to match function [%s] with parameters %s.",
@@ -89,12 +96,18 @@ public class FunctionInvoker {
 
     }
 
-    private SquigglyFunction<Object> findBestCandidateFunction(FunctionNode functionNode, List<Object> requestedParameters, List<SquigglyFunction<Object>> functions) {
+    private Object invokeProperty(Object input, FunctionNode functionNode) {
+        Object object = getValue(functionNode.getParameters().get(0), input);
+        Object key = getValue(functionNode.getParameters().get(1), input);
+        return SquigglyUtils.getProperty(object, key);
+    }
+
+    private SquigglyFunction<Object> findBestCandidateFunction(FunctionNode functionNode, Object input, List<Object> requestedParameters, List<SquigglyFunction<Object>> functions) {
         SquigglyFunction<Object> winner = null;
         int score = 0;
 
         for (SquigglyFunction<Object> function : functions) {
-            Integer candidateScore = score(functionNode, requestedParameters, function);
+            Integer candidateScore = score(functionNode, input, requestedParameters, function);
 
             if (candidateScore != null && candidateScore > score) {
                 score = candidateScore;
@@ -106,7 +119,7 @@ public class FunctionInvoker {
         return winner;
     }
 
-    private Integer score(FunctionNode functionNode, List<Object> requestedParameters, SquigglyFunction<Object> function) {
+    private Integer score(FunctionNode functionNode, Object input, List<Object> requestedParameters, SquigglyFunction<Object> function) {
         List<SquigglyParameter> configuredParameters = function.getParameters();
 
         int configuredParametersSize = configuredParameters.size();
@@ -140,8 +153,7 @@ public class FunctionInvoker {
 
         for (int i = 0; i < end; i++) {
             SquigglyParameter parameter = configuredParameters.get(i);
-            Object requestedParameter = requestedParameters.get(i);
-            Integer scoreToAdd = score(parameter.getType(), requestedParameter);
+            Integer scoreToAdd = score(input, parameter.getType(), requestedParameters, i);
 
             if (scoreToAdd == null) {
                 return null;
@@ -156,7 +168,7 @@ public class FunctionInvoker {
             Class<?> varargType = MoreObjects.firstNonNull(varargParameter.getType().getComponentType(), varargParameter.getType());
 
             for (int i = varargsIndex; i < requestedParametersSize; i++) {
-                Integer varargScore = score(varargType, requestedParameters.get(i));
+                Integer varargScore = score(input, varargType, requestedParameters, i);
 
                 if (varargScore == null) {
                     return null;
@@ -179,7 +191,10 @@ public class FunctionInvoker {
         return score;
     }
 
-    private Integer score(Class<?> configuredType, Object requestedParameter) {
+    @SuppressWarnings("unchecked")
+    private Integer score(Object input, Class<?> configuredType, List<Object> requestedParameters, int index) {
+        Object requestedParameter = requestedParameters.get(index);
+
         if (requestedParameter == null && configuredType.isPrimitive()) {
             return null;
         }
@@ -194,6 +209,24 @@ public class FunctionInvoker {
             return SCORE_EXACT;
         }
 
+        if (configuredType.equals(Lambda.class) && Lambda.class.isAssignableFrom(requestedType)) {
+            return SCORE_EXACT;
+        }
+
+        if (configuredType.equals(Property.class) && Property.class.isAssignableFrom(requestedType)) {
+            return SCORE_EXACT;
+        }
+
+        if (Function.class.isAssignableFrom(requestedType) && !typeIsLambda(configuredType)) {
+            requestedParameters.set(index, ((Function) requestedParameter).apply(input));
+            return score(input, configuredType, requestedParameters, index);
+        }
+
+        if (Predicate.class.isAssignableFrom(requestedType) && !typeIsLambda(configuredType)) {
+            requestedParameters.set(index, ((Predicate) requestedParameter).test(input));
+            return score(input, configuredType, requestedParameters, index);
+        }
+
         if (configuredType.isAssignableFrom(requestedType)) {
             return SCORE_ASSIGNABLE;
         }
@@ -203,6 +236,11 @@ public class FunctionInvoker {
         }
 
         return null;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean typeIsLambda(Class<?> type) {
+        return Predicate.class.isAssignableFrom(type) || Function.class.isAssignableFrom(type);
     }
 
     private List<Object> convert(List<Object> requestedParameters, SquigglyFunction<Object> winner) {
@@ -299,7 +337,7 @@ public class FunctionInvoker {
             function = new Property() {
                 @Override
                 public boolean isAscending() {
-                    return false;
+                    return firstFunctionNode.isAscending();
                 }
 
                 @Override
@@ -333,7 +371,7 @@ public class FunctionInvoker {
                     }
                 }
             } else if (arguments.length > 0) {
-                varBuilder.put("it", arguments);
+                varBuilder.put("it", arguments[0]);
             }
 
             ImmutableMap<String, Object> varMap = varBuilder.build();
