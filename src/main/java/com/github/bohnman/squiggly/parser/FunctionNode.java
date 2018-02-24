@@ -14,12 +14,16 @@ public class FunctionNode {
     private final String name;
     private final List<ArgumentNode> parameters;
     private final boolean ignoreNulls;
+    private final FunctionNodeType type;
+    private final boolean ascending;
 
-    public FunctionNode(ParseContext context, String name, List<ArgumentNode> parameters, boolean ignoreNulls) {
+    public FunctionNode(ParseContext context, String name, List<ArgumentNode> parameters, boolean ignoreNulls, FunctionNodeType type, boolean ascending) {
         this.context = checkNotNull(context);
         this.name = checkNotNull(name);
         this.parameters = ImmutableList.copyOf(checkNotNull(parameters));
         this.ignoreNulls = ignoreNulls;
+        this.type = checkNotNull(type);
+        this.ascending = ascending;
     }
 
     public ParseContext getContext() {
@@ -36,6 +40,14 @@ public class FunctionNode {
 
     public boolean isIgnoreNulls() {
         return ignoreNulls;
+    }
+
+    public FunctionNodeType getType() {
+        return type;
+    }
+
+    public boolean isAscending() {
+        return ascending;
     }
 
     public static Builder builder() {
@@ -57,6 +69,9 @@ public class FunctionNode {
 
         private List<ArgumentNode> parameters = new ArrayList<>();
         private boolean ignoreNulls;
+
+        private FunctionNodeType type = FunctionNodeType.FUNCTION;
+        private boolean ascending = true;
 
         private Builder() {
         }
@@ -82,8 +97,18 @@ public class FunctionNode {
             return this;
         }
 
+        public Builder type(FunctionNodeType type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder ascending(boolean ascending) {
+            this.ascending = ascending;
+            return this;
+        }
+
         public FunctionNode build() {
-            return new FunctionNode(context, name, parameters, ignoreNulls);
+            return new FunctionNode(context, name, parameters, ignoreNulls, type, ascending);
         }
     }
 }

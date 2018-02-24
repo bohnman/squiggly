@@ -241,7 +241,7 @@ prefixSymboledOperator
 
 initialPropertyAccessor
     : (AtDot | AtDotSafe)? Identifier
-    | (AtBrackLeft | AtBrackLeftSafe) (StringLiteral | Variable) BracketRight
+    | (AtBrackLeft | AtBrackLeftSafe) (StringLiteral | variable) BracketRight
     | At
     ;
 
@@ -251,8 +251,8 @@ propertySortDirection
     ;
 
 propertyAccessor
-    : (Dot | SafeNavigation) Identifier
-    | (BracketLeft | BracketLeftSafe) (StringLiteral | Variable) BracketRight
+    : accessOperator Identifier
+    | (BracketLeft | BracketLeftSafe) (StringLiteral | variable) BracketRight
     ;
 
 variable

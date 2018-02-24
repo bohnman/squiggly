@@ -45,7 +45,15 @@ import static java.util.stream.Collectors.toList;
 @ThreadSafe
 public class SquigglyParser {
 
-    public static final String IDENTITY_FUNCTION = "identity";
+    public static final String FUNCTION_IDENTITY = "identity";
+    public static final String FUNCTION_PROPERTY = "property";
+
+    public static final String OP_AT_BRACKET_LEFT_SAFE = "@?[";
+    public static final String OP_BRACKET_LEFT_SAFE = "?[";
+    public static final String OP_SAFE_NAVIGATION = "?.";
+    public static final String OP_AT_DOT_SAFE = "@?.";
+    public static final String OP_AT= "@";
+
     // Caches parsed filter expressions
     private final Cache<String, List<SquigglyNode>> cache;
 
@@ -188,7 +196,7 @@ public class SquigglyParser {
         @SuppressWarnings("CodeBlock2Expr")
         private List<FunctionNode> parseFunctionChain(SquigglyExpressionParser.FunctionChainContext chainContext, @Nullable SquigglyExpressionParser.AccessOperatorContext operatorContext, boolean input) {
             List<FunctionNode> functions = new ArrayList<>(chainContext.argChainLink().size() + 1);
-            functions.add(parseFunction(chainContext.function(), operatorContext, input));
+            functions.add(buildFunction(chainContext.function(), operatorContext, input).build());
 
             chainContext.argChainLink().forEach(ctx -> {
                 functions.add(parseFunction(ctx, true));
@@ -197,20 +205,115 @@ public class SquigglyParser {
             return functions;
         }
 
-        private FunctionNode parseFunction(SquigglyExpressionParser.ArgChainLinkContext context, boolean input) {
+        private FunctionNode.Builder buildFunction(SquigglyExpressionParser.ArgChainLinkContext context, boolean input) {
             if (context.functionAccessor() != null) {
-                return parseFunction(context.functionAccessor().function(), context.functionAccessor().accessOperator(), input);
+                return buildFunction(context.functionAccessor().function(), context.functionAccessor().accessOperator(), input);
             }
 
             if (context.propertyAccessor() != null) {
-                // TODO: finish
-                return null;
+                return buildPropertyFunction(context.propertyAccessor(), input);
             }
 
             throw new IllegalStateException(format("%s: unknown arg chain link [%s]", parseContext(context), context.getText()));
         }
 
-        private FunctionNode parseFunction(SquigglyExpressionParser.FunctionContext functionContext, SquigglyExpressionParser.AccessOperatorContext operatorContext, boolean input) {
+        @SuppressWarnings("SameParameterValue")
+        private FunctionNode parseFunction(SquigglyExpressionParser.ArgChainLinkContext context, boolean input) {
+            return buildFunction(context, input).build();
+        }
+
+        private FunctionNode.Builder buildPropertyFunction(SquigglyExpressionParser.PropertyAccessorContext context, boolean input) {
+            Object value;
+            ArgumentNodeType type;
+
+            if (context.Identifier() != null) {
+                value = context.Identifier().getText();
+                type = ArgumentNodeType.STRING;
+            } else if (context.StringLiteral() != null) {
+                value = context.StringLiteral().getText();
+                type = ArgumentNodeType.STRING;
+            } else if (context.variable() != null) {
+                value = buildVariableValue(context.variable());
+                type = ArgumentNodeType.VARIABLE;
+            } else {
+                throw new IllegalStateException(format("%s: Cannot find property name [%s]", parseContext(context), context.getText()));
+            }
+
+            String op = null;
+
+            if (context.accessOperator() != null) {
+                op = context.accessOperator().getText();
+            } else if (context.BracketLeftSafe() != null) {
+                op = context.BracketLeft().getText();
+            } else if (context.BracketLeft() != null) {
+                op = context.BracketLeft().getText();
+            }
+
+            return buildBasePropertyFunction(context, op, input)
+                    .parameter(baseArg(context, type).value(value));
+        }
+
+        private FunctionNode.Builder buildPropertyFunction(SquigglyExpressionParser.InitialPropertyAccessorContext context, boolean input) {
+            Object value;
+            ArgumentNodeType type;
+
+            String op = null;
+
+            if (context.At() != null) {
+                op = context.At().getText();
+            } else if (context.AtDotSafe() != null) {
+                op = context.AtDotSafe().getText();
+            } else if (context.AtDotSafe() != null) {
+                op = context.AtDotSafe().getText();
+            } else if (context.AtBrackLeft() != null) {
+                op = context.AtBrackLeft().getText();
+            } else if (context.AtBrackLeftSafe() != null) {
+                op = context.AtBrackLeftSafe().getText();
+            }
+
+            if (context.Identifier() != null) {
+                value = context.Identifier().getText();
+                type = ArgumentNodeType.STRING;
+            } else if (context.StringLiteral() != null) {
+                value = context.StringLiteral().getText();
+                type = ArgumentNodeType.STRING;
+            } else if (context.variable() != null) {
+                value = buildVariableValue(context.variable());
+                type = ArgumentNodeType.VARIABLE;
+            } else if (OP_AT.equals(op)) {
+                value = "@";
+                type = ArgumentNodeType.STRING;
+            } else {
+                throw new IllegalStateException(format("%s: Cannot find initial property name [%s]", parseContext(context), context.getText()));
+            }
+
+            return buildBasePropertyFunction(context, op, input)
+                    .parameter(baseArg(context, type).value(value));
+        }
+
+        private FunctionNode.Builder buildBasePropertyFunction(ParserRuleContext context, String operator, boolean input) {
+            FunctionNode.Builder function = FunctionNode.builder()
+                    .context(parseContext(context))
+                    .name(FUNCTION_PROPERTY)
+                    .type(FunctionNodeType.PROPERTY);
+
+            if (input) {
+                function.parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT));
+            } else {
+                function.parameter(baseArg(context, ArgumentNodeType.VARIABLE).value("it"));
+            }
+
+            if (OP_SAFE_NAVIGATION.equals(operator)
+                    || OP_AT_BRACKET_LEFT_SAFE.equals(operator)
+                    || OP_AT_DOT_SAFE.equals(operator)
+                    || OP_BRACKET_LEFT_SAFE.equals(operator)) {
+                function.ignoreNulls(true);
+            }
+
+            return function;
+        }
+
+        private FunctionNode.Builder buildFunction(SquigglyExpressionParser.FunctionContext functionContext, SquigglyExpressionParser.AccessOperatorContext operatorContext, boolean input) {
             ParseContext context = parseContext(functionContext);
             FunctionNode.Builder builder = buildBaseFunction(functionContext, context);
 
@@ -220,11 +323,11 @@ public class SquigglyParser {
 
             applyParameters(builder, functionContext);
 
-            if (operatorContext != null && "?.".equals(operatorContext.getText())) {
+            if (operatorContext != null && OP_SAFE_NAVIGATION.equals(operatorContext.getText())) {
                 builder.ignoreNulls(true);
             }
 
-            return builder.build();
+            return builder;
         }
 
 
@@ -275,7 +378,7 @@ public class SquigglyParser {
 
             ParseContext parseContext = parseContext(lambda);
             FunctionNode body = FunctionNode.builder()
-                    .name(IDENTITY_FUNCTION)
+                    .name(FUNCTION_IDENTITY)
                     .context(parseContext)
                     .parameter(buildArg(lambda.lambdaBody().arg()))
                     .build();
@@ -466,7 +569,7 @@ public class SquigglyParser {
             if (context.literal() != null) {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.literal()))
-                        .name(IDENTITY_FUNCTION)
+                        .name(FUNCTION_IDENTITY)
                         .parameter(buildLiteral(context.literal()))
                         .build()
                 );
@@ -475,7 +578,7 @@ public class SquigglyParser {
             if (context.intRange() != null) {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.intRange()))
-                        .name(IDENTITY_FUNCTION)
+                        .name(FUNCTION_IDENTITY)
                         .parameter(buildIntRange(context.intRange()))
                         .build()
                 );
@@ -484,25 +587,33 @@ public class SquigglyParser {
             if (context.variable() != null) {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.variable()))
-                        .name(IDENTITY_FUNCTION)
+                        .name(FUNCTION_IDENTITY)
                         .parameter(buildVariable(context.variable()))
                         .build()
                 );
             }
 
-            if (context.initialPropertyAccessor() != null) {
-                // TODO: finish
-            }
+            boolean ascending = true;
 
             if (context.propertySortDirection() != null) {
-                // TODO: finish
+                ascending = !"-".equals(context.propertySortDirection().getText());
+            }
+
+            if (context.initialPropertyAccessor() != null) {
+                functionNodes.add(
+                        buildPropertyFunction(
+                                context.initialPropertyAccessor(),
+                                !functionNodes.isEmpty()
+                        ).ascending(ascending)
+                        .build()
+                );
             }
 
             if (context.argChainLink() != null) {
                 boolean input = !functionNodes.isEmpty();
 
                 for (SquigglyExpressionParser.ArgChainLinkContext linkContext : context.argChainLink()) {
-                    functionNodes.add(parseFunction(linkContext, input));
+                    functionNodes.add(buildFunction(linkContext, input).ascending(ascending).build());
                 }
             }
 
