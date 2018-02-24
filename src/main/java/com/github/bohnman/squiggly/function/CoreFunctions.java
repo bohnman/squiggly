@@ -19,8 +19,8 @@ public class CoreFunctions {
 
     @SquigglyMethod
     public static Number add(Object o1, Object o2) {
-        Number n1 = toNumber(o1);
-        Number n2 = toNumber(o2);
+        Number n1 = SquigglyUtils.toNumber(o1);
+        Number n2 = SquigglyUtils.toNumber(o2);
 
         if (n1 == null) {
             return null;
@@ -35,8 +35,8 @@ public class CoreFunctions {
 
     @SquigglyMethod(aliases = "sub")
     public static Number subtract(Object o1, Object o2) {
-        Number n1 = toNumber(o1);
-        Number n2 = toNumber(o2);
+        Number n1 = SquigglyUtils.toNumber(o1);
+        Number n2 = SquigglyUtils.toNumber(o2);
 
         if (n1 == null) {
             return null;
@@ -51,8 +51,8 @@ public class CoreFunctions {
 
     @SquigglyMethod(aliases = "mod")
     public static Number modulus(Object o1, Object o2) {
-        Number n1 = toNumber(o1);
-        Number n2 = toNumber(o2);
+        Number n1 = SquigglyUtils.toNumber(o1);
+        Number n2 = SquigglyUtils.toNumber(o2);
 
         if (n1 == null) {
             return null;
@@ -67,8 +67,8 @@ public class CoreFunctions {
 
     @SquigglyMethod(aliases = "mul")
     public static Number multiply(Object o1, Object o2) {
-        Number n1 = toNumber(o1);
-        Number n2 = toNumber(o2);
+        Number n1 = SquigglyUtils.toNumber(o1);
+        Number n2 = SquigglyUtils.toNumber(o2);
 
         if (n1 == null) {
             return null;
@@ -83,8 +83,8 @@ public class CoreFunctions {
 
     @SquigglyMethod(aliases = "div")
     public static Number divide(Object o1, Object o2) {
-        Number n1 = toNumber(o1);
-        Number n2 = toNumber(o2);
+        Number n1 = SquigglyUtils.toNumber(o1);
+        Number n2 = SquigglyUtils.toNumber(o2);
 
         if (n1 == null) {
             return null;
@@ -109,25 +109,25 @@ public class CoreFunctions {
 
     @SquigglyMethod(aliases = "lt")
     public static boolean lessThan(Object o1, Object o2) {
-        Integer compare = compare(o1, o2);
+        Integer compare = SquigglyUtils.compare(o1, o2);
         return compare != null && compare < 0;
     }
 
     @SquigglyMethod(aliases = "lte")
     public static boolean lessThanEquals(Object o1, Object o2) {
-        Integer compare = compare(o1, o2);
+        Integer compare = SquigglyUtils.compare(o1, o2);
         return compare != null && compare <= 0;
     }
 
     @SquigglyMethod(aliases = "gt")
     public static boolean greaterThan(Object o1, Object o2) {
-        Integer compare = compare(o1, o2);
+        Integer compare = SquigglyUtils.compare(o1, o2);
         return compare != null && compare > 0;
     }
 
     @SquigglyMethod(aliases = "gte")
     public static boolean greaterThanEquals(Object o1, Object o2) {
-        Integer compare = compare(o1, o2);
+        Integer compare = SquigglyUtils.compare(o1, o2);
         return compare != null && compare >= 0;
     }
 
@@ -162,96 +162,16 @@ public class CoreFunctions {
 
     @SquigglyMethod
     public static boolean or(Object o1, Object o2) {
-        return toBoolean(o1) || toBoolean(o2);
+        return SquigglyUtils.toBoolean(o1) || SquigglyUtils.toBoolean(o2);
     }
 
     @SquigglyMethod
     public static boolean and(Object o1, Object o2) {
-        return toBoolean(o1) && toBoolean(o2);
+        return SquigglyUtils.toBoolean(o1) && SquigglyUtils.toBoolean(o2);
     }
 
     @SquigglyMethod
     public static boolean not(Object o) {
-        return !toBoolean(o);
-    }
-    
-    public static Number toNumber(Object o) {
-        return toNumber(o, 0);
-    }
-    
-    public static Number toNumber(Object o, Number defaultValue) {
-        if (o == null) {
-            return defaultValue;
-        }
-        
-        if (o instanceof Number) {
-            return (Number) o;
-        }
-        
-        if (o instanceof String) {
-            try {
-                return Double.parseDouble((String) o);
-            } catch (NumberFormatException e) {
-                return defaultValue;
-            }
-        }
-        
-        return defaultValue;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static boolean toBoolean(Object o) {
-        if (o == null) {
-            return false;
-        }
-        
-        if (o instanceof Boolean) {
-            return (Boolean) o;
-        }
-
-        if (o instanceof Number) {
-            return ((Number) o).doubleValue() != 0;
-        }
-
-        if (o instanceof String) {
-            return !"".equals(o);
-        }
-
-        return false;
-    }
-
-
-    @SuppressWarnings("unchecked")
-    private static Integer compare(Object o1, Object o2) {
-        if (equals(o1, o2)) {
-            return 0;
-        }
-
-        if (o1 == null || o2 == null) {
-            return null;
-        }
-
-        if (o1 instanceof Number && o2 instanceof Number) {
-            double d1 = ((Number) o1).doubleValue();
-            double d2 = ((Number) o2).doubleValue();
-            return Double.compare(d1, d2);
-        }
-
-        if (!(o1 instanceof Comparable)) {
-            return null;
-        }
-
-        if (!(o2 instanceof Comparable)) {
-            return null;
-        }
-
-        if (!o1.getClass().isAssignableFrom(o2.getClass())) {
-            return null;
-        }
-
-        Comparable c1 = (Comparable) o1;
-        Comparable c2 = (Comparable) o2;
-
-        return c1.compareTo(c2);
+        return !SquigglyUtils.toBoolean(o);
     }
 }

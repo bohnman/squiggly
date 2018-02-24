@@ -5,6 +5,7 @@ import com.github.bohnman.squiggly.function.annotation.SquigglyMethod;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.github.bohnman.squiggly.util.array.ArrayWrapper;
 import com.github.bohnman.squiggly.util.array.ArrayWrappers;
+import com.github.bohnman.squiggly.util.function.Lambda;
 import com.github.bohnman.squiggly.util.range.IntRange;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
@@ -12,11 +13,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -25,6 +24,9 @@ import java.util.Collections;
 import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -36,10 +38,61 @@ public class DefaultFunctions {
 
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    @SquigglyMethod(aliases = "where")
+    public static Object filter(Object value, Lambda lambda) {
+        if (value == null || lambda == null) {
+            return Collections.emptyList();
+        }
+
+        if (value.getClass().isArray()) {
+            ArrayWrapper wrapper = ArrayWrappers.create(value);
+
+            return IntStream.range(0, wrapper.size())
+                    .filter(i -> SquigglyUtils.toBoolean(lambda.invoke(wrapper.get(i), i)))
+                    .mapToObj(wrapper::get)
+                    .toArray();
+        }
+
+        if (!(value instanceof Iterable)) {
+            value = Collections.singletonList(value);
+        }
+
+        List list = (value instanceof List) ? (List) value : Lists.newArrayList((Iterable) value);
+
+        return IntStream.range(0, list.size())
+                .filter(i -> SquigglyUtils.toBoolean(lambda.invoke(list.get(i), i)))
+                .mapToObj((IntFunction<Object>) list::get)
+                .collect(toList());
+    }
+
+
+    @SquigglyMethod(aliases = "where")
+    @SuppressWarnings("unchecked")
+    public static Object filter(Object value, Predicate predicate) {
+        if (value == null || predicate == null) {
+            return Collections.emptyList();
+        }
+
+        if (value.getClass().isArray()) {
+            ArrayWrapper wrapper = ArrayWrappers.create(value);
+            return wrapper.stream().filter((Predicate<Object>) predicate).toArray();
+        }
+
+        if (!(value instanceof Iterable)) {
+            value = Collections.singletonList(value);
+        }
+
+        List list = (value instanceof List) ? (List) value : Lists.newArrayList((Iterable) value);
+
+        return list.stream()
+                .filter(predicate)
+                .collect(toList());
+    }
+
     // Collection Functions
     @SquigglyMethod
     public static Object map(Object value, Lambda lambda) {
-        if (value == null || lambda == value) {
+        if (value == null || lambda == null) {
             return Collections.emptyList();
         }
 
@@ -61,6 +114,30 @@ public class DefaultFunctions {
                 .mapToObj(i -> lambda.invoke(list.get(i), i))
                 .collect(toList());
     }
+
+    @SuppressWarnings("unchecked")
+    @SquigglyMethod
+    public static Object map(Object value, Function function) {
+        if (value == null || function == null) {
+            return Collections.emptyList();
+        }
+
+        if (value.getClass().isArray()) {
+            ArrayWrapper wrapper = ArrayWrappers.create(value);
+            return wrapper.stream().map((Function<Object, Object>) function).toArray();
+        }
+
+        if (!(value instanceof Iterable)) {
+            value = Collections.singletonList(value);
+        }
+
+        List list = (value instanceof List) ? (List) value : Lists.newArrayList((Iterable) value);
+
+        return list.stream()
+                .map(function)
+                .collect(toList());
+    }
+
 
     @SquigglyMethod
     public static Object first(Object value) {
@@ -709,16 +786,9 @@ public class DefaultFunctions {
         }
 
         try {
-            return Arrays.stream(Introspector.getBeanInfo(value.getClass()).getPropertyDescriptors())
-                    .filter(propertyDescriptor -> propertyDescriptor.getReadMethod() != null)
-                    .filter(propertyDescriptor -> !propertyDescriptor.getName().equals("class"))
-                    .collect(Collectors.toMap(PropertyDescriptor::getName, pd -> {
-                        try {
-                            return pd.getReadMethod().invoke(value);
-                        } catch (IllegalAccessException | InvocationTargetException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }));
+            return SquigglyUtils.getPropertyDescriptors(value.getClass())
+                    .collect(Collectors.toMap(PropertyDescriptor::getName,
+                            pd -> SquigglyUtils.invoke(pd.getReadMethod(), value)));
         } catch (Exception e) {
             return Collections.emptyMap();
         }

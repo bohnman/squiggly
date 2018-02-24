@@ -1,7 +1,10 @@
 package com.github.bohnman.squiggly.util.array;
 
+import com.github.bohnman.squiggly.util.collect.iterator.ArrayIterator;
+import com.github.bohnman.squiggly.util.collect.iterator.ArrayListIterator;
 import com.google.common.collect.ObjectArrays;
-import org.apache.commons.collections.iterators.ArrayListIterator;
+import org.apache.commons.collections4.iterators.ObjectArrayIterator;
+import org.apache.commons.collections4.iterators.ObjectArrayListIterator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,7 +44,13 @@ public interface ArrayWrapper extends List<Object> {
 
     @Override
     default Iterator<Object> iterator() {
-        return listIterator();
+        Object array = getArray();
+
+        if (array instanceof Object[]) {
+            return new ObjectArrayIterator<>(array);
+        }
+
+        return new ArrayIterator<>(array);
     }
 
     @Override
@@ -154,7 +163,13 @@ public interface ArrayWrapper extends List<Object> {
     @SuppressWarnings("unchecked")
     @Override
     default ListIterator<Object> listIterator(int index) {
-        return new ArrayListIterator(getArray(), index);
+        Object array = getArray();
+
+        if (array instanceof Object[]) {
+            return new ObjectArrayListIterator<>(array, index);
+        }
+
+        return new ArrayListIterator(array, index);
     }
 
     @Override

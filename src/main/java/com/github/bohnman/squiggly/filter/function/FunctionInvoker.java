@@ -7,9 +7,12 @@ import com.github.bohnman.squiggly.function.SquigglyParameter;
 import com.github.bohnman.squiggly.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.parser.ArgumentNode;
 import com.github.bohnman.squiggly.parser.FunctionNode;
+import com.github.bohnman.squiggly.parser.FunctionNodeType;
 import com.github.bohnman.squiggly.parser.IntRangeNode;
 import com.github.bohnman.squiggly.parser.LambdaNode;
-import com.github.bohnman.squiggly.function.Lambda;
+import com.github.bohnman.squiggly.util.function.GenericFunction;
+import com.github.bohnman.squiggly.util.function.Lambda;
+import com.github.bohnman.squiggly.util.function.Property;
 import com.github.bohnman.squiggly.util.range.IntRange;
 import com.github.bohnman.squiggly.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.variable.MapVariableResolver;
@@ -18,9 +21,11 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -60,7 +65,7 @@ public class FunctionInvoker {
         return value;
     }
 
-    public Object invoke(Object input, FunctionNode functionNode) {
+    public Object invoke(@Nullable Object input, FunctionNode functionNode) {
         List<SquigglyFunction<Object>> functions = functionRepository.findByName(functionNode.getName());
 
         if (functions.isEmpty()) {
@@ -75,7 +80,7 @@ public class FunctionInvoker {
                     functionNode.getContext(),
                     functionNode.getName(),
                     requestedParameters.stream()
-                            .map(p -> String.format("{type=%s, value=%s}", (p == null ? "null": p.getClass()), p)).collect(Collectors.toList())));
+                            .map(p -> String.format("{type=%s, value=%s}", (p == null ? "null" : p.getClass()), p)).collect(Collectors.toList())));
         }
 
         List<Object> parameters = convert(requestedParameters, winner);
@@ -96,6 +101,7 @@ public class FunctionInvoker {
                 winner = function;
             }
         }
+
 
         return winner;
     }
@@ -264,7 +270,7 @@ public class FunctionInvoker {
     private Object getValue(ArgumentNode argumentNode, Object input) {
         switch (argumentNode.getType()) {
             case FUNCTION_CHAIN:
-                return invoke(input, (List<FunctionNode>) argumentNode.getValue());
+                return buildFunctionChain((List<FunctionNode>) argumentNode.getValue());
             case LAMBDA:
                 return buildLambda((LambdaNode) argumentNode.getValue());
             case INPUT:
@@ -281,9 +287,37 @@ public class FunctionInvoker {
         }
     }
 
-    private Object buildLambda(LambdaNode lambdaNode) {
-        return (Lambda) arguments -> {
-            if (arguments == null) arguments = new Object[] {};
+    private Function buildFunctionChain(List<FunctionNode> functionNodes) {
+        if (functionNodes.isEmpty()) {
+            return args -> null;
+        }
+
+        Function function;
+        FunctionNode firstFunctionNode = functionNodes.get(0);
+
+        if (firstFunctionNode.getType() == FunctionNodeType.PROPERTY) {
+            function = new Property() {
+                @Override
+                public boolean isAscending() {
+                    return false;
+                }
+
+                @Override
+                public Object apply(Object input) {
+                    return invoke(input, functionNodes);
+                }
+            };
+        } else {
+            function = (GenericFunction) input -> invoke(input, functionNodes);
+        }
+
+
+        return function;
+    }
+
+    private Lambda buildLambda(LambdaNode lambdaNode) {
+        return arguments -> {
+            if (arguments == null) arguments = new Object[]{};
 
             List<String> configuredArgs = lambdaNode.getArguments();
             ImmutableMap.Builder<String, Object> varBuilder = ImmutableMap.builder();
@@ -314,7 +348,7 @@ public class FunctionInvoker {
         };
     }
 
-        private <T> T getValue(ArgumentNode argumentNode, Object input, Class<T> targetType) {
+    private <T> T getValue(ArgumentNode argumentNode, Object input, Class<T> targetType) {
         return conversionService.convert(getValue(argumentNode, input), targetType);
     }
 }
