@@ -51,6 +51,8 @@ dottedField
 
 field
     : Identifier
+    | binaryNamedOperator
+    | prefixNamedOperator
     | RegexLiteral
     | ('+' | '-')? IntegerLiteral
     | StringLiteral
@@ -128,18 +130,23 @@ intRangeArg
 
 // Closures
 
-closure
-    : variable '->' closureBody
-    | '(' variable (',' variable)* ')' '->' closureBody
+lambda
+    : lambdaArg '->' lambdaBody
+    | '(' (lambdaArg (',' lambdaArg)*)? ')' '->' lambdaBody
     ;
 
-closureBody
+lambdaBody
     : arg
+    ;
+
+lambdaArg
+    : variable
+    | '_'
     ;
 
 arg
     : literal
-    | closure
+    | lambda
     | argChain
     | variable
     | intRange

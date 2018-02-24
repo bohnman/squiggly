@@ -5,7 +5,8 @@ import com.github.bohnman.squiggly.function.annotation.SquigglyMethod;
 import com.github.bohnman.squiggly.util.SquigglyUtils;
 import com.github.bohnman.squiggly.util.array.ArrayWrapper;
 import com.github.bohnman.squiggly.util.array.ArrayWrappers;
-import com.github.bohnman.squiggly.util.datatype.IntRange;
+import com.github.bohnman.squiggly.util.function.Lambda;
+import com.github.bohnman.squiggly.util.range.IntRange;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
@@ -30,11 +31,38 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toList;
+
 public class DefaultFunctions {
 
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     // Collection Functions
+    @SquigglyMethod
+    public static Object map(Object value, Lambda lambda) {
+        if (value == null || lambda == value) {
+            return Collections.emptyList();
+        }
+
+        if (value.getClass().isArray()) {
+            ArrayWrapper wrapper = ArrayWrappers.create(value);
+
+            return IntStream.range(0, wrapper.size())
+                    .mapToObj(i -> lambda.invoke(wrapper.get(i), i))
+                    .toArray();
+        }
+
+        if (!(value instanceof Iterable)) {
+            value = Collections.singletonList(value);
+        }
+
+        List list = (value instanceof List) ? (List) value : Lists.newArrayList((Iterable) value);
+
+        return IntStream.range(0, list.size())
+                .mapToObj(i -> lambda.invoke(list.get(i), i))
+                .collect(toList());
+    }
+
     @SquigglyMethod
     public static Object first(Object value) {
         if (value == null) {
@@ -707,7 +735,7 @@ public class DefaultFunctions {
 
                     return Stream.empty();
                 })
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private static int normalizeIndex(int index, int length) {

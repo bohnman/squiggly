@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.util.datatype;
+package com.github.bohnman.squiggly.util.range;
 
 public class IntRange {
 

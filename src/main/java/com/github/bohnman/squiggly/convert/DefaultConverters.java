@@ -27,6 +27,7 @@ public class DefaultConverters {
 
                 // Integer
                 nullSafe(Integer.class, Byte.class, Integer::byteValue),
+                nullSafe(Integer.class, Number.class, i -> i),
                 nullSafe(Integer.class, Short.class, Integer::shortValue),
                 nullSafe(Integer.class, Long.class, Integer::longValue),
                 nullSafe(Integer.class, Float.class, Integer::floatValue),
@@ -55,6 +56,8 @@ public class DefaultConverters {
 
                 // Double
                 nullSafe(Double.class, Byte.class, Double::byteValue),
+//                nullSafe(Double.class, int.class, Double::intValue),
+                nullSafe(Double.class, Number.class, i -> i),
                 nullSafe(Double.class, Integer.class, Double::intValue),
                 nullSafe(Double.class, Long.class, Double::longValue),
                 nullSafe(Double.class, Float.class, Double::floatValue),

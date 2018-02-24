@@ -42,6 +42,11 @@ public class FunctionNode {
         return new Builder();
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s(%s)", name, parameters);
+    }
+
     public static class Builder {
 
         @Nullable

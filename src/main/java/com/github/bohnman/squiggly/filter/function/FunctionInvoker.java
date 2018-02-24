@@ -1,16 +1,22 @@
 package com.github.bohnman.squiggly.filter.function;
 
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
+import com.github.bohnman.squiggly.function.DefaultFunctions;
 import com.github.bohnman.squiggly.function.FunctionRequest;
 import com.github.bohnman.squiggly.function.SquigglyFunction;
 import com.github.bohnman.squiggly.function.SquigglyParameter;
 import com.github.bohnman.squiggly.function.repository.SquigglyFunctionRepository;
-import com.github.bohnman.squiggly.parser.FunctionNode;
 import com.github.bohnman.squiggly.parser.ArgumentNode;
+import com.github.bohnman.squiggly.parser.FunctionNode;
 import com.github.bohnman.squiggly.parser.IntRangeNode;
-import com.github.bohnman.squiggly.util.datatype.IntRange;
+import com.github.bohnman.squiggly.parser.LambdaNode;
+import com.github.bohnman.squiggly.util.function.Lambda;
+import com.github.bohnman.squiggly.util.range.IntRange;
+import com.github.bohnman.squiggly.variable.CompositeVariableResolver;
+import com.github.bohnman.squiggly.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.variable.SquigglyVariableResolver;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
 
 import java.util.ArrayList;
@@ -25,7 +31,8 @@ public class FunctionInvoker {
 
     private static final int SCORE_NULL = 1;
     private static final int SCORE_CONVERT = 2;
-    private static final int SCORE_EXACT = 4;
+    private static final int SCORE_ASSIGNABLE = 4;
+    private static final int SCORE_EXACT = 8;
 
     private final SquigglyFunctionRepository functionRepository;
     private final SquigglyVariableResolver variableResolver;
@@ -65,7 +72,11 @@ public class FunctionInvoker {
         SquigglyFunction<Object> winner = findBestCandidateFunction(functionNode, requestedParameters, functions);
 
         if (winner == null) {
-            throw new IllegalStateException(format("%s: Unable to match function [%s] with parameters %s.", functionNode.getContext(), functionNode.getName(), functionNode.getParameters()));
+            throw new IllegalStateException(format("%s: Unable to match function [%s] with parameters %s.",
+                    functionNode.getContext(),
+                    functionNode.getName(),
+                    requestedParameters.stream()
+                            .map(p -> String.format("{type=%s, value=%s}", (p == null ? "null": p.getClass()), p)).collect(Collectors.toList())));
         }
 
         List<Object> parameters = convert(requestedParameters, winner);
@@ -178,6 +189,10 @@ public class FunctionInvoker {
             return SCORE_EXACT;
         }
 
+        if (configuredType.isAssignableFrom(requestedType)) {
+            return SCORE_ASSIGNABLE;
+        }
+
         if (conversionService.canConvert(requestedType, configuredType)) {
             return SCORE_CONVERT;
         }
@@ -228,7 +243,7 @@ public class FunctionInvoker {
             return null;
         }
 
-        if (type.equals(requestedParam.getClass())) {
+        if (type.isAssignableFrom(requestedParam.getClass())) {
             return requestedParam;
         }
 
@@ -251,6 +266,8 @@ public class FunctionInvoker {
         switch (argumentNode.getType()) {
             case FUNCTION_CHAIN:
                 return invoke(input, (List<FunctionNode>) argumentNode.getValue());
+            case LAMBDA:
+                return buildLambda((LambdaNode) argumentNode.getValue());
             case INPUT:
                 return input;
             case INT_RANGE:
@@ -265,7 +282,40 @@ public class FunctionInvoker {
         }
     }
 
-    private <T> T getValue(ArgumentNode argumentNode, Object input, Class<T> targetType) {
+    private Object buildLambda(LambdaNode lambdaNode) {
+        return (Lambda) arguments -> {
+            if (arguments == null) arguments = new Object[] {};
+
+            List<String> configuredArgs = lambdaNode.getArguments();
+            ImmutableMap.Builder<String, Object> varBuilder = ImmutableMap.builder();
+
+            if (configuredArgs.size() > 0) {
+                int end = Math.min(arguments.length, configuredArgs.size());
+
+                for (int i = 0; i < end; i++) {
+                    String name = configuredArgs.get(i);
+
+                    if (!name.equals("_")) {
+                        varBuilder.put(name, arguments[i]);
+                    }
+                }
+            } else if (arguments.length > 0) {
+                varBuilder.put("it", arguments);
+            }
+
+            ImmutableMap<String, Object> varMap = varBuilder.build();
+
+            if (varMap.isEmpty()) {
+                return invoke(null, lambdaNode.getBody());
+            }
+
+            SquigglyVariableResolver variableResolver = new CompositeVariableResolver(new MapVariableResolver(varMap), this.variableResolver);
+            FunctionInvoker invoker = new FunctionInvoker(conversionService, functionRepository, variableResolver);
+            return invoker.invoke(null, lambdaNode.getBody());
+        };
+    }
+
+        private <T> T getValue(ArgumentNode argumentNode, Object input, Class<T> targetType) {
         return conversionService.convert(getValue(argumentNode, input), targetType);
     }
 }

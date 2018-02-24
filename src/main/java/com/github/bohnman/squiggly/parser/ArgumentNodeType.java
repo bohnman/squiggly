@@ -7,6 +7,7 @@ public enum ArgumentNodeType {
     INPUT,
     INT_RANGE,
     INTEGER,
+    LAMBDA,
     REGEX,
     STRING,
     VARIABLE
