@@ -9,8 +9,10 @@ import com.github.bohnman.squiggly.config.source.SquigglyConfigSource;
 import com.github.bohnman.squiggly.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.convert.ConverterRecord;
+import com.github.bohnman.squiggly.convert.ConverterRecordRepository;
 import com.github.bohnman.squiggly.convert.DefaultConversionService;
 import com.github.bohnman.squiggly.convert.DefaultConverters;
+import com.github.bohnman.squiggly.convert.ListRecordRepository;
 import com.github.bohnman.squiggly.convert.NullSafeConverterRecord;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.filter.SquigglyPropertyFilter;
@@ -37,7 +39,6 @@ import net.jcip.annotations.ThreadSafe;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -602,15 +603,19 @@ public class Squiggly {
         }
 
         private SquigglyConversionService buildConversionService(SquigglyConfig config) {
-            List<ConverterRecord> defaultConverterRecords = registerDefaultConverters ? DefaultConverters.get() : Collections.emptyList();
-            List<ConverterRecord> allConverterRecords = Stream.concat(defaultConverterRecords.stream(), converterRecords.stream())
-                    .collect(toList());
+            ConverterRecordRepository recordRepository = new ListRecordRepository();
 
-            if (this.conversionService == null) {
-                return new DefaultConversionService(config, allConverterRecords);
+            if (registerDefaultConverters) {
+                DefaultConverters.add(recordRepository);
             }
 
-            return this.conversionService.apply(allConverterRecords);
+            recordRepository.addAll(converterRecords);
+
+            if (this.conversionService == null) {
+                return new DefaultConversionService(config, recordRepository.findAll());
+            }
+
+            return this.conversionService.apply(recordRepository.findAll());
         }
 
         private SquigglyVariableResolver buildVariableResolver() {
