@@ -41,7 +41,7 @@ emptyNestedExpression
 // Fields
 
 fieldList
-    : ParenLeft field ((Pipe|Comma) field)* ParentRight
+    : ParenLeft field ((Pipe|Comma) field)* ParenRight
     | field
     ;
 
@@ -97,7 +97,7 @@ functionAccessor
 
 
 function
-    : functionName ParenLeft functionParameters? ParentRight
+    : functionName ParenLeft functionParameters? ParenRight
     ;
 
 functionName
@@ -114,11 +114,20 @@ functionParameter
     ;
 
 intRange
+    : inclusiveExclusiveIntRange
+    | inclusiveInclusiveIntRange
+    ;
+
+inclusiveExclusiveIntRange
+    : BracketLeft intRangeArg Colon intRangeArg? ParenRight
+    ;
+
+inclusiveInclusiveIntRange
     : BracketLeft intRangeArg Colon intRangeArg? BracketRight
     ;
 
 intRangeArg
-    : (Add | Subtract) IntegerLiteral
+    : (Add | Subtract)? IntegerLiteral
     | variable
     ;
 
@@ -126,7 +135,7 @@ intRangeArg
 
 lambda
     : lambdaArg Lambda lambdaBody
-    | ParenLeft (lambdaArg (Comma lambdaArg)*)? ParentRight Lambda lambdaBody
+    | ParenLeft (lambdaArg (Comma lambdaArg)*)? ParenRight Lambda lambdaBody
     ;
 
 lambdaBody
@@ -175,7 +184,7 @@ argGroupStart
     ;
 
 argGroupEnd
-    : ParentRight
+    : ParenRight
     ;
 
 
@@ -279,7 +288,7 @@ MatchNot: '!~';
 Modulus: '%';
 Not: '!';
 ParenLeft: '(';
-ParentRight: ')';
+ParenRight: ')';
 Pipe: '|';
 QuestionMark: '?';
 QuoteSingle: '\'';

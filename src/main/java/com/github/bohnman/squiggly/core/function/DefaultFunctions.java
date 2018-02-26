@@ -321,7 +321,13 @@ public class DefaultFunctions {
             return value;
         }
 
-        int start = CoreObjects.firstNonNull(range.getStart(), 0);
+        range = range.toExclusive();
+
+        Integer start = range.getStart();
+
+        if (start == null) {
+            return slice(value, 0, 0);
+        }
 
         if (range.getEnd() == null) {
             return slice(value, start);

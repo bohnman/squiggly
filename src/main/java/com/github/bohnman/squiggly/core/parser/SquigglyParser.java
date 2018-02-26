@@ -515,7 +515,19 @@ public class SquigglyParser {
         }
 
         private ArgumentNode.Builder buildIntRange(SquigglyExpressionParser.IntRangeContext context) {
-            List<SquigglyExpressionParser.IntRangeArgContext> intRangeArgs = context.intRangeArg();
+            List<SquigglyExpressionParser.IntRangeArgContext> intRangeArgs;
+            boolean exclusiveEnd;
+
+            if (context.inclusiveExclusiveIntRange() != null) {
+                intRangeArgs = context.inclusiveExclusiveIntRange().intRangeArg();
+                exclusiveEnd = true;
+            } else if (context.inclusiveInclusiveIntRange() != null) {
+                intRangeArgs = context.inclusiveInclusiveIntRange().intRangeArg();
+                exclusiveEnd = false;
+            } else {
+                throw new IllegalStateException(format("%s: Unknown int range type [%s]", parseContext(context), context.getText()));
+            }
+
             ArgumentNode.Builder start = null;
             ArgumentNode.Builder end = null;
 
@@ -528,7 +540,7 @@ public class SquigglyParser {
             }
 
             return baseArg(context, ArgumentNodeType.INT_RANGE)
-                    .value(new IntRangeNode(start, end));
+                    .value(new IntRangeNode(start, end, exclusiveEnd));
         }
 
         private ArgumentNode.Builder buildIntRangeArg(SquigglyExpressionParser.IntRangeArgContext context) {
