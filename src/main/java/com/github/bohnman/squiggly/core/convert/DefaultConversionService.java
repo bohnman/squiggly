@@ -91,29 +91,6 @@ public class DefaultConversionService implements SquigglyConversionService {
         }
 
         return (converter == null) ? NO_MATCH : converter;
-
-
-//        Class<?> source = key.source;
-//
-//        if (source == Object.class) {
-//            return NO_MATCH;
-//        }
-//
-//        Class<?> superSource = source.getSuperclass();
-//        ConverterRecord record = superSource == null ? NO_MATCH : cache.computeIfAbsent(new Key(superSource, key.target), this::load);
-//
-//        if (record == NO_MATCH || superSource == Object.class) {
-//            for (Class<?> ifaceClass : source.getInterfaces()) {
-//                ConverterRecord ifaceRecord = cache.computeIfAbsent(new Key(ifaceClass, key.target), this::load);
-//
-//                if (ifaceRecord != NO_MATCH && (record == NO_MATCH || ifaceRecord.getSource() != Object.class)) {
-//                    record = ifaceRecord;
-//                    break;
-//                }
-//            }
-//        }
-
-//        return record;
     }
 
     private ConverterRecord find(Class<?> sourceType, Class<?> targetType) {
