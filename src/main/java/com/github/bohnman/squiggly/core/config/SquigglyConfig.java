@@ -1,12 +1,12 @@
 package com.github.bohnman.squiggly.core.config;
 
+import com.github.bohnman.core.cache.CacheBuilderSpec;
 import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.squiggly.core.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.core.config.source.CompositeConfigSource;
 import com.github.bohnman.squiggly.core.config.source.PropertiesConfigSource;
 import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilter;
-import com.google.common.cache.CacheBuilderSpec;
 import net.jcip.annotations.ThreadSafe;
 
 import java.net.URL;

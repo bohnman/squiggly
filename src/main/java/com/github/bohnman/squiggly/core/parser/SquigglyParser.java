@@ -1,10 +1,12 @@
 package com.github.bohnman.squiggly.core.parser;
 
 import com.github.bohnman.core.antlr4.ThrowingErrorListener;
+import com.github.bohnman.core.cache.Cache;
+import com.github.bohnman.core.cache.CacheBuilder;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
-import com.github.bohnman.squiggly.core.metric.source.GuavaCacheSquigglyMetricsSource;
+import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.name.AnyShallowName;
 import com.github.bohnman.squiggly.core.name.ExactName;
@@ -16,8 +18,6 @@ import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionBaseVisi
 import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionLexer;
 import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionParser;
 import com.github.bohnman.squiggly.core.view.PropertyView;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -59,7 +59,7 @@ public class SquigglyParser {
 
     public SquigglyParser(SquigglyConfig config, SquigglyMetrics metrics) {
         cache = CacheBuilder.from(config.getParserNodeCacheSpec()).build();
-        metrics.add(new GuavaCacheSquigglyMetricsSource("squiggly.parser.nodeCache.", cache));
+        metrics.add(new CoreCacheSquigglyMetricsSource("squiggly.parser.nodeCache.", cache));
     }
 
     /**
@@ -76,7 +76,7 @@ public class SquigglyParser {
         }
 
         // get it from the cache if we can
-        List<SquigglyNode> cachedNodes = cache.getIfPresent(filter);
+        List<SquigglyNode> cachedNodes = cache.get(filter);
 
         if (cachedNodes != null) {
             return cachedNodes;

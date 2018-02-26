@@ -2,15 +2,14 @@ package com.github.bohnman.squiggly.core.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.github.bohnman.core.cache.Cache;
+import com.github.bohnman.core.cache.CacheBuilder;
 import com.github.bohnman.core.lang.CoreFields;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
-import com.github.bohnman.squiggly.core.metric.source.GuavaCacheSquigglyMetricsSource;
+import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.view.PropertyView;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import net.jcip.annotations.ThreadSafe;
 
 import javax.annotation.Nullable;
@@ -38,24 +37,18 @@ public class BeanInfoIntrospector {
     /**
      * Caches bean class to a map of views to property views.
      */
-    private final LoadingCache<Class, BeanInfo> cache;
+    private final Cache<Class, BeanInfo> cache;
     private final SquigglyConfig config;
 
     public BeanInfoIntrospector(SquigglyConfig config, SquigglyMetrics metrics) {
         this.config = notNull(config);
-        cache = CacheBuilder.from(config.getPropertyDescriptorCacheSpec())
-                .build(new CacheLoader<Class, BeanInfo>() {
-                    @Override
-                    public BeanInfo load(Class key) {
-                        return introspectClass(key);
-                    }
-                });
-        metrics.add(new GuavaCacheSquigglyMetricsSource("squiggly.property.descriptorCache.", cache));
+        cache = CacheBuilder.from(config.getPropertyDescriptorCacheSpec()).build();
+        metrics.add(new CoreCacheSquigglyMetricsSource("squiggly.property.descriptorCache.", cache));
     }
 
 
     public BeanInfo introspect(Class beanClass) {
-        return cache.getUnchecked(beanClass);
+        return cache.computeIfAbsent(beanClass, this::introspectClass);
     }
 
     private BeanInfo introspectClass(Class beanClass) {

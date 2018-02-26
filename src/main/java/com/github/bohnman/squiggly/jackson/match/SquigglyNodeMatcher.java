@@ -3,18 +3,18 @@ package com.github.bohnman.squiggly.jackson.match;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
+import com.github.bohnman.core.cache.Cache;
+import com.github.bohnman.core.cache.CacheBuilder;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.bean.BeanInfo;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
-import com.github.bohnman.squiggly.core.metric.source.GuavaCacheSquigglyMetricsSource;
+import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.parser.ParseContext;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 import com.github.bohnman.squiggly.jackson.Squiggly;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,10 +35,11 @@ public class SquigglyNodeMatcher {
     private final Squiggly squiggly;
 
 
+    @SuppressWarnings("unchecked")
     public SquigglyNodeMatcher(Squiggly squiggly) {
         this.squiggly = notNull(squiggly);
         this.matchCache = CacheBuilder.from(squiggly.getConfig().getFilterPathCacheSpec()).build();
-        squiggly.getMetrics().add(new GuavaCacheSquigglyMetricsSource("squiggly.filter.pathCache.", matchCache));
+        squiggly.getMetrics().add(new CoreCacheSquigglyMetricsSource("squiggly.filter.pathCache.", matchCache));
     }
 
     public SquigglyNode match(final PropertyWriter writer, final JsonGenerator jgen) {
@@ -64,7 +65,7 @@ public class SquigglyNodeMatcher {
         if (path.isCachable()) {
             // cache the match result using the path and filter expression
             CorePair<Path, String> pair = CorePair.of(path, filter);
-            SquigglyNode match = matchCache.getIfPresent(pair);
+            SquigglyNode match = matchCache.get(pair);
 
             if (match == null) {
                 match = matchPath(path, context);

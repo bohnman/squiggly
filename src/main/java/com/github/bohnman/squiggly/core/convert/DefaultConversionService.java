@@ -1,11 +1,9 @@
 package com.github.bohnman.squiggly.core.convert;
 
+import com.github.bohnman.core.cache.Cache;
+import com.github.bohnman.core.cache.CacheBuilder;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -16,16 +14,10 @@ public class DefaultConversionService implements SquigglyConversionService {
 
     private static ConverterRecord NO_MATCH = new ConverterRecord(Object.class, Object.class, Function.identity());
 
-    private final LoadingCache<Key, ConverterRecord> cache;
+    private final Cache<Key, ConverterRecord> cache;
 
     public DefaultConversionService(SquigglyConfig config, List<ConverterRecord> records) {
-        this.cache = CacheBuilder.from(config.getConvertCacheSpec())
-                .build(new CacheLoader<Key, ConverterRecord>() {
-                    @Override
-                    public ConverterRecord load(@Nonnull Key key) {
-                        return DefaultConversionService.this.load(key);
-                    }
-                });
+        this.cache = CacheBuilder.from(config.getConvertCacheSpec()).build();
 
         records.forEach(record -> {
             Key key = Key.from(record);
@@ -42,11 +34,11 @@ public class DefaultConversionService implements SquigglyConversionService {
         }
 
         Class<?> superSource = source.getSuperclass();
-        ConverterRecord record = superSource == null ? NO_MATCH : cache.getUnchecked(new Key(superSource, key.target));
+        ConverterRecord record = superSource == null ? NO_MATCH : cache.computeIfAbsent(new Key(superSource, key.target), this::load);
 
         if (record == NO_MATCH || superSource == Object.class) {
             for (Class<?> ifaceClass : source.getInterfaces()) {
-                ConverterRecord ifaceRecord = cache.getUnchecked(new Key(ifaceClass, key.target));
+                ConverterRecord ifaceRecord = cache.computeIfAbsent(new Key(ifaceClass, key.target), this::load);
 
                 if (ifaceRecord != NO_MATCH && (record == NO_MATCH || ifaceRecord.getSource() != Object.class)) {
                     record = ifaceRecord;
@@ -68,7 +60,7 @@ public class DefaultConversionService implements SquigglyConversionService {
             return true;
         }
 
-        ConverterRecord record = cache.getUnchecked(new Key(source, target));
+        ConverterRecord record = cache.computeIfAbsent(new Key(source, target), this::load);
 
         if (record == NO_MATCH) {
             return false;
@@ -92,7 +84,7 @@ public class DefaultConversionService implements SquigglyConversionService {
             return (T) value;
         }
 
-        ConverterRecord record = cache.getUnchecked(new Key(value.getClass(), target));
+        ConverterRecord record = cache.computeIfAbsent(new Key(value.getClass(), target), this::load);
 
         if (record == NO_MATCH) {
             throw new IllegalArgumentException(String.format("Cannot convert [%s] from [%s] to [%s]: No converter found", value, value.getClass(), value.getClass()));
