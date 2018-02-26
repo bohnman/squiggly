@@ -3,7 +3,7 @@ package com.github.bohnman.squiggly.core.variable;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class CompositeVariableResolver implements SquigglyVariableResolver {
 
@@ -14,7 +14,7 @@ public class CompositeVariableResolver implements SquigglyVariableResolver {
     }
 
     public CompositeVariableResolver(Iterable<SquigglyVariableResolver> resolvers) {
-        this.resolvers = checkNotNull(resolvers);
+        this.resolvers = notNull(resolvers);
     }
 
     @Nullable

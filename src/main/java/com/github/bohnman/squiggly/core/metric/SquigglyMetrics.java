@@ -2,10 +2,10 @@ package com.github.bohnman.squiggly.core.metric;
 
 import com.github.bohnman.squiggly.core.metric.source.CompositeSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.metric.source.SquigglyMetricsSource;
-import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Provides API for obtaining various metrics in the squiggly libraries, such as cache statistics.
@@ -30,7 +30,7 @@ public class SquigglyMetrics {
      * @return map
      */
     public SortedMap<String, Object> asMap() {
-        SortedMap<String, Object> metrics = Maps.newTreeMap();
+        SortedMap<String, Object> metrics = new TreeMap<>();
         metricsSource.applyMetrics(metrics);
         return metrics;
     }

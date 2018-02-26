@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class CompositeConfigSource implements SquigglyConfigSource {
 
@@ -15,7 +15,7 @@ public class CompositeConfigSource implements SquigglyConfigSource {
     }
 
     public CompositeConfigSource(Iterable<SquigglyConfigSource> sources) {
-        this.sources = checkNotNull(sources);
+        this.sources = notNull(sources);
     }
 
     @Override

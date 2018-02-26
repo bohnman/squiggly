@@ -1,7 +1,5 @@
 package com.github.bohnman.squiggly.core.variable;
 
-import com.google.common.collect.ImmutableMap;
-
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
@@ -15,7 +13,7 @@ public class MapVariableResolver implements SquigglyVariableResolver {
     }
 
     public MapVariableResolver(Map<String, Object> variables) {
-        this.variables = ImmutableMap.copyOf(variables);
+        this.variables = Collections.unmodifiableMap(variables);
     }
 
     @Nullable

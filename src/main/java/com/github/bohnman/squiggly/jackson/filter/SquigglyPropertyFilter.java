@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher.NEVER_MATCH;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 
 /**
@@ -72,7 +72,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
      * @param squiggly squiggly
      */
     public SquigglyPropertyFilter(Squiggly squiggly) {
-        this.squiggly = checkNotNull(squiggly);
+        this.squiggly = notNull(squiggly);
         this.nodeMatcher = new SquigglyNodeMatcher(squiggly);
         this.functionInvoker = new SquigglyFunctionInvoker(squiggly.getConversionService(), squiggly.getFunctionRepository(), squiggly.getVariableResolver());
     }

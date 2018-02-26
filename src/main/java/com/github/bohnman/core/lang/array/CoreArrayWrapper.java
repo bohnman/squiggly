@@ -4,7 +4,6 @@ import com.github.bohnman.core.lang.array.iterator.CoreArrayIterator;
 import com.github.bohnman.core.lang.array.iterator.CoreArrayListIterator;
 import com.github.bohnman.core.lang.array.iterator.CoreObjectArrayIterator;
 import com.github.bohnman.core.lang.array.iterator.CoreObjectArrayListIterator;
-import com.google.common.collect.ObjectArrays;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -189,7 +188,7 @@ public interface CoreArrayWrapper extends List<Object> {
     }
 
     default CoreArrayWrapper create(int size) {
-        return CoreArrays.wrap(ObjectArrays.newArray(getArray().getClass().getComponentType(), size));
+        return CoreArrays.wrap(CoreArrays.newArray(getArray().getClass().getComponentType(), size));
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")

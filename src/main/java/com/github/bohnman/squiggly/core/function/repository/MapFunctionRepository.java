@@ -1,16 +1,20 @@
 package com.github.bohnman.squiggly.core.function.repository;
 
+import com.github.bohnman.core.collect.CoreStreams;
+import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.*;
 
 public class MapFunctionRepository implements SquigglyFunctionRepository {
 
-    private final ListMultimap<String, SquigglyFunction<Object>> functionMap;
+    private final Map<String, List<SquigglyFunction<Object>>> functionMap;
 
     public MapFunctionRepository(SquigglyFunction<?>... functions) {
         this(Arrays.asList(functions));
@@ -18,17 +22,15 @@ public class MapFunctionRepository implements SquigglyFunctionRepository {
 
     @SuppressWarnings("unchecked")
     public <T> MapFunctionRepository(Iterable<SquigglyFunction<?>> functions) {
-        ListMultimap<String, SquigglyFunction<Object>> functionMap = ArrayListMultimap.create();
+        Map<String, List<SquigglyFunction<Object>>> functionMap =  (Map) CoreStreams.of(functions)
+                .flatMap(f -> Stream.concat(Stream.of(toPair(f.getName(), f)), f.getAliases().stream().map(a -> toPair(a, f))))
+                .collect(groupingBy(CorePair::getLeft, mapping(CorePair::getRight, toList())));
 
-        for (SquigglyFunction<?> function : functions) {
-            functionMap.put(function.getName(), (SquigglyFunction) function);
+        this.functionMap = Collections.unmodifiableMap(functionMap);
+    }
 
-            for (String alias : function.getAliases()) {
-                functionMap.put(alias, (SquigglyFunction) function);
-            }
-        }
-
-        this.functionMap = Multimaps.unmodifiableListMultimap(functionMap);
+    private CorePair<String, SquigglyFunction<?>> toPair(String name, SquigglyFunction<?> function) {
+        return CorePair.of(name, function);
     }
 
     @Override

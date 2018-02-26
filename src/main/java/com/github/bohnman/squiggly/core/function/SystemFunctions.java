@@ -1,11 +1,11 @@
 package com.github.bohnman.squiggly.core.function;
 
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
-import com.github.bohnman.core.lang.array.CoreArrayWrapper;
-import com.github.bohnman.core.lang.array.CoreArrays;
+import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreObjects;
-import com.google.common.collect.Streams;
+import com.github.bohnman.core.lang.array.CoreArrayWrapper;
+import com.github.bohnman.core.lang.array.CoreArrays;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -139,16 +139,16 @@ public class SystemFunctions {
         if (o == null) {
             return false;
         }
-        
+
         if (o.getClass().isArray()) {
             CoreArrayWrapper wrapper = CoreArrays.wrap(o);
             return wrapper.stream().anyMatch(e -> match(e, pattern));
         }
 
         if (o instanceof Iterable) {
-            return Streams.stream((Iterable) o).anyMatch(e -> match(e, pattern));
+            return CoreStreams.of((Iterable) o).anyMatch(e -> match(e, pattern));
         }
-        
+
         if (!(o instanceof String)) {
             o = CoreConversions.toString(o);
         }

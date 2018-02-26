@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.core.web;
 
+import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.context.provider.AbstractSquigglyContextProvider;
-import com.google.common.base.MoreObjects;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -34,7 +34,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         String filter = cache.get(beanClass);
 
         if (filter == null) {
-            filter = MoreObjects.firstNonNull(getFilter(request), defaultFilter);
+            filter = CoreObjects.firstNonNull(getFilter(request), defaultFilter);
             filter = customizeFilter(filter, request, beanClass);
             cache.put(beanClass, filter);
         }

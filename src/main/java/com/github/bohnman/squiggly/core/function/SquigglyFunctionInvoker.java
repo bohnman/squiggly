@@ -1,5 +1,12 @@
 package com.github.bohnman.squiggly.core.function;
 
+import com.github.bohnman.core.bean.CoreBeans;
+import com.github.bohnman.core.function.CoreLambda;
+import com.github.bohnman.core.function.CoreProperty;
+import com.github.bohnman.core.function.FunctionPredicateBridge;
+import com.github.bohnman.core.lang.CoreObjects;
+import com.github.bohnman.core.lang.array.CoreArrays;
+import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.core.parser.ArgumentNode;
@@ -7,27 +14,21 @@ import com.github.bohnman.squiggly.core.parser.FunctionNode;
 import com.github.bohnman.squiggly.core.parser.FunctionNodeType;
 import com.github.bohnman.squiggly.core.parser.IntRangeNode;
 import com.github.bohnman.squiggly.core.parser.LambdaNode;
-import com.github.bohnman.core.bean.CoreBeans;
-import com.github.bohnman.core.function.FunctionPredicateBridge;
-import com.github.bohnman.core.function.CoreLambda;
-import com.github.bohnman.core.function.CoreProperty;
-import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ObjectArrays;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 import static java.lang.String.format;
 
 public class SquigglyFunctionInvoker {
@@ -45,9 +46,9 @@ public class SquigglyFunctionInvoker {
             SquigglyConversionService conversionService,
             SquigglyFunctionRepository functionRepository,
             SquigglyVariableResolver variableResolver) {
-        this.conversionService = checkNotNull(conversionService);
-        this.functionRepository = checkNotNull(functionRepository);
-        this.variableResolver = checkNotNull(variableResolver);
+        this.conversionService = notNull(conversionService);
+        this.functionRepository = notNull(functionRepository);
+        this.variableResolver = notNull(variableResolver);
     }
 
     public Object invoke(Object input, Iterable<FunctionNode> functionNodes) {
@@ -162,7 +163,7 @@ public class SquigglyFunctionInvoker {
         if (varargsIndex >= 0) {
             int scoreToAdd = 0;
             SquigglyParameter varargParameter = configuredParameters.get(varargsIndex);
-            Class<?> varargType = MoreObjects.firstNonNull(varargParameter.getType().getComponentType(), varargParameter.getType());
+            Class<?> varargType = CoreObjects.firstNonNull(varargParameter.getType().getComponentType(), varargParameter.getType());
 
             for (int i = varargsIndex; i < requestedParametersSize; i++) {
                 Integer varargScore = score(input, varargType, requestedParameters, i);
@@ -264,9 +265,9 @@ public class SquigglyFunctionInvoker {
 
         if (varargsIndex >= 0) {
             SquigglyParameter varargParameter = configuredParameters.get(varargsIndex);
-            Class<?> varargType = MoreObjects.firstNonNull(varargParameter.getType().getComponentType(), varargParameter.getType());
+            Class<?> varargType = CoreObjects.firstNonNull(varargParameter.getType().getComponentType(), varargParameter.getType());
             int len = Math.max(0, requestedParametersSize - varargsIndex);
-            Object[] array = ObjectArrays.newArray(varargType, len);
+            Object[] array = CoreArrays.newArray(varargType, len);
 
             for (int i = varargsIndex; i < requestedParametersSize; i++) {
                 array[i - varargsIndex] = convert(requestedParameters.get(i), varargType);
@@ -355,7 +356,7 @@ public class SquigglyFunctionInvoker {
             if (arguments == null) arguments = new Object[]{};
 
             List<String> configuredArgs = lambdaNode.getArguments();
-            ImmutableMap.Builder<String, Object> varBuilder = ImmutableMap.builder();
+            Map<String, Object> varBuilder = new HashMap<>();
 
             if (configuredArgs.size() > 0) {
                 int end = Math.min(arguments.length, configuredArgs.size());
@@ -371,11 +372,11 @@ public class SquigglyFunctionInvoker {
                 varBuilder.put("it", arguments[0]);
             }
 
-            ImmutableMap<String, Object> varMap = varBuilder.build();
-
-            if (varMap.isEmpty()) {
+            if (varBuilder.isEmpty()) {
                 return invoke(null, lambdaNode.getBody());
             }
+
+            Map<String, Object> varMap = Collections.unmodifiableMap(varBuilder);
 
             SquigglyVariableResolver variableResolver = new CompositeVariableResolver(new MapVariableResolver(varMap), this.variableResolver);
             SquigglyFunctionInvoker invoker = new SquigglyFunctionInvoker(conversionService, functionRepository, variableResolver);

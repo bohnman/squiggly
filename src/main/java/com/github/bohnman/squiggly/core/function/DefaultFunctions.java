@@ -1,18 +1,17 @@
 package com.github.bohnman.squiggly.core.function;
 
-import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
-import com.github.bohnman.core.lang.array.CoreArrayWrapper;
-import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.bean.CoreBeans;
+import com.github.bohnman.core.collect.CoreIterables;
+import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.lang.CoreMethods;
+import com.github.bohnman.core.lang.CoreObjects;
+import com.github.bohnman.core.lang.CoreStrings;
+import com.github.bohnman.core.lang.array.CoreArrayWrapper;
+import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 
 import java.beans.PropertyDescriptor;
 import java.text.DecimalFormat;
@@ -54,7 +53,7 @@ public class DefaultFunctions {
             value = Collections.singletonList(value);
         }
 
-        List list = (value instanceof List) ? (List) value : Lists.newArrayList((Iterable) value);
+        List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
 
         return IntStream.range(0, list.size())
                 .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(list.get(i), i)))
@@ -78,7 +77,7 @@ public class DefaultFunctions {
             value = Collections.singletonList(value);
         }
 
-        List list = (value instanceof List) ? (List) value : Lists.newArrayList((Iterable) value);
+        List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
 
         return list.stream()
                 .filter(predicate)
@@ -104,7 +103,7 @@ public class DefaultFunctions {
             value = Collections.singletonList(value);
         }
 
-        List list = (value instanceof List) ? (List) value : Lists.newArrayList((Iterable) value);
+        List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
 
         return IntStream.range(0, list.size())
                 .mapToObj(i -> coreLambda.invoke(list.get(i), i))
@@ -127,7 +126,7 @@ public class DefaultFunctions {
             value = Collections.singletonList(value);
         }
 
-        List list = (value instanceof List) ? (List) value : Lists.newArrayList((Iterable) value);
+        List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
 
         return list.stream()
                 .map(function)
@@ -154,7 +153,7 @@ public class DefaultFunctions {
 
         if (value instanceof Iterable) {
             Iterable iterable = (Iterable) value;
-            return Iterables.getFirst(iterable, null);
+            return CoreIterables.getFirst(iterable, null);
         }
 
         return value;
@@ -179,7 +178,7 @@ public class DefaultFunctions {
 
         if (value instanceof Iterable) {
             Iterable iterable = (Iterable) value;
-            return Iterables.getLast(iterable, null);
+            return CoreIterables.getLast(iterable, null);
         }
 
         return value;
@@ -202,7 +201,7 @@ public class DefaultFunctions {
         }
 
         if (value instanceof Iterable) {
-            int length = Iterables.size((Iterable) value);
+            int length = CoreIterables.size((Iterable) value);
             List<Integer> keys = new ArrayList<>(length);
 
             for (int i = 0; i < length; i++) {
@@ -212,7 +211,7 @@ public class DefaultFunctions {
             return keys;
         }
 
-        return Lists.newArrayList(toMap(value).keySet());
+        return CoreLists.of(toMap(value).keySet());
     }
 
     @SquigglyMethod
@@ -229,7 +228,7 @@ public class DefaultFunctions {
             return value;
         }
 
-        return Lists.newArrayList(toMap(value).values());
+        return CoreLists.of(toMap(value).values());
     }
 
 
@@ -264,7 +263,7 @@ public class DefaultFunctions {
         }
 
         if (value instanceof Iterable) {
-            List list = (value instanceof List) ? (List) value : Lists.newArrayList(value);
+            List list = (value instanceof List) ? (List) value : Collections.singletonList(value);
             List<Integer> actualIndexes = normalizeIndexes(list.size(), indexes);
             if (actualIndexes.isEmpty()) return Collections.emptyList();
             List newList = new ArrayList(actualIndexes.size());
@@ -295,7 +294,7 @@ public class DefaultFunctions {
         }
 
         if (value instanceof Iterable) {
-            List list = Lists.newArrayList((Iterable) value);
+            List list = CoreLists.of((Iterable) value);
             Collections.reverse(list);
             return list;
         }
@@ -322,7 +321,7 @@ public class DefaultFunctions {
             return value;
         }
 
-        int start = MoreObjects.firstNonNull(range.getStart(), 0);
+        int start = CoreObjects.firstNonNull(range.getStart(), 0);
 
         if (range.getEnd() == null) {
             return slice(value, start);
@@ -355,7 +354,7 @@ public class DefaultFunctions {
         }
 
         Iterable iterable = (Iterable) value;
-        List list = (iterable instanceof List) ? (List) iterable : Lists.newArrayList(iterable);
+        List list = (iterable instanceof List) ? (List) iterable : CoreLists.of(iterable);
         int realStart = normalizeIndex(start, list.size());
         int realEnd = list.size();
         return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
@@ -385,7 +384,7 @@ public class DefaultFunctions {
         }
 
         Iterable iterable = (Iterable) value;
-        List list = (iterable instanceof List) ? (List) iterable : Lists.newArrayList(iterable);
+        List list = (iterable instanceof List) ? (List) iterable : CoreLists.of(iterable);
         int realStart = normalizeIndex(start, list.size());
         int realEnd = normalizeIndex(end, list.size());
         return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
@@ -433,7 +432,7 @@ public class DefaultFunctions {
         }
 
         if (value instanceof Iterable) {
-            List list = (value instanceof List) ? (List) value : Lists.newArrayList((Iterable) value);
+            List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
             StringBuilder builder = new StringBuilder();
 
             for (int i = 0; i < list.size(); i++) {
@@ -464,7 +463,7 @@ public class DefaultFunctions {
         }
 
         if (separator instanceof Pattern) {
-            return Splitter.on((Pattern) separator).splitToList(value);
+            return Arrays.asList(((Pattern) separator).split(value));
         }
 
         return Collections.singletonList(value);
@@ -674,7 +673,7 @@ public class DefaultFunctions {
             return true;
         }
 
-        if (o instanceof Iterable && Iterables.isEmpty((Iterable) o)) {
+        if (o instanceof Iterable && CoreIterables.isEmpty((Iterable) o)) {
             return true;
         }
 
@@ -735,8 +734,8 @@ public class DefaultFunctions {
 
                     if (index instanceof CoreIntRange) {
                         CoreIntRange range = (CoreIntRange) index;
-                        int start = normalizeIndex(MoreObjects.firstNonNull(range.getStart(), 0), len);
-                        int end = normalizeIndex(MoreObjects.firstNonNull(range.getEnd(), len), len);
+                        int start = normalizeIndex(CoreObjects.firstNonNull(range.getStart(), 0), len);
+                        int end = normalizeIndex(CoreObjects.firstNonNull(range.getEnd(), len), len);
                         return (start >= end) ? Stream.empty() : IntStream.range(start, end).boxed();
                     }
 

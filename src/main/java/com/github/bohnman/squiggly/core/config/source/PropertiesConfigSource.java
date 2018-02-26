@@ -7,7 +7,7 @@ import java.io.UncheckedIOException;
 import java.net.URL;
 import java.util.Properties;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class PropertiesConfigSource implements  SquigglyConfigSource {
 
@@ -19,8 +19,8 @@ public class PropertiesConfigSource implements  SquigglyConfigSource {
     }
 
     public PropertiesConfigSource(String location, Properties properties) {
-        this.location = checkNotNull(location);
-        this.properties = checkNotNull(properties);
+        this.location = notNull(location);
+        this.properties = notNull(properties);
     }
 
     public PropertiesConfigSource(URL url) {

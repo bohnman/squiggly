@@ -14,7 +14,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.github.bohnman.core.lang.CoreAssert.isTrue;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
@@ -94,12 +94,12 @@ public class SquigglyFunctions {
             throw new IllegalArgumentException(format("Method [%s] is marked as ignored.", method));
         }
 
-        checkArgument(Modifier.isPublic(method.getModifiers()), format("Method [%s] must be public.", method));
+        isTrue(Modifier.isPublic(method.getModifiers()), format("Method [%s] must be public.", method));
 
         if (owner instanceof Class) {
-            checkArgument(Modifier.isStatic(method.getModifiers()), format("Method [%s] must be static", method));
+            isTrue(Modifier.isStatic(method.getModifiers()), format("Method [%s] must be static", method));
         } else {
-            checkArgument(!Modifier.isStatic(method.getModifiers()), format("Method [%s] must not be static", method));
+            isTrue(!Modifier.isStatic(method.getModifiers()), format("Method [%s] must not be static", method));
         }
 
         String prefix = classAnnotation == null ? "" : classAnnotation.prefix();

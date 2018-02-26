@@ -11,10 +11,6 @@ import com.github.bohnman.squiggly.core.view.PropertyView;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
 
 import javax.annotation.Nullable;
@@ -24,11 +20,14 @@ import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 /**
  * Introspects bean classes, looking for @{@link PropertyView} annotations on fields.
@@ -43,7 +42,7 @@ public class BeanInfoIntrospector {
     private final SquigglyConfig config;
 
     public BeanInfoIntrospector(SquigglyConfig config, SquigglyMetrics metrics) {
-        this.config = checkNotNull(config);
+        this.config = notNull(config);
         cache = CacheBuilder.from(config.getPropertyDescriptorCacheSpec())
                 .build(new CacheLoader<Class, BeanInfo>() {
                     @Override
@@ -61,9 +60,9 @@ public class BeanInfoIntrospector {
 
     private BeanInfo introspectClass(Class beanClass) {
 
-        Map<String, Set<String>> viewToPropertyNames = Maps.newHashMap();
-        Set<String> resolved = Sets.newHashSet();
-        Set<String> unwrapped = Sets.newHashSet();
+        Map<String, Set<String>> viewToPropertyNames = new HashMap<>();
+        Set<String> resolved = new HashSet<>();
+        Set<String> unwrapped = new HashSet<>();
 
         for (PropertyDescriptor propertyDescriptor : getPropertyDescriptors(beanClass)) {
 
@@ -82,7 +81,7 @@ public class BeanInfoIntrospector {
             Set<String> views = introspectPropertyViews(propertyDescriptor, field);
 
             for (String view : views) {
-                Set<String> fieldNames = viewToPropertyNames.computeIfAbsent(view, k -> Sets.newHashSet());
+                Set<String> fieldNames = viewToPropertyNames.computeIfAbsent(view, k -> new HashSet<>());
                 fieldNames.add(propertyName);
             }
         }
@@ -193,7 +192,7 @@ public class BeanInfoIntrospector {
         Set<String> baseProps = viewToPropNames.get(PropertyView.BASE_VIEW);
 
         if (baseProps == null) {
-            baseProps = ImmutableSet.of();
+            baseProps = Collections.emptySet();
         }
 
         if (!config.isFilterImplicitlyIncludeBaseFieldsInView()) {
@@ -223,7 +222,7 @@ public class BeanInfoIntrospector {
     // grab all the PropertyView (or derived) annotations and return their view names.
     private Set<String> introspectPropertyViews(PropertyDescriptor propertyDescriptor, Field field) {
 
-        Set<String> views = Sets.newHashSet();
+        Set<String> views = new HashSet<>();
 
         if (propertyDescriptor.getReadMethod() != null) {
             applyPropertyViews(views, propertyDescriptor.getReadMethod().getAnnotations());
@@ -247,12 +246,12 @@ public class BeanInfoIntrospector {
     private void applyPropertyViews(Set<String> views, Annotation[] annotations) {
         for (Annotation ann : annotations) {
             if (ann instanceof PropertyView) {
-                views.addAll(Lists.newArrayList(((PropertyView) ann).value()));
+                views.addAll(Arrays.asList(((PropertyView) ann).value()));
             }
 
             for (Annotation classAnn : ann.annotationType().getAnnotations()) {
                 if (classAnn instanceof PropertyView) {
-                    views.addAll(Lists.newArrayList(((PropertyView) classAnn).value()));
+                    views.addAll(Arrays.asList(((PropertyView) classAnn).value()));
                 }
             }
         }

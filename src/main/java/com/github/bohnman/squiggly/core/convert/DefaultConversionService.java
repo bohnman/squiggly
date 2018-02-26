@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class DefaultConversionService implements SquigglyConversionService {
 
@@ -107,8 +107,8 @@ public class DefaultConversionService implements SquigglyConversionService {
         private final Class<?> target;
 
         public Key(Class<?> source, Class<?> target) {
-            this.source = checkNotNull(source);
-            this.target = checkNotNull(target);
+            this.source = notNull(source);
+            this.target = notNull(target);
         }
 
         public static Key from(ConverterRecord record) {

@@ -16,6 +16,16 @@ public class CorePair<L, R> {
         this.right = right;
     }
 
+    @Nullable
+    public L getLeft() {
+        return left;
+    }
+
+    @Nullable
+    public R getRight() {
+        return right;
+    }
+
     public static <L, R> CorePair<L, R> of(@Nullable L left, @Nullable  R right) {
         return new CorePair<>(left, right);
     }

@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.core.convert;
 
 import java.util.function.Function;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class ConverterRecord implements Function<Object, Object> {
 
@@ -11,9 +11,9 @@ public class ConverterRecord implements Function<Object, Object> {
     private final Function<?, ?> converter;
 
     public ConverterRecord(Class<?> source, Class<?> target, Function<?, ?> converter) {
-        this.source = checkNotNull(source);
-        this.target = checkNotNull(target);
-        this.converter = checkNotNull(converter);
+        this.source = notNull(source);
+        this.target = notNull(target);
+        this.converter = notNull(converter);
     }
 
     public Class<?> getSource() {

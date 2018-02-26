@@ -13,7 +13,7 @@ import net.jcip.annotations.ThreadSafe;
 
 import javax.annotation.Nullable;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 /**
  * Provides various way of registering a {@link SquigglyPropertyFilter} with a Jackson ObjectMapper.
@@ -27,7 +27,7 @@ public class Squiggly extends BaseSquiggly {
     private Squiggly(Builder builder) {
         super(builder);
         this.filter = new SquigglyPropertyFilter(this);
-        this.serializer = checkNotNull(builder.builtSerializer);
+        this.serializer = notNull(builder.builtSerializer);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.core;
 
+import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.squiggly.core.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
@@ -26,7 +27,6 @@ import com.github.bohnman.squiggly.core.parser.SquigglyParser;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
-import com.google.common.collect.Streams;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 import static java.util.stream.Collectors.toList;
 
 public abstract class BaseSquiggly {
@@ -54,14 +54,14 @@ public abstract class BaseSquiggly {
 
     protected BaseSquiggly(BaseSquiggly.BaseBuilder builder) {
         this.beanInfoIntrospector = new BeanInfoIntrospector(builder.builtConfig, builder.builtMetrics);
-        this.config = checkNotNull(builder.builtConfig);
-        this.conversionService = checkNotNull(builder.builtConversionService);
-        this.contextProvider = checkNotNull(builder.builtContextProvider);
-        this.filterRepository = checkNotNull(builder.builtFilterRepository);
-        this.functionRepository = checkNotNull(builder.builtFunctionRepository);
-        this.metrics = checkNotNull(builder.builtMetrics);
-        this.parser = checkNotNull(builder.builtParser);
-        this.variableResolver = checkNotNull(builder.builtVariableResolver);
+        this.config = notNull(builder.builtConfig);
+        this.conversionService = notNull(builder.builtConversionService);
+        this.contextProvider = notNull(builder.builtContextProvider);
+        this.filterRepository = notNull(builder.builtFilterRepository);
+        this.functionRepository = notNull(builder.builtFunctionRepository);
+        this.metrics = notNull(builder.builtMetrics);
+        this.parser = notNull(builder.builtParser);
+        this.variableResolver = notNull(builder.builtVariableResolver);
     }
 
 
@@ -204,7 +204,7 @@ public abstract class BaseSquiggly {
          * @return builder
          */
         public B config(SquigglyConfigSource source) {
-            configSources.add(checkNotNull(source));
+            configSources.add(notNull(source));
             return getThis();
         }
 
@@ -274,7 +274,7 @@ public abstract class BaseSquiggly {
          * @return builder
          */
         public B function(SquigglyFunction<?> function) {
-            this.functions.add(checkNotNull(function));
+            this.functions.add(notNull(function));
             return getThis();
         }
 
@@ -296,7 +296,7 @@ public abstract class BaseSquiggly {
          * @return builder
          */
         public B functions(Iterable<SquigglyFunction<?>> functions) {
-            Streams.stream(functions).forEach(this::function);
+            CoreStreams.of(functions).forEach(this::function);
             return getThis();
         }
 

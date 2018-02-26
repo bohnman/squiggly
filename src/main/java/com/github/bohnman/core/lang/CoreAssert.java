@@ -71,10 +71,6 @@ public abstract class CoreAssert {
 		}
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #state(boolean, String)}
-	 */
-	@Deprecated
 	public static void state(boolean expression) {
 		state(expression, "[Assertion failed] - this state invariant must be true");
 	}
@@ -93,10 +89,6 @@ public abstract class CoreAssert {
 		}
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #isTrue(boolean, String)}
-	 */
-	@Deprecated
 	public static void isTrue(boolean expression) {
 		isTrue(expression, "[Assertion failed] - this expression must be true");
 	}
@@ -114,10 +106,6 @@ public abstract class CoreAssert {
 		}
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #isNull(Object, String)}
-	 */
-	@Deprecated
 	public static void isNull(Object object) {
 		isNull(object, "[Assertion failed] - the object argument must be null");
 	}
@@ -129,18 +117,16 @@ public abstract class CoreAssert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws IllegalArgumentException if the object is {@code null}
 	 */
-	public static void notNull(Object object, String message) {
+	public static <T> T notNull(T object, String message) {
 		if (object == null) {
 			throw new IllegalArgumentException(message);
 		}
+
+		return object;
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #notNull(Object, String)}
-	 */
-	@Deprecated
-	public static void notNull(Object object) {
-		notNull(object, "[Assertion failed] - this argument is required; it must not be null");
+	public static <T> T notNull(T object) {
+		return notNull(object, "[Assertion failed] - this argument is required; it must not be null");
 	}
 
 	/**
@@ -158,10 +144,6 @@ public abstract class CoreAssert {
 		}
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #hasLength(String, String)}
-	 */
-	@Deprecated
 	public static void hasLength(String text) {
 		hasLength(text,
 				"[Assertion failed] - this String argument must have length; it must not be null or empty");
@@ -182,10 +164,6 @@ public abstract class CoreAssert {
 		}
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #hasText(String, String)}
-	 */
-	@Deprecated
 	public static void hasText(String text) {
 		hasText(text,
 				"[Assertion failed] - this String argument must have text; it must not be null, empty, or blank");
@@ -206,10 +184,6 @@ public abstract class CoreAssert {
 		}
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #doesNotContain(String, String, String)}
-	 */
-	@Deprecated
 	public static void doesNotContain(String textToSearch, String substring) {
 		doesNotContain(textToSearch, substring,
 				"[Assertion failed] - this String argument must not contain the substring [" + substring + "]");
@@ -229,10 +203,6 @@ public abstract class CoreAssert {
 		}
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #notEmpty(Object[], String)}
-	 */
-	@Deprecated
 	public static void notEmpty(Object[] array) {
 		notEmpty(array, "[Assertion failed] - this array must not be empty: it must contain at least 1 element");
 	}
@@ -255,10 +225,6 @@ public abstract class CoreAssert {
 		}
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #noNullElements(Object[], String)}
-	 */
-	@Deprecated
 	public static void noNullElements(Object[] array) {
 		noNullElements(array, "[Assertion failed] - this array must not contain any null elements");
 	}
@@ -278,10 +244,6 @@ public abstract class CoreAssert {
 		}
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #notEmpty(Collection, String)}
-	 */
-	@Deprecated
 	public static void notEmpty(Collection<?> collection) {
 		notEmpty(collection,
 				"[Assertion failed] - this collection must not be empty: it must contain at least 1 element");
@@ -301,10 +263,6 @@ public abstract class CoreAssert {
 		}
 	}
 
-	/**
-	 * @deprecated as of 4.3.7, in favor of {@link #notEmpty(Map, String)}
-	 */
-	@Deprecated
 	public static void notEmpty(Map<?, ?> map) {
 		notEmpty(map, "[Assertion failed] - this map must not be empty; it must contain at least one entry");
 	}

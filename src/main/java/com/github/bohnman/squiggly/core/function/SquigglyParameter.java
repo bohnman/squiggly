@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.core.function;
 
 import javax.annotation.Nullable;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class SquigglyParameter {
 
@@ -10,7 +10,7 @@ public class SquigglyParameter {
     private final boolean varArgs;
 
     public SquigglyParameter(Class<?> type, boolean varArgs) {
-        this.type = checkNotNull(type);
+        this.type = notNull(type);
         this.varArgs = varArgs;
     }
 

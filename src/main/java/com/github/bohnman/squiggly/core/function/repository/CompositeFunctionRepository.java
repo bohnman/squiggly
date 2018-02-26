@@ -1,7 +1,6 @@
 package com.github.bohnman.squiggly.core.function.repository;
 
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
-import com.google.common.collect.ImmutableList;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,7 +15,7 @@ public class CompositeFunctionRepository implements SquigglyFunctionRepository {
     }
 
     public CompositeFunctionRepository(List<SquigglyFunctionRepository> repositories) {
-        this.repositories = ImmutableList.copyOf(repositories);
+        this.repositories = Collections.unmodifiableList(repositories);
     }
 
     @Override

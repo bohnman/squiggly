@@ -1,7 +1,6 @@
 package com.github.bohnman.squiggly.core.bean;
 
-import com.google.common.collect.ImmutableSet;
-
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,7 +18,7 @@ public class BeanInfo {
         Set<String> properties = viewNameToPropertiesNames.get(view);
 
         if (properties == null) {
-            properties = ImmutableSet.of();
+            properties = Collections.emptySet();
         }
 
         return properties;

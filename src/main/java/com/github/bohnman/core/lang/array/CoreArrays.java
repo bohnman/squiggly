@@ -1,5 +1,6 @@
 package com.github.bohnman.core.lang.array;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class CoreArrays {
@@ -20,6 +21,10 @@ public class CoreArrays {
         return EMPTY_STRING_ARRAY;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> T[] newArray(Class<T> type, int length) {
+        return (T[]) Array.newInstance(type, length);
+    }
 
     public static CoreArrayWrapper wrap(Object array) {
         if (!array.getClass().isArray()) {

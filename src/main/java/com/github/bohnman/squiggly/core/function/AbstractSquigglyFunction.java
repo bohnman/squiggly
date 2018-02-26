@@ -1,12 +1,12 @@
 package com.github.bohnman.squiggly.core.function;
 
-import com.google.common.collect.ImmutableList;
+import com.github.bohnman.core.collect.CoreLists;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 import static java.lang.String.format;
 
 public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T> {
@@ -25,8 +25,8 @@ public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T>
     }
 
     public AbstractSquigglyFunction(String name, Class<?> returnType, List<SquigglyParameter> parameters, Iterable<String> aliases) {
-        this.name = checkNotNull(name);
-        this.returnType = checkNotNull(returnType);
+        this.name = notNull(name);
+        this.returnType = notNull(returnType);
 
         int paramSize = parameters.size();
 
@@ -44,8 +44,8 @@ public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T>
             }
         }
 
-        this.parameters = ImmutableList.copyOf(parameters);
-        this.aliases = ImmutableList.copyOf(aliases);
+        this.parameters = Collections.unmodifiableList(parameters);
+        this.aliases = Collections.unmodifiableList(CoreLists.of(aliases));
     }
 
     @Override

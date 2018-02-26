@@ -5,7 +5,7 @@ import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterReposito
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class CompositeFilterRepository implements SquigglyFilterRepository {
 
@@ -16,7 +16,7 @@ public class CompositeFilterRepository implements SquigglyFilterRepository {
     }
 
     public CompositeFilterRepository(Iterable<SquigglyFilterRepository> repositories) {
-        this.repositories = checkNotNull(repositories);
+        this.repositories = notNull(repositories);
     }
 
     @Nullable

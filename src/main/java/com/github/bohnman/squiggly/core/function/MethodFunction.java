@@ -1,5 +1,7 @@
 package com.github.bohnman.squiggly.core.function;
 
+import com.github.bohnman.core.lang.CoreAssert;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -8,8 +10,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.isTrue;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 import static java.lang.String.format;
 
 public class MethodFunction extends AbstractSquigglyFunction<Object> {
@@ -35,9 +37,9 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
                         .map(MethodFunction::toParameter)
                         .collect(Collectors.toList()),
                 aliases);
-        this.method = checkNotNull(method);
-        this.owner = checkNotNull(owner);
-        checkArgument(Modifier.isPublic(method.getModifiers()), format("Method [%s] must be public.", method));
+        this.method = notNull(method);
+        this.owner = notNull(owner);
+        isTrue(Modifier.isPublic(method.getModifiers()), format("Method [%s] must be public.", method));
     }
 
     private static SquigglyParameter toParameter(Parameter parameter) {

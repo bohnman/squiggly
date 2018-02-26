@@ -45,4 +45,7 @@ public class CoreObjects {
     }
 
 
+    public static <T> T firstNonNull(T o1, T o2) {
+        return (o1 == null) ? o2 : o1;
+    }
 }

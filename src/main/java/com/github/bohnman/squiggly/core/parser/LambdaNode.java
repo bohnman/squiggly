@@ -1,7 +1,6 @@
 package com.github.bohnman.squiggly.core.parser;
 
-import com.google.common.collect.ImmutableList;
-
+import java.util.Collections;
 import java.util.List;
 
 public class LambdaNode {
@@ -12,7 +11,7 @@ public class LambdaNode {
 
     public LambdaNode(ParseContext context, List<String> arguments, FunctionNode body) {
         this.context = context;
-        this.arguments = ImmutableList.copyOf(arguments);
+        this.arguments = Collections.unmodifiableList(arguments);
         this.body = body;
     }
 

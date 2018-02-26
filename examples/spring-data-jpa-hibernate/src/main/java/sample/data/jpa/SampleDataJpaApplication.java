@@ -24,7 +24,6 @@ import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.core.web.RequestSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.web.SquigglyRequestFilter;
-import com.google.common.collect.Iterables;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

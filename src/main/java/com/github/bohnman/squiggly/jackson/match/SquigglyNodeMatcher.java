@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.core.bean.BeanInfo;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.metric.source.GuavaCacheSquigglyMetricsSource;
@@ -13,17 +12,18 @@ import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.parser.ParseContext;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.core.view.PropertyView;
+import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.Sets;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class SquigglyNodeMatcher {
 
@@ -36,7 +36,7 @@ public class SquigglyNodeMatcher {
 
 
     public SquigglyNodeMatcher(Squiggly squiggly) {
-        this.squiggly = checkNotNull(squiggly);
+        this.squiggly = notNull(squiggly);
         this.matchCache = CacheBuilder.from(squiggly.getConfig().getFilterPathCacheSpec()).build();
         squiggly.getMetrics().add(new GuavaCacheSquigglyMetricsSource("squiggly.filter.pathCache.", matchCache));
     }
@@ -182,7 +182,7 @@ public class SquigglyNodeMatcher {
             return getPropertyNames(element, PropertyView.BASE_VIEW);
         }
 
-        Set<String> propertyNames = Sets.newHashSet();
+        Set<String> propertyNames = new HashSet<>();
 
         for (String viewName : viewStack) {
             Set<String> names = getPropertyNames(element, viewName);
@@ -245,7 +245,7 @@ public class SquigglyNodeMatcher {
         }
 
         if (viewStack == null) {
-            viewStack = Sets.newHashSet();
+            viewStack = new HashSet<>();
         }
 
         viewStack.add(viewNode.getName());

@@ -1,20 +1,20 @@
 package com.github.bohnman.squiggly.core.config;
 
+import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.squiggly.core.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.core.config.source.CompositeConfigSource;
 import com.github.bohnman.squiggly.core.config.source.PropertiesConfigSource;
 import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilter;
 import com.google.common.cache.CacheBuilderSpec;
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Streams;
 import net.jcip.annotations.ThreadSafe;
 
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,7 +45,7 @@ public class SquigglyConfig {
     }
 
     public SquigglyConfig(Iterable<SquigglyConfigSource> sources) {
-        Stream<SquigglyConfigSource> sourceStream = Streams.stream(sources);
+        Stream<SquigglyConfigSource> sourceStream = CoreStreams.of(sources);
 
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         URL squigglyProps = classLoader.getResource("squiggly.properties");
@@ -61,8 +61,8 @@ public class SquigglyConfig {
 
         SquigglyConfigSource source = new CompositeConfigSource(sourceStream.collect(Collectors.toList()));
 
-        Map<String, String> propsMap = Maps.newHashMap();
-        Map<String, String> locationMap = Maps.newHashMap();
+        SortedMap<String, String> propsMap = new TreeMap<>();
+        SortedMap<String, String> locationMap = new TreeMap<>();
 
         convertCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.convert.cache.spec");
         filterImplicitlyIncludeBaseFields = getBool(source, propsMap, locationMap, "squiggly.filter.implicitlyIncludeBaseFields");
@@ -73,8 +73,8 @@ public class SquigglyConfig {
         propertyAddNonAnnotatedFieldsToBaseView = getBool(source, propsMap, locationMap, "squiggly.property.addNonAnnotatedFieldsToBaseView");
         propertyDescriptorCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.property.descriptorCache.spec");
 
-        this.propsMap = ImmutableSortedMap.copyOf(propsMap);
-        this.locationMap = ImmutableSortedMap.copyOf(locationMap);
+        this.propsMap = Collections.unmodifiableSortedMap(propsMap);
+        this.locationMap = Collections.unmodifiableSortedMap(locationMap);
     }
 
     private CacheBuilderSpec getCacheSpec(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {

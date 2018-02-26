@@ -4,12 +4,12 @@ import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.name.AnyShallowName;
 import com.github.bohnman.squiggly.core.name.SquigglyName;
 import com.github.bohnman.squiggly.core.name.VariableName;
-import com.google.common.collect.ImmutableList;
 import net.jcip.annotations.ThreadSafe;
 
+import java.util.Collections;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 /**
  * A squiggly node represents a component of a filter expression.
@@ -40,12 +40,12 @@ public class SquigglyNode {
      * @see #isSquiggly()
      */
     public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested) {
-        this.context = checkNotNull(context);
+        this.context = notNull(context);
         this.name = name;
         this.negated = negated;
-        this.children = ImmutableList.copyOf(children);
-        this.keyFunctions = ImmutableList.copyOf(keyFunctions);
-        this.valueFunctions = ImmutableList.copyOf(valueFunctions);
+        this.children = Collections.unmodifiableList(children);
+        this.keyFunctions = Collections.unmodifiableList(keyFunctions);
+        this.valueFunctions = Collections.unmodifiableList(valueFunctions);
         this.squiggly = squiggly;
         this.emptyNested = emptyNested;
     }

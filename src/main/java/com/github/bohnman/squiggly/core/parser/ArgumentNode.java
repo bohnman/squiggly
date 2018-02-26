@@ -2,8 +2,8 @@ package com.github.bohnman.squiggly.core.parser;
 
 import javax.annotation.Nullable;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.isTrue;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class ArgumentNode {
     private final ParseContext context;
@@ -13,12 +13,12 @@ public class ArgumentNode {
 
 
     public ArgumentNode(ParseContext context, int index, Object value, ArgumentNodeType type) {
-        this.context = checkNotNull(context);
-        checkArgument(index >= 0, "index must be >= 0");
+        this.context = notNull(context);
+        isTrue(index >= 0, "index must be >= 0");
         this.index = index;
 
-        this.value = checkNotNull(value);
-        this.type = checkNotNull(type);
+        this.value = notNull(value);
+        this.type = notNull(type);
     }
 
     public ParseContext getContext() {

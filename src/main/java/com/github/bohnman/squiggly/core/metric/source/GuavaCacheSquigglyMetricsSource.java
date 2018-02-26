@@ -6,7 +6,7 @@ import net.jcip.annotations.ThreadSafe;
 
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 /**
  * A source that provides metrics from a Guava {@link Cache}.
@@ -18,8 +18,8 @@ public class GuavaCacheSquigglyMetricsSource implements SquigglyMetricsSource {
     private final Cache cache;
 
     public GuavaCacheSquigglyMetricsSource(String prefix, Cache cache) {
-        checkNotNull(prefix);
-        checkNotNull(cache);
+        notNull(prefix);
+        notNull(cache);
         this.prefix = prefix;
         this.cache = cache;
     }

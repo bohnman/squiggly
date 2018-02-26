@@ -1,8 +1,5 @@
 package com.github.bohnman.squiggly.core.filter.repository;
 
-import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterRepository;
-import com.google.common.collect.ImmutableMap;
-
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
@@ -16,7 +13,7 @@ public class MapFilterRepository implements SquigglyFilterRepository {
     }
 
     public MapFilterRepository(Map<String, String> filterByName) {
-        this.filterByName = ImmutableMap.copyOf(filterByName);
+        this.filterByName = Collections.unmodifiableMap(filterByName);
     }
 
     @Nullable

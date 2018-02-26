@@ -1,17 +1,17 @@
 package com.github.bohnman.squiggly.core.context;
 
+import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
-import com.google.common.base.MoreObjects;
 import net.jcip.annotations.NotThreadSafe;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -28,10 +28,10 @@ public class LazySquigglyContext implements SquigglyContext {
     private List<SquigglyNode> nodes;
 
     public LazySquigglyContext(Class beanClass, Squiggly squiggly, String filter) {
-        this.beanClass = checkNotNull(beanClass);
-        this.squiggly = checkNotNull(squiggly);
-        checkNotNull(filter);
-        this.filter = checkNotNull(MoreObjects.firstNonNull(squiggly.getFilterRepository().findByName(filter), filter));
+        this.beanClass = notNull(beanClass);
+        this.squiggly = notNull(squiggly);
+        notNull(filter);
+        this.filter = notNull(CoreObjects.firstNonNull(squiggly.getFilterRepository().findByName(filter), filter));
     }
 
     @Override

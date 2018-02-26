@@ -1,12 +1,11 @@
 package com.github.bohnman.squiggly.core.parser;
 
-import com.google.common.collect.ImmutableList;
-
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class FunctionNode {
 
@@ -18,11 +17,11 @@ public class FunctionNode {
     private final boolean ascending;
 
     public FunctionNode(ParseContext context, String name, List<ArgumentNode> parameters, boolean ignoreNulls, FunctionNodeType type, boolean ascending) {
-        this.context = checkNotNull(context);
-        this.name = checkNotNull(name);
-        this.parameters = ImmutableList.copyOf(checkNotNull(parameters));
+        this.context = notNull(context);
+        this.name = notNull(name);
+        this.parameters = Collections.unmodifiableList(notNull(parameters));
         this.ignoreNulls = ignoreNulls;
-        this.type = checkNotNull(type);
+        this.type = notNull(type);
         this.ascending = ascending;
     }
 
