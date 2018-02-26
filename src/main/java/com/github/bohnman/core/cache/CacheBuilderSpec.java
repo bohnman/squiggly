@@ -121,7 +121,7 @@ public final class CacheBuilderSpec {
                     .collect(toList());
 
             for (String keyValuePair : keyValuePairs) {
-                List<String> keyAndValue = Arrays.stream(CoreStrings.split(keyValuePair, "-"))
+                List<String> keyAndValue = Arrays.stream(CoreStrings.split(keyValuePair, "="))
                         .map(String::trim)
                         .collect(toList());
 
