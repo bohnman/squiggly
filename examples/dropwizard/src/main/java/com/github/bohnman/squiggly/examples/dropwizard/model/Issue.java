@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.examples.dropwizard.model;
 
-import com.github.bohnman.squiggly.view.FullView;
-import com.github.bohnman.squiggly.view.PropertyView;
+import com.github.bohnman.squiggly.core.view.FullView;
+import com.github.bohnman.squiggly.core.view.PropertyView;
 
 import java.util.Arrays;
 import java.util.Collections;

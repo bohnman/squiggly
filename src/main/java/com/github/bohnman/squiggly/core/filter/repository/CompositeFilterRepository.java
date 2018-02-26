@@ -1,0 +1,37 @@
+package com.github.bohnman.squiggly.core.filter.repository;
+
+import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterRepository;
+
+import javax.annotation.Nullable;
+import java.util.Arrays;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+public class CompositeFilterRepository implements SquigglyFilterRepository {
+
+    private final Iterable<SquigglyFilterRepository> repositories;
+
+    public CompositeFilterRepository(SquigglyFilterRepository... repositories) {
+        this(Arrays.asList(repositories));
+    }
+
+    public CompositeFilterRepository(Iterable<SquigglyFilterRepository> repositories) {
+        this.repositories = checkNotNull(repositories);
+    }
+
+    @Nullable
+    @Override
+    public String findByName(String name) {
+        String filter = null;
+
+        for (SquigglyFilterRepository repository : repositories) {
+            filter = repository.findByName(name);
+
+            if (filter != null) {
+                break;
+            }
+        }
+
+        return filter;
+    }
+}

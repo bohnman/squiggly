@@ -1,13 +1,13 @@
 package com.github.bohnman.squiggly.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.squiggly.Squiggly;
+import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.model.Issue;
 import com.github.bohnman.squiggly.model.IssueAction;
 import com.github.bohnman.squiggly.model.Item;
 import com.github.bohnman.squiggly.model.Outer;
 import com.github.bohnman.squiggly.model.User;
-import com.github.bohnman.squiggly.util.SquigglyUtils;
+import com.github.bohnman.core.json.jackson.CoreObjectMappers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -390,7 +390,7 @@ public class SquigglyPropertyFilterTest {
     }
 
     private String stringify(Object object) {
-        return SquigglyUtils.stringify(objectMapper, object);
+        return CoreObjectMappers.stringify(objectMapper, object);
     }
 
 
@@ -399,7 +399,7 @@ public class SquigglyPropertyFilterTest {
     }
 
     private String stringifyRaw(Object object) {
-        return SquigglyUtils.stringify(new ObjectMapper(), object);
+        return CoreObjectMappers.stringify(new ObjectMapper(), object);
     }
 
 }
