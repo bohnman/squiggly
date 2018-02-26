@@ -350,7 +350,7 @@ public class DefaultFunctions {
         if (value.getClass().isArray()) {
             CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             int len = wrapper.size();
-            int realStart = normalizeIndex(start, len);
+            int realStart = CoreArrays.normalizeIndex(start, len);
             int realEnd = len;
             return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart).getArray();
         }
@@ -361,7 +361,7 @@ public class DefaultFunctions {
 
         Iterable iterable = (Iterable) value;
         List list = (iterable instanceof List) ? (List) iterable : CoreLists.of(iterable);
-        int realStart = normalizeIndex(start, list.size());
+        int realStart = CoreArrays.normalizeIndex(start, list.size());
         int realEnd = list.size();
         return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
     }
@@ -380,8 +380,8 @@ public class DefaultFunctions {
         if (value.getClass().isArray()) {
             CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             int len = wrapper.size();
-            int realStart = normalizeIndex(start, len);
-            int realEnd = normalizeIndex(end, len);
+            int realStart = CoreArrays.normalizeIndex(start, len);
+            int realEnd = CoreArrays.normalizeIndex(end, len);
             return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart, realEnd).getArray();
         }
 
@@ -391,8 +391,8 @@ public class DefaultFunctions {
 
         Iterable iterable = (Iterable) value;
         List list = (iterable instanceof List) ? (List) iterable : CoreLists.of(iterable);
-        int realStart = normalizeIndex(start, list.size());
-        int realEnd = normalizeIndex(end, list.size());
+        int realStart = CoreArrays.normalizeIndex(start, list.size());
+        int realEnd = CoreArrays.normalizeIndex(end, list.size());
         return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
     }
 
@@ -734,14 +734,14 @@ public class DefaultFunctions {
         return Stream.of(indexes)
                 .flatMap(index -> {
                     if (index instanceof Number) {
-                        int actualIndex = normalizeIndex(((Number) index).intValue(), len, -1, len);
+                        int actualIndex = CoreArrays.normalizeIndex(((Number) index).intValue(), len, -1, len);
                         return actualIndex < 0 ? Stream.empty() : Stream.of(actualIndex);
                     }
 
                     if (index instanceof CoreIntRange) {
                         CoreIntRange range = (CoreIntRange) index;
-                        int start = normalizeIndex(CoreObjects.firstNonNull(range.getStart(), 0), len);
-                        int end = normalizeIndex(CoreObjects.firstNonNull(range.getEnd(), len), len);
+                        int start = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getStart(), 0), len);
+                        int end = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getEnd(), len), len);
                         return (start >= end) ? Stream.empty() : IntStream.range(start, end).boxed();
                     }
 
@@ -750,21 +750,6 @@ public class DefaultFunctions {
                 .collect(toList());
     }
 
-    private static int normalizeIndex(int index, int length) {
-        return normalizeIndex(index, length, 0, length);
-    }
-
-    private static int normalizeIndex(int index, int length, int min, int max) {
-        if (length == 0) {
-            return 0;
-        }
-
-        if (index < 0) {
-            return Math.max(0, length + index);
-        }
-
-        return Math.min(index, length);
-    }
 
 
     @SuppressWarnings("unchecked")

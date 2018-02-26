@@ -1,8 +1,10 @@
 package com.github.bohnman.core.bean;
 
-import com.github.bohnman.squiggly.core.function.DefaultFunctions;
+import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreMethods;
+import com.github.bohnman.core.lang.array.CoreArrayWrapper;
+import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
 
 import java.beans.IntrospectionException;
@@ -28,18 +30,38 @@ public class CoreBeans {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static Object getProperty(Object o, Object key) {
         if (o == null || key == null) {
             return null;
         }
 
-        if (o.getClass().isArray() || o instanceof Iterable) {
+        if (o.getClass().isArray()) {
+            CoreArrayWrapper wrapper = CoreArrays.wrap(o);
+
             if (key instanceof Number) {
-                return DefaultFunctions.first(DefaultFunctions.slice(o, ((Number) key).intValue(), 1));
+                int index = CoreArrays.normalizeIndex(((Number) key).intValue(), wrapper.size(), -1, wrapper.size() - 1);
+                return index < 0 ? null : wrapper.get(index);
             }
 
             if (key instanceof CoreIntRange) {
-                return DefaultFunctions.slice(o, (CoreIntRange) key);
+                CoreIntRange range = ((CoreIntRange) key).toExclusive().normalize(wrapper.size());
+                return range.isEmpty() ? null : wrapper.slice(range.getStart(), range.getEnd());
+            }
+        }
+
+        if (o instanceof Iterable) {
+            Iterable iterable = (Iterable) o;
+            int size = CoreIterables.size(iterable);
+
+            if (key instanceof Number) {
+                int index = CoreArrays.normalizeIndex(((Number) key).intValue(), size, -1, size - 1);
+                return index < 0 ? null : CoreIterables.get(iterable, index);
+            }
+
+            if (key instanceof CoreIntRange) {
+                CoreIntRange range = ((CoreIntRange) key).toExclusive().normalize(size);
+                return range.isEmpty() ? null : CoreIterables.slice(iterable, range.getStart(), range.getEnd());
             }
         }
 

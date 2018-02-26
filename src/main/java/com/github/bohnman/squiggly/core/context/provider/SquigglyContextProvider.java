@@ -1,14 +1,12 @@
 package com.github.bohnman.squiggly.core.context.provider;
 
-import com.github.bohnman.squiggly.jackson.Squiggly;
+import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
-import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilter;
 
 /**
- * Used for supplying a @{@link SquigglyPropertyFilter} with a way to retrieve a
- * context.
+ * Used for supplying a parseable context
  */
-public interface SquigglyContextProvider {
+public interface SquigglyContextProvider<S extends BaseSquiggly> {
 
     /**
      * Get the context.
@@ -17,7 +15,7 @@ public interface SquigglyContextProvider {
      * @param squiggly squiggly object
      * @return context
      */
-    SquigglyContext getContext(Class beanClass, Squiggly squiggly);
+    SquigglyContext getContext(Class beanClass, S squiggly);
 
     /**
      * Hook method to enable/disable filtering.

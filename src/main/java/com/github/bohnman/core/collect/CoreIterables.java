@@ -1,5 +1,7 @@
 package com.github.bohnman.core.collect;
 
+import com.github.bohnman.core.lang.CoreAssert;
+
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
@@ -44,5 +46,16 @@ public class CoreIterables {
         return (iterable instanceof Collection)
                 ? ((Collection<?>) iterable).size()
                 : CoreIterators.size(iterable.iterator());
+    }
+
+    public static <T> T get(Iterable<T> iterable, int position) {
+        CoreAssert.notNull(iterable);
+        return (iterable instanceof List)
+                ? ((List<T>) iterable).get(position)
+                : CoreIterators.get(iterable.iterator(), position);
+    }
+
+    public static <T> Iterable<T> slice(Iterable<T> iterable, int start, int end) {
+        return null;
     }
 }

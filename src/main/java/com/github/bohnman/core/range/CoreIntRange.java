@@ -1,5 +1,7 @@
 package com.github.bohnman.core.range;
 
+import com.github.bohnman.core.lang.array.CoreArrays;
+
 public class CoreIntRange {
 
     private final Integer start;
@@ -64,6 +66,38 @@ public class CoreIntRange {
         }
 
         return new CoreIntRange(inclusiveStart, inclusiveEnd, false);
+
+    }
+
+    public boolean isEmpty() {
+        if (start == null) {
+            return true;
+        }
+
+        return exclusive && end != null && start.equals(end);
+    }
+
+    public CoreIntRange normalize(int len) {
+        if (len <= 0) {
+            return new CoreIntRange(null, null, exclusive);
+        }
+
+        if (start == null) {
+            return new CoreIntRange(null, null, exclusive);
+        }
+
+        int normalizedStart = CoreArrays.normalizeIndex(start, len);
+        int normalizedEnd =  end == null ? len : CoreArrays.normalizeIndex(end, len);
+
+        if (normalizedEnd < normalizedStart) {
+            return new CoreIntRange(null, null, exclusive);
+        }
+
+        if (exclusive && normalizedStart == normalizedEnd) {
+            return new CoreIntRange(null, null, exclusive);
+        }
+
+        return new CoreIntRange(normalizedStart, normalizedEnd, exclusive);
 
     }
 

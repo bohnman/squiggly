@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.core.context.provider;
 
-import com.github.bohnman.squiggly.jackson.Squiggly;
+import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.LazySquigglyContext;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 
@@ -9,10 +9,10 @@ import javax.annotation.Nullable;
 /**
  * Base implemention of a provider that implements base functionality.
  */
-public abstract class AbstractSquigglyContextProvider implements SquigglyContextProvider {
+public abstract class AbstractSquigglyContextProvider<S extends BaseSquiggly> implements SquigglyContextProvider<S> {
 
     @Override
-    public SquigglyContext getContext(Class beanClass, Squiggly squiggly) {
+    public SquigglyContext getContext(Class beanClass, S squiggly) {
         return new LazySquigglyContext(beanClass, squiggly, getFilter(beanClass));
     }
 

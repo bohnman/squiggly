@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.core.context;
 
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.jackson.Squiggly;
+import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
@@ -22,12 +22,12 @@ public class LazySquigglyContext implements SquigglyContext {
 
     private final Class beanClass;
     private final String filter;
-    private final Squiggly squiggly;
+    private final BaseSquiggly squiggly;
 
     @Nullable
     private List<SquigglyNode> nodes;
 
-    public LazySquigglyContext(Class beanClass, Squiggly squiggly, String filter) {
+    public LazySquigglyContext(Class beanClass, BaseSquiggly squiggly, String filter) {
         this.beanClass = notNull(beanClass);
         this.squiggly = notNull(squiggly);
         notNull(filter);

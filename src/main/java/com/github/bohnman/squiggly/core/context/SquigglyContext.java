@@ -1,13 +1,11 @@
 package com.github.bohnman.squiggly.core.context;
 
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
-import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilter;
 
 import java.util.List;
 
 /**
- * A squiggly context provides parsing and filtering information to the
- * {@link SquigglyPropertyFilter}.  Contexts are usually not thread safe.
+ * A squiggly context provides parsing and filtering information for parsing.
  */
 public interface SquigglyContext {
 

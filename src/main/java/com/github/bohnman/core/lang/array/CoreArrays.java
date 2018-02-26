@@ -17,6 +17,22 @@ public class CoreArrays {
         return array.clone();
     }
 
+    public static int normalizeIndex(int index, int length) {
+        return normalizeIndex(index, length, 0, length);
+    }
+
+    public static int normalizeIndex(int index, int length, int min, int max) {
+        if (length == 0) {
+            return min;
+        }
+
+        if (index < min) {
+            return Math.max(min, length + index);
+        }
+
+        return Math.min(index, max);
+    }
+
     public static String[] emptyStringArray() {
         return EMPTY_STRING_ARRAY;
     }

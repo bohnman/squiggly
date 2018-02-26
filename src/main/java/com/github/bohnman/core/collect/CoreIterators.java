@@ -1,5 +1,7 @@
 package com.github.bohnman.core.collect;
 
+import com.github.bohnman.core.lang.CoreAssert;
+
 import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -17,6 +19,32 @@ public class CoreIterators {
     public static <T> T getLast(Iterator<? extends T> iterator, T defaultValue) {
         return iterator.hasNext() ? getLast(iterator) : defaultValue;
     }
+
+    public static <T> T get(Iterator<T> iterator, int position) {
+        CoreAssert.isTrue(position >= 0);
+        int skipped = advance(iterator, position);
+        if (!iterator.hasNext()) {
+            throw new IndexOutOfBoundsException(
+                    "position ("
+                            + position
+                            + ") must be less than the number of elements that remained ("
+                            + skipped
+                            + ")");
+        }
+        return iterator.next();
+    }
+
+    public static int advance(Iterator<?> iterator, int numberToAdvance) {
+        CoreAssert.notNull(iterator);
+        CoreAssert.isTrue(numberToAdvance >= 0, "numberToAdvance must be nonnegative");
+
+        int i;
+        for (i = 0; i < numberToAdvance && iterator.hasNext(); i++) {
+            iterator.next();
+        }
+        return i;
+    }
+
 
     /**
      * Advances {@code iterator} to the end, returning the last element.

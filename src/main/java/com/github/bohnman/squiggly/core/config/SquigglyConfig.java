@@ -2,11 +2,9 @@ package com.github.bohnman.squiggly.core.config;
 
 import com.github.bohnman.core.cache.CacheBuilderSpec;
 import com.github.bohnman.core.collect.CoreStreams;
-import com.github.bohnman.squiggly.core.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.core.config.source.CompositeConfigSource;
 import com.github.bohnman.squiggly.core.config.source.PropertiesConfigSource;
 import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
-import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilter;
 import net.jcip.annotations.ThreadSafe;
 
 import java.net.URL;
@@ -141,7 +139,6 @@ public class SquigglyConfig {
      * Get the {@link CacheBuilderSpec} of the path cache in the squiggly filter.
      *
      * @return spec
-     * @see SquigglyPropertyFilter
      */
     public CacheBuilderSpec getFilterPathCacheSpec() {
         return filterPathCacheSpec;
@@ -173,7 +170,6 @@ public class SquigglyConfig {
      * Determines whether or not non-annotated fields are added to the "base" view.
      *
      * @return true/false
-     * @see BeanInfoIntrospector
      */
     public boolean isPropertyAddNonAnnotatedFieldsToBaseView() {
         return propertyAddNonAnnotatedFieldsToBaseView;
@@ -183,7 +179,6 @@ public class SquigglyConfig {
      * Get the {@link CacheBuilderSpec} of the descriptor cache in the property view introspector.
      *
      * @return spec
-     * @see BeanInfoIntrospector
      */
     public CacheBuilderSpec getPropertyDescriptorCacheSpec() {
         return propertyDescriptorCacheSpec;
