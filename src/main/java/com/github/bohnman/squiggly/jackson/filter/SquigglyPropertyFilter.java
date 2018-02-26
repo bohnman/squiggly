@@ -109,7 +109,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     public static void main(String[] args) {
-        ObjectMapper mapper = Squiggly.builder("nickNames.map(@[@foo].upper())")
+        ObjectMapper mapper = Squiggly.builder("nickNames.slice(1)")
                 .variable("foo", "name")
                 .build()
                 .apply(new ObjectMapper());

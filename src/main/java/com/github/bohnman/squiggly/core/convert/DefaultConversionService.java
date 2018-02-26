@@ -2,65 +2,44 @@ package com.github.bohnman.squiggly.core.convert;
 
 import com.github.bohnman.core.cache.Cache;
 import com.github.bohnman.core.cache.CacheBuilder;
+import com.github.bohnman.core.lang.CoreClasses;
+import com.github.bohnman.core.lang.Null;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
+import static java.util.stream.Collectors.toMap;
 
 public class DefaultConversionService implements SquigglyConversionService {
 
-    private static ConverterRecord NO_MATCH = new ConverterRecord(Object.class, Object.class, Function.identity());
+    private static final ConverterRecord IDENTITY = new ConverterRecord(Object.class, Object.class, Function.identity());
+    private static final ConverterRecord NO_MATCH = new ConverterRecord(Object.class, Object.class, Function.identity());
 
     private final Cache<Key, ConverterRecord> cache;
+    private final Map<Key, ConverterRecord> registeredConverters;
 
     public DefaultConversionService(SquigglyConfig config, List<ConverterRecord> records) {
         this.cache = CacheBuilder.from(config.getConvertCacheSpec()).build();
+        this.registeredConverters = Collections.unmodifiableMap(
+                records.stream()
+                        .collect(toMap(Key::from, Function.identity(), (a, b) -> b))
 
-        records.forEach(record -> {
-            Key key = Key.from(record);
-            cache.put(key, record);
-            load(key);
-        });
-    }
+        );
 
-    private ConverterRecord load(Key key) {
-        Class<?> source = key.source;
-
-        if (source == Object.class) {
-            return NO_MATCH;
-        }
-
-        Class<?> superSource = source.getSuperclass();
-        ConverterRecord record = superSource == null ? NO_MATCH : cache.computeIfAbsent(new Key(superSource, key.target), this::load);
-
-        if (record == NO_MATCH || superSource == Object.class) {
-            for (Class<?> ifaceClass : source.getInterfaces()) {
-                ConverterRecord ifaceRecord = cache.computeIfAbsent(new Key(ifaceClass, key.target), this::load);
-
-                if (ifaceRecord != NO_MATCH && (record == NO_MATCH || ifaceRecord.getSource() != Object.class)) {
-                    record = ifaceRecord;
-                    break;
-                }
-            }
-        }
-
-        return record;
     }
 
     @Override
     public boolean canConvert(Class<?> source, Class<?> target) {
-        if (source == target) {
-            return true;
-        }
-
-        if (target == Object.class) {
-            return true;
-        }
-
-        ConverterRecord record = cache.computeIfAbsent(new Key(source, target), this::load);
+        ConverterRecord record = get(source, target);
 
         if (record == NO_MATCH) {
             return false;
@@ -71,27 +50,152 @@ public class DefaultConversionService implements SquigglyConversionService {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T convert(Object value, Class<T> target) {
-        if (value == null) {
-            return null;
+    public <T> T convert(Object source, Class<T> target) {
+        Class<?> sourceClass;
+
+        if (source == null) {
+            sourceClass = Null.class;
+        } else {
+            sourceClass = source.getClass();
         }
 
-        if (value.getClass() == target) {
-            return (T) value;
-        }
+        ConverterRecord record = get(sourceClass, target);
 
-        if (target == Object.class) {
-            return (T) value;
+        if (record == NO_MATCH && source == null) {
+            record = IDENTITY;
         }
-
-        ConverterRecord record = cache.computeIfAbsent(new Key(value.getClass(), target), this::load);
 
         if (record == NO_MATCH) {
-            throw new IllegalArgumentException(String.format("Cannot convert [%s] from [%s] to [%s]: No converter found", value, value.getClass(), value.getClass()));
+            throw new IllegalArgumentException(String.format("Cannot convert [%s] from [%s] to [%s]: No converter found", source, source.getClass(), source.getClass()));
         }
 
         Function converter = record.getConverter();
-        return (T) converter.apply(value);
+        T result = (T) converter.apply(source);
+
+        if (result == null && target.isPrimitive()) {
+            throw new IllegalArgumentException("A null value cannot be assigned to a primitive type");
+        }
+
+        return result;
+    }
+
+    private ConverterRecord get(Class<?> sourceType, Class<?> targetType) {
+        return cache.computeIfAbsent(new Key(sourceType, targetType), this::load);
+    }
+
+    private ConverterRecord load(Key key) {
+        ConverterRecord converter = find(key.source, key.target);
+
+        if (converter == null) {
+            converter = (key.target.isAssignableFrom(key.source) ? IDENTITY : null);
+        }
+
+        return (converter == null) ? NO_MATCH : converter;
+
+
+//        Class<?> source = key.source;
+//
+//        if (source == Object.class) {
+//            return NO_MATCH;
+//        }
+//
+//        Class<?> superSource = source.getSuperclass();
+//        ConverterRecord record = superSource == null ? NO_MATCH : cache.computeIfAbsent(new Key(superSource, key.target), this::load);
+//
+//        if (record == NO_MATCH || superSource == Object.class) {
+//            for (Class<?> ifaceClass : source.getInterfaces()) {
+//                ConverterRecord ifaceRecord = cache.computeIfAbsent(new Key(ifaceClass, key.target), this::load);
+//
+//                if (ifaceRecord != NO_MATCH && (record == NO_MATCH || ifaceRecord.getSource() != Object.class)) {
+//                    record = ifaceRecord;
+//                    break;
+//                }
+//            }
+//        }
+
+//        return record;
+    }
+
+    private ConverterRecord find(Class<?> sourceType, Class<?> targetType) {
+        ConverterRecord converter = getRegisteredConverter(new Key(sourceType, targetType));
+
+        if (converter != null) {
+            return converter;
+        }
+
+        List<Class<?>> sourceCandidates = getClassHierarchy(sourceType);
+        List<Class<?>> targetCandidates = getClassHierarchy(targetType);
+        for (Class<?> sourceCandidate : sourceCandidates) {
+            for (Class<?> targetCandidate : targetCandidates) {
+                if (sourceType == sourceCandidate && targetType == targetCandidate) {
+                    continue;
+                }
+
+                Key convertiblePair = new Key(sourceCandidate, targetCandidate);
+                converter = getRegisteredConverter(convertiblePair);
+
+                if (converter != null) {
+                    return converter;
+                }
+
+                if (sourceCandidate == targetCandidate) {
+                    return IDENTITY;
+                }
+            }
+        }
+        return null;
+    }
+
+    private ConverterRecord getRegisteredConverter(Key convertiblePair) {
+        return registeredConverters.get(convertiblePair);
+    }
+
+    private List<Class<?>> getClassHierarchy(Class<?> type) {
+        List<Class<?>> hierarchy = new ArrayList<>(20);
+        Set<Class<?>> visited = new HashSet<>(20);
+        addToClassHierarchy(0, CoreClasses.resolvePrimitiveIfNecessary(type), false, hierarchy, visited);
+        boolean array = type.isArray();
+
+        int i = 0;
+        while (i < hierarchy.size()) {
+            Class<?> candidate = hierarchy.get(i);
+            candidate = (array ? candidate.getComponentType() : CoreClasses.resolvePrimitiveIfNecessary(candidate));
+            Class<?> superclass = candidate.getSuperclass();
+            if (superclass != null && superclass != Object.class && superclass != Enum.class) {
+                addToClassHierarchy(i + 1, candidate.getSuperclass(), array, hierarchy, visited);
+            }
+            addInterfacesToClassHierarchy(candidate, array, hierarchy, visited);
+            i++;
+        }
+
+        if (Enum.class.isAssignableFrom(type)) {
+            addToClassHierarchy(hierarchy.size(), Enum.class, array, hierarchy, visited);
+            addToClassHierarchy(hierarchy.size(), Enum.class, false, hierarchy, visited);
+            addInterfacesToClassHierarchy(Enum.class, array, hierarchy, visited);
+        }
+
+        addToClassHierarchy(hierarchy.size(), Object.class, array, hierarchy, visited);
+        addToClassHierarchy(hierarchy.size(), Object.class, false, hierarchy, visited);
+        return hierarchy;
+    }
+
+    private void addInterfacesToClassHierarchy(Class<?> type, boolean asArray,
+                                               List<Class<?>> hierarchy, Set<Class<?>> visited) {
+
+        for (Class<?> implementedInterface : type.getInterfaces()) {
+            addToClassHierarchy(hierarchy.size(), implementedInterface, asArray, hierarchy, visited);
+        }
+    }
+
+    private void addToClassHierarchy(int index, Class<?> type, boolean asArray,
+                                     List<Class<?>> hierarchy, Set<Class<?>> visited) {
+
+        if (asArray) {
+            type = Array.newInstance(type, 0).getClass();
+        }
+        if (visited.add(type)) {
+            hierarchy.add(index, type);
+        }
     }
 
     private static class Key {
