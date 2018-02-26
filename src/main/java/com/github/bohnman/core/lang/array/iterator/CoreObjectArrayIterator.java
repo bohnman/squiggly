@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.bohnman.core.collect.iterator;
+package com.github.bohnman.core.lang.array.iterator;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -32,7 +32,7 @@ import java.util.NoSuchElementException;
  * @version $Id: ObjectArrayIterator.java 1543928 2013-11-20 20:15:35Z tn $
  */
 @SuppressWarnings("PointlessBooleanExpression")
-public class CoreObjectArrayIterator<E> {
+public class CoreObjectArrayIterator<E> implements Iterator<E> {
 
     /** The array */
     final E[] array;
@@ -51,6 +51,7 @@ public class CoreObjectArrayIterator<E> {
      * @param array the array to iterate over
      * @throws NullPointerException if <code>array</code> is <code>null</code>
      */
+    @SafeVarargs
     public CoreObjectArrayIterator(final E... array) {
         this(array, 0, array.length);
     }

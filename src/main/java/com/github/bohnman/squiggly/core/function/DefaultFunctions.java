@@ -1,8 +1,9 @@
 package com.github.bohnman.squiggly.core.function;
 
+import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
-import com.github.bohnman.core.array.CoreArrayWrapper;
-import com.github.bohnman.core.array.CoreArrayWrappers;
+import com.github.bohnman.core.lang.array.CoreArrayWrapper;
+import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.bean.CoreBeans;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
@@ -12,7 +13,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
 
 import java.beans.PropertyDescriptor;
 import java.text.DecimalFormat;
@@ -42,7 +42,7 @@ public class DefaultFunctions {
         }
 
         if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(value);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
 
             return IntStream.range(0, wrapper.size())
                     .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i)))
@@ -70,7 +70,7 @@ public class DefaultFunctions {
         }
 
         if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(value);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             return wrapper.stream().filter((Predicate<Object>) predicate).toArray();
         }
 
@@ -93,7 +93,7 @@ public class DefaultFunctions {
         }
 
         if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(value);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
 
             return IntStream.range(0, wrapper.size())
                     .mapToObj(i -> coreLambda.invoke(wrapper.get(i), i))
@@ -119,7 +119,7 @@ public class DefaultFunctions {
         }
 
         if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(value);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             return wrapper.stream().map((Function<Object, Object>) function).toArray();
         }
 
@@ -147,7 +147,7 @@ public class DefaultFunctions {
         }
 
         if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(value);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             int len = wrapper.size();
             return len == 0 ? null : wrapper.get(0);
         }
@@ -172,7 +172,7 @@ public class DefaultFunctions {
         }
 
         if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(value);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             int len = wrapper.size();
             return len == 0 ? null : wrapper.get(len - 1);
         }
@@ -192,7 +192,7 @@ public class DefaultFunctions {
         }
 
         if (value.getClass().isArray()) {
-            int length = CoreArrayWrappers.create(value).size();
+            int length = CoreArrays.wrap(value).size();
             int[] keys = new int[length];
             for (int i = 0; i < length; i++) {
                 keys[i] = i;
@@ -253,7 +253,7 @@ public class DefaultFunctions {
         }
 
         if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(value);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), indexes);
             if (actualIndexes.isEmpty()) return wrapper.create(0);
             CoreArrayWrapper newWrapper = wrapper.create(actualIndexes.size());
@@ -287,11 +287,11 @@ public class DefaultFunctions {
         }
 
         if (value instanceof String) {
-            return StringUtils.reverse((String) value);
+            return CoreStrings.reverse((String) value);
         }
 
         if (value.getClass().isArray()) {
-            return CoreArrayWrappers.create(value).reverse().getArray();
+            return CoreArrays.wrap(value).reverse().getArray();
         }
 
         if (value instanceof Iterable) {
@@ -339,11 +339,11 @@ public class DefaultFunctions {
         }
 
         if (value instanceof String) {
-            return StringUtils.substring((String) value, start);
+            return CoreStrings.substring((String) value, start);
         }
 
         if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(value);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             int len = wrapper.size();
             int realStart = normalizeIndex(start, len);
             int realEnd = len;
@@ -369,11 +369,11 @@ public class DefaultFunctions {
         }
 
         if (value instanceof String) {
-            return StringUtils.substring((String) value, start, end);
+            return CoreStrings.substring((String) value, start, end);
         }
 
         if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(value);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             int len = wrapper.size();
             int realStart = normalizeIndex(start, len);
             int realEnd = normalizeIndex(end, len);
@@ -417,7 +417,7 @@ public class DefaultFunctions {
         }
 
         if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(value);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             int len = wrapper.size();
             StringBuilder builder = new StringBuilder();
 
@@ -460,7 +460,7 @@ public class DefaultFunctions {
         }
 
         if (separator instanceof String) {
-            return Arrays.asList(StringUtils.split(value, (String) separator));
+            return Arrays.asList(CoreStrings.split(value, (String) separator));
         }
 
         if (separator instanceof Pattern) {
@@ -487,7 +487,7 @@ public class DefaultFunctions {
         }
 
         if (search instanceof String) {
-            return StringUtils.replace(value, (String) search, replace);
+            return CoreStrings.replace(value, (String) search, replace);
         }
 
         if (search instanceof Pattern) {
@@ -508,7 +508,7 @@ public class DefaultFunctions {
         }
 
         if (search instanceof String) {
-            return StringUtils.replace(value, (String) search, replace, 1);
+            return CoreStrings.replace(value, (String) search, replace, 1);
         }
 
         if (search instanceof Pattern) {
@@ -523,22 +523,22 @@ public class DefaultFunctions {
 
     @SquigglyMethod(aliases = "capitalise")
     public static String capitalize(String value) {
-        return StringUtils.capitalize(value);
+        return CoreStrings.capitalize(value);
     }
 
     @SquigglyMethod
     public static String lower(String value) {
-        return StringUtils.upperCase(value);
+        return CoreStrings.lower(value);
     }
 
     @SquigglyMethod
     public static String trim(String value) {
-        return StringUtils.trim(value);
+        return CoreStrings.trim(value);
     }
 
     @SquigglyMethod
     public static String upper(String value) {
-        return StringUtils.upperCase(value);
+        return CoreStrings.upper(value);
     }
 
     // Number functions
@@ -670,7 +670,7 @@ public class DefaultFunctions {
             return true;
         }
 
-        if (o.getClass().isArray() && CoreArrayWrappers.create(o).isEmpty()) {
+        if (o.getClass().isArray() && CoreArrays.wrap(o).isEmpty()) {
             return true;
         }
 

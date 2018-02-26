@@ -1,10 +1,10 @@
-package com.github.bohnman.core.array;
+package com.github.bohnman.core.lang.array;
 
-import com.github.bohnman.core.collect.iterator.CoreArrayIterator;
-import com.github.bohnman.core.collect.iterator.CoreArrayListIterator;
+import com.github.bohnman.core.lang.array.iterator.CoreArrayIterator;
+import com.github.bohnman.core.lang.array.iterator.CoreArrayListIterator;
+import com.github.bohnman.core.lang.array.iterator.CoreObjectArrayIterator;
+import com.github.bohnman.core.lang.array.iterator.CoreObjectArrayListIterator;
 import com.google.common.collect.ObjectArrays;
-import org.apache.commons.collections4.iterators.ObjectArrayIterator;
-import org.apache.commons.collections4.iterators.ObjectArrayListIterator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,7 +47,7 @@ public interface CoreArrayWrapper extends List<Object> {
         Object array = getArray();
 
         if (array instanceof Object[]) {
-            return new ObjectArrayIterator<>(array);
+            return new CoreObjectArrayIterator<>(array);
         }
 
         return new CoreArrayIterator<>(array);
@@ -166,7 +166,7 @@ public interface CoreArrayWrapper extends List<Object> {
         Object array = getArray();
 
         if (array instanceof Object[]) {
-            return new ObjectArrayListIterator<>(array, index);
+            return new CoreObjectArrayListIterator<>(array, index);
         }
 
         return new CoreArrayListIterator(array, index);
@@ -189,7 +189,7 @@ public interface CoreArrayWrapper extends List<Object> {
     }
 
     default CoreArrayWrapper create(int size) {
-        return CoreArrayWrappers.create(ObjectArrays.newArray(getArray().getClass().getComponentType(), size));
+        return CoreArrays.wrap(ObjectArrays.newArray(getArray().getClass().getComponentType(), size));
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")

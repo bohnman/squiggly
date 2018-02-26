@@ -3,6 +3,7 @@ package com.github.bohnman.squiggly.jackson.match;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
+import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.core.bean.BeanInfo;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
@@ -15,7 +16,6 @@ import com.github.bohnman.squiggly.core.view.PropertyView;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -31,7 +31,7 @@ public class SquigglyNodeMatcher {
     public static final SquigglyNode ALWAYS_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, false, false);
     private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(new SquigglyNode(new ParseContext(1, 1), new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, true, false));
 
-    private final Cache<Pair<Path, String>, SquigglyNode> matchCache;
+    private final Cache<CorePair<Path, String>, SquigglyNode> matchCache;
     private final Squiggly squiggly;
 
 
@@ -63,7 +63,7 @@ public class SquigglyNodeMatcher {
 
         if (path.isCachable()) {
             // cache the match result using the path and filter expression
-            Pair<Path, String> pair = Pair.of(path, filter);
+            CorePair<Path, String> pair = CorePair.of(path, filter);
             SquigglyNode match = matchCache.getIfPresent(pair);
 
             if (match == null) {

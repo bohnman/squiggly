@@ -2,6 +2,8 @@ package com.github.bohnman.squiggly.core.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import com.github.bohnman.core.lang.CoreFields;
+import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.core.metric.source.GuavaCacheSquigglyMetricsSource;
@@ -14,8 +16,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 
 import javax.annotation.Nullable;
 import java.beans.IntrospectionException;
@@ -71,7 +71,7 @@ public class BeanInfoIntrospector {
                 continue;
             }
 
-            Field field = FieldUtils.getField(propertyDescriptor.getReadMethod().getDeclaringClass(), propertyDescriptor.getName(), true);
+            Field field = CoreFields.getField(propertyDescriptor.getReadMethod().getDeclaringClass(), propertyDescriptor.getName());
             String propertyName = getPropertyName(propertyDescriptor, field);
 
 
@@ -148,7 +148,7 @@ public class BeanInfoIntrospector {
     }
 
     private static String getPropertyName(JsonProperty ann) {
-        return StringUtils.defaultIfEmpty(ann.value(), null);
+        return CoreStrings.defaultIfEmpty(ann.value(), null);
     }
 
     private static boolean isUnwrapped(PropertyDescriptor propertyDescriptor, Field field) {

@@ -1,6 +1,6 @@
 package com.github.bohnman.core.function;
 
-import com.github.bohnman.core.array.CoreArrayWrappers;
+import com.github.bohnman.core.lang.array.CoreArrays;
 
 import javax.annotation.Nullable;
 
@@ -21,7 +21,7 @@ public interface CoreLambda extends FunctionPredicateBridge<Object, Object> {
         }
 
         if (arguments.getClass().isArray()) {
-            invoke(CoreArrayWrappers.create(arguments).toArray());
+            invoke(CoreArrays.wrap(arguments).toArray());
         }
 
         return invoke(arguments);

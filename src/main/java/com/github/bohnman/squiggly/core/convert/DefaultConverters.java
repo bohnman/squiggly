@@ -84,7 +84,7 @@ public class DefaultConverters {
         repo.add(String.class, Double.class, Double::parseDouble);
 
         // TimeZone
-        repo.add(String.class, TimeZone.class, CoreStrings::toTimeZone);
+        repo.add(String.class, TimeZone.class, CoreConversions::toTimeZone);
         repo.add(ZoneId.class, TimeZone.class, TimeZone::getTimeZone);
 
         // Long to Date

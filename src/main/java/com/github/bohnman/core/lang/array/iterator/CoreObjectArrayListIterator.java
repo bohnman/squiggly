@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.bohnman.core.collect.iterator;
+package com.github.bohnman.core.lang.array.iterator;
 
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
@@ -36,7 +36,7 @@ import java.util.NoSuchElementException;
  * @version $Id: ObjectArrayListIterator.java 1543928 2013-11-20 20:15:35Z tn $
  */
 @SuppressWarnings("PointlessBooleanExpression")
-public class CoreObjectArrayListIterator<E> extends CoreObjectArrayIterator<E> {
+public class CoreObjectArrayListIterator<E> extends CoreObjectArrayIterator<E> implements ListIterator<E> {
 
     /**
      * Holds the index of the last item returned by a call to <code>next()</code>
@@ -54,6 +54,7 @@ public class CoreObjectArrayListIterator<E> extends CoreObjectArrayIterator<E> {
      * @param array the array to iterate over
      * @throws NullPointerException if <code>array</code> is <code>null</code>
      */
+    @SafeVarargs
     public CoreObjectArrayListIterator(final E... array) {
         super(array);
     }

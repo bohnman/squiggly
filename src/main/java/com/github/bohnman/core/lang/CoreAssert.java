@@ -16,8 +16,6 @@
 
 package com.github.bohnman.core.lang;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Collection;
 import java.util.Map;
 
@@ -151,11 +149,11 @@ public abstract class CoreAssert {
 	 * <pre class="code">Assert.hasLength(name, "Name must not be empty");</pre>
 	 * @param text the String to check
 	 * @param message the exception message to use if the assertion fails
-	 * @see StringUtils#isEmpty
+	 * @see CoreStrings#isEmpty
 	 * @throws IllegalArgumentException if the text is empty
 	 */
 	public static void hasLength(String text, String message) {
-		if (StringUtils.isEmpty(text)) {
+		if (CoreStrings.isEmpty(text)) {
 			throw new IllegalArgumentException(message);
 		}
 	}
@@ -175,11 +173,11 @@ public abstract class CoreAssert {
 	 * <pre class="code">Assert.hasText(name, "'name' must not be empty");</pre>
 	 * @param text the String to check
 	 * @param message the exception message to use if the assertion fails
-	 * @see StringUtils#trimToEmpty(String)
+	 * @see CoreStrings#trimToEmpty(String)
 	 * @throws IllegalArgumentException if the text does not contain valid text content
 	 */
 	public static void hasText(String text, String message) {
-		if (StringUtils.trimToEmpty(text).length() == 0) {
+		if (CoreStrings.trimToEmpty(text).length() == 0) {
 			throw new IllegalArgumentException(message);
 		}
 	}
@@ -202,7 +200,7 @@ public abstract class CoreAssert {
 	 * @throws IllegalArgumentException if the text contains the substring
 	 */
 	public static void doesNotContain(String textToSearch, String substring, String message) {
-		if (StringUtils.isNotEmpty(textToSearch) && StringUtils.isNotEmpty(substring) &&
+		if (CoreStrings.isNotEmpty(textToSearch) && CoreStrings.isNotEmpty(substring) &&
 				textToSearch.contains(substring)) {
 			throw new IllegalArgumentException(message);
 		}
@@ -376,7 +374,7 @@ public abstract class CoreAssert {
 		String className = (obj != null ? obj.getClass().getName() : "null");
 		String result = "";
 		boolean defaultMessage = true;
-		if (StringUtils.isNotEmpty(msg)) {
+		if (CoreStrings.isNotEmpty(msg)) {
 			if (endsWithSeparator(msg)) {
 				result = msg + " ";
 			}
@@ -394,7 +392,7 @@ public abstract class CoreAssert {
 	private static void assignableCheckFailed(Class<?> superType, Class<?> subType, String msg) {
 		String result = "";
 		boolean defaultMessage = true;
-		if (StringUtils.isNotEmpty(msg)) {
+		if (CoreStrings.isNotEmpty(msg)) {
 			if (endsWithSeparator(msg)) {
 				result = msg + " ";
 			}

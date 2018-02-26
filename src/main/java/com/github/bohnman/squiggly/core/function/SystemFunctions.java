@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.core.function;
 
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
-import com.github.bohnman.core.array.CoreArrayWrapper;
-import com.github.bohnman.core.array.CoreArrayWrappers;
+import com.github.bohnman.core.lang.array.CoreArrayWrapper;
+import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.google.common.collect.Streams;
@@ -141,7 +141,7 @@ public class SystemFunctions {
         }
         
         if (o.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrayWrappers.create(o);
+            CoreArrayWrapper wrapper = CoreArrays.wrap(o);
             return wrapper.stream().anyMatch(e -> match(e, pattern));
         }
 

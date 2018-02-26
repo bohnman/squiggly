@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.core.name;
 
-import org.apache.commons.lang3.StringUtils;
+import com.github.bohnman.core.lang.CoreStrings;
 
 import java.util.regex.Pattern;
 
@@ -12,7 +12,7 @@ public class WildcardName implements SquigglyName {
 
     public WildcardName(String name) {
         this.name = name;
-        this.rawName = StringUtils.remove(this.name, '*');
+        this.rawName = CoreStrings.remove(this.name, "*");
         this.pattern = buildPattern();
     }
 
@@ -20,7 +20,7 @@ public class WildcardName implements SquigglyName {
         String[] search = {"*", "?"};
         String[] replace = {".*", ".?"};
 
-        return Pattern.compile("^" + StringUtils.replaceEach(name, search, replace) + "$");
+        return Pattern.compile("^" + CoreStrings.replaceEach(name, search, replace) + "$");
     }
 
     @Override

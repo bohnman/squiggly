@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.core.function;
 
+import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyClass;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
@@ -108,7 +108,7 @@ public class SquigglyFunctions {
 
         if (name != null) {
             functionName = name;
-        } else if (functionAnnotation != null && StringUtils.isNotEmpty(functionAnnotation.value())) {
+        } else if (functionAnnotation != null && CoreStrings.isNotEmpty(functionAnnotation.value())) {
             functionName = prefix + functionAnnotation.value();
         }
 

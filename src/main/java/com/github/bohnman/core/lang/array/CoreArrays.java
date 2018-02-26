@@ -1,10 +1,27 @@
-package com.github.bohnman.core.array;
+package com.github.bohnman.core.lang.array;
 
 import java.util.Arrays;
 
-public class CoreArrayWrappers {
+public class CoreArrays {
 
-    public static CoreArrayWrapper create(Object array) {
+    private static final String[] EMPTY_STRING_ARRAY = new String[0];
+
+    private CoreArrays() {
+    }
+
+    public static <T> T[] clone(final T[] array) {
+        if (array == null) {
+            return null;
+        }
+        return array.clone();
+    }
+
+    public static String[] emptyStringArray() {
+        return EMPTY_STRING_ARRAY;
+    }
+
+
+    public static CoreArrayWrapper wrap(Object array) {
         if (!array.getClass().isArray()) {
             throw new IllegalArgumentException(String.format("Object [%s] is not an array.", array));
         }

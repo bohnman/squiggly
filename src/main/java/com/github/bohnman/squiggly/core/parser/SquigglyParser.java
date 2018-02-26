@@ -1,5 +1,7 @@
 package com.github.bohnman.squiggly.core.parser;
 
+import com.github.bohnman.core.antlr4.ThrowingErrorListener;
+import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.core.metric.source.GuavaCacheSquigglyMetricsSource;
@@ -13,7 +15,6 @@ import com.github.bohnman.squiggly.core.name.WildcardName;
 import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionBaseVisitor;
 import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionLexer;
 import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionParser;
-import com.github.bohnman.core.antlr4.ThrowingErrorListener;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -23,8 +24,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -70,9 +69,9 @@ public class SquigglyParser {
      * @return compiled nodes
      */
     public List<SquigglyNode> parse(String filter) {
-        filter = StringUtils.trim(filter);
+        filter = CoreStrings.trim(filter);
 
-        if (StringUtils.isEmpty(filter)) {
+        if (CoreStrings.isEmpty(filter)) {
             return Collections.emptyList();
         }
 
@@ -636,11 +635,11 @@ public class SquigglyParser {
             }
 
             if (text.startsWith("'") && text.endsWith("'")) {
-                text = StringEscapeUtils.unescapeEcmaScript(text.substring(1, text.length() - 1));
+                text = CoreStrings.unescapeEcmaScript(text.substring(1, text.length() - 1));
             }
 
             if (text.startsWith("\"") && text.endsWith("\"")) {
-                text = StringEscapeUtils.unescapeEcmaScript(text.substring(1, text.length() - 1));
+                text = CoreStrings.unescapeEcmaScript(text.substring(1, text.length() - 1));
             }
 
             return text;
@@ -699,10 +698,10 @@ public class SquigglyParser {
             Set<String> flags = new HashSet<>();
 
             if (slashIdx >= 0) {
-                String flagPart = StringUtils.trim(StringUtils.substring(pattern, slashIdx + 1));
-                pattern = StringUtils.substring(pattern, 0, slashIdx);
+                String flagPart = CoreStrings.trim(CoreStrings.substring(pattern, slashIdx + 1));
+                pattern = CoreStrings.substring(pattern, 0, slashIdx);
 
-                if (StringUtils.isNotEmpty(flagPart)) {
+                if (CoreStrings.isNotEmpty(flagPart)) {
                     for (char flag : flagPart.toCharArray()) {
                         flags.add(Character.toString(flag));
                     }

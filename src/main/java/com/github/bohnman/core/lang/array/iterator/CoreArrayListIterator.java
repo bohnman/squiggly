@@ -1,4 +1,4 @@
-package com.github.bohnman.core.collect.iterator;
+package com.github.bohnman.core.lang.array.iterator;
 
 import java.lang.reflect.Array;
 import java.util.ListIterator;
@@ -15,7 +15,7 @@ import java.util.NoSuchElementException;
  * This iterator does not support {@link #add(Object)} or {@link #remove()}, as the array
  * cannot be changed in size. The {@link #set(Object)} method is supported however.
  *
- * @see org.apache.commons.collections4.iterators.ArrayIterator
+ * @see CoreArrayIterator
  * @see java.util.Iterator
  * @see java.util.ListIterator
  *
@@ -164,7 +164,7 @@ public class CoreArrayListIterator<E> extends CoreArrayIterator<E> implements Li
      *
      * @param o  the element to set
      * @throws IllegalStateException if {@link #next()} or {@link #previous()} has not been called
-     * before {@link #set(Object)}
+     * before.
      * @see java.util.ListIterator#set
      */
     public void set(final Object o) {
