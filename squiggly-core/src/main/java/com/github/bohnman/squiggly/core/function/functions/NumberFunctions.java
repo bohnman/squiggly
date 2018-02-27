@@ -5,9 +5,9 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 
-public class MathFunctions {
+public class NumberFunctions {
 
-    private MathFunctions() {
+    private NumberFunctions() {
     }
 
     @SquigglyMethod
@@ -97,5 +97,15 @@ public class MathFunctions {
     public static Number round(Number n) {
         if (n == null) return null;
         return Math.round(n.doubleValue());
+    }
+
+    @SquigglyMethod
+    public static Double toFloat(Number number) {
+        return (number == null) ? null : number.doubleValue();
+    }
+
+    @SquigglyMethod
+    public static Long toInt(Number number) {
+        return (number == null) ? null : number.longValue();
     }
 }

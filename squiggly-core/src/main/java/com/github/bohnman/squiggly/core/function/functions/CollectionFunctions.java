@@ -10,12 +10,12 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toList;
 
 public class CollectionFunctions {
     private CollectionFunctions() {
@@ -45,7 +45,7 @@ public class CollectionFunctions {
         return IntStream.range(0, list.size())
                 .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(list.get(i), i)))
                 .mapToObj((IntFunction<Object>) list::get)
-                .collect(toList());
+                .collect(Collectors.toList());
     }
 
     @SquigglyMethod(aliases = "where")
@@ -68,7 +68,7 @@ public class CollectionFunctions {
 
         return list.stream()
                 .filter(predicate)
-                .collect(toList());
+                .collect(Collectors.toList());
     }
 
     @SquigglyMethod
@@ -143,7 +143,7 @@ public class CollectionFunctions {
 
         return IntStream.range(0, list.size())
                 .mapToObj(i -> coreLambda.invoke(list.get(i), i))
-                .collect(toList());
+                .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
@@ -166,6 +166,81 @@ public class CollectionFunctions {
 
         return list.stream()
                 .map(function)
-                .collect(toList());
+                .collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    @SquigglyMethod
+    public static Object[] toArray(Object value) {
+        if (value == null) {
+            return new Object[]{};
+        }
+
+        if (value instanceof List) {
+            return ((List) value).toArray();
+        }
+
+        if (value instanceof Object[]) {
+            return (Object[]) value;
+        }
+
+        if (value.getClass().isArray()) {
+            return CoreArrays.wrap(value).toArray();
+        }
+
+        if (value instanceof Iterable) {
+            return CoreLists.of((Iterable) value).toArray();
+        }
+
+        return new Object[]{value};
+    }
+
+    @SuppressWarnings("unchecked")
+    @SquigglyMethod
+    public static List<Object> toList(Object value) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+
+        if (value instanceof List) {
+            return (List) value;
+        }
+
+        if (value.getClass().isArray()) {
+            return CoreArrays.wrap(value);
+        }
+
+        if (value instanceof Iterable) {
+            return CoreLists.of((Iterable) value);
+        }
+
+        return Collections.singletonList(value);
+    }
+
+    @SquigglyMethod
+    public static Map<?, ?> toMap(Object value) {
+        if (value == null) {
+            return Collections.emptyMap();
+        }
+
+        if (value instanceof Map) {
+            return (Map) value;
+        }
+
+        if (value instanceof Iterable) {
+            List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
+            return IntStream.range(0, list.size())
+                    .boxed()
+                    .collect(Collectors.toMap(Integer.class::cast, (Function<Integer, Object>) list::get));
+        }
+
+        if (value.getClass().isArray()) {
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
+            return IntStream.range(0, wrapper.size())
+                    .boxed()
+                    .collect(Collectors.toMap(Integer.class::cast, wrapper::get));
+        }
+
+        return MixedFunctions.toMap(value);
     }
 }

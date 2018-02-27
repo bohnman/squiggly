@@ -5,7 +5,7 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyClass;
 @SquigglyClass(include = {
         CollectionFunctions.class,
         DateFunctions.class,
-        MathFunctions.class,
+        NumberFunctions.class,
         MixedFunctions.class,
         ObjectFunctions.class,
         StringFunctions.class

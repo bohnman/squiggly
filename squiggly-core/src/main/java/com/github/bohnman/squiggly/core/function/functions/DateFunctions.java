@@ -149,24 +149,6 @@ public class DateFunctions {
         return parseDateInternal(input, mainPattern, otherPatterns).toInstant().atZone(ZoneId.systemDefault());
     }
 
-    private static Date parseDateInternal(String input, String mainPattern, String... otherPatterns) {
-
-        try {
-            return new SimpleDateFormat(mainPattern).parse(input);
-        } catch (ParseException e) {
-            // ignore;
-        }
-
-        for (String otherPattern : otherPatterns) {
-            try {
-                return new SimpleDateFormat(otherPattern).parse(input);
-            } catch (ParseException e) {
-                // ignore
-            }
-        }
-
-        throw new IllegalArgumentException("Unable to parse input");
-    }
 
     @SquigglyMethod
     public static LocalDateTime parseLocalDate(String input) {
@@ -202,6 +184,25 @@ public class DateFunctions {
         }
 
         return dateTime.minus(number.intValue(), toTemporalUnit(unit));
+    }
+
+    private static Date parseDateInternal(String input, String mainPattern, String... otherPatterns) {
+
+        try {
+            return new SimpleDateFormat(mainPattern).parse(input);
+        } catch (ParseException e) {
+            // ignore;
+        }
+
+        for (String otherPattern : otherPatterns) {
+            try {
+                return new SimpleDateFormat(otherPattern).parse(input);
+            } catch (ParseException e) {
+                // ignore
+            }
+        }
+
+        throw new IllegalArgumentException("Unable to parse input");
     }
 
     private static TemporalUnit toTemporalUnit(String unit) {

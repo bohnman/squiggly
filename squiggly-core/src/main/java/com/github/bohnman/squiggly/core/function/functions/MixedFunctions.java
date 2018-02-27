@@ -46,6 +46,7 @@ public class MixedFunctions {
         }
     }
 
+    @SquigglyMethod
     public static Object keys(Object value) {
         if (value == null) {
             return Collections.emptyList();
@@ -86,39 +87,6 @@ public class MixedFunctions {
         }
     }
 
-    private static OrderByComparable newComparable(Object value, List<OrderBy> orderBys) {
-        return new OrderByComparable(value, orderBys);
-    }
-
-    private static List<Integer> normalizeIndexes(int len, Object... indexes) {
-        return Stream.of(indexes)
-                .flatMap(index -> {
-                    if (index instanceof String) {
-                        try {
-                            index = Double.parseDouble((String) index);
-                        } catch (NumberFormatException e) {
-                            return Stream.empty();
-                        }
-                    }
-
-
-                    if (index instanceof Number) {
-                        int actualIndex = CoreArrays.normalizeIndex(((Number) index).intValue(), len, -1, len);
-                        return actualIndex < 0 ? Stream.empty() : Stream.of(actualIndex);
-                    }
-
-                    if (index instanceof CoreIntRange) {
-                        CoreIntRange range = (CoreIntRange) index;
-                        int start = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getStart(), 0), len);
-                        int end = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getEnd(), len), len);
-                        return (start >= end) ? Stream.empty() : IntStream.range(start, end).boxed();
-                    }
-
-                    return Stream.empty();
-                })
-                .distinct()
-                .collect(toList());
-    }
 
     @SuppressWarnings("unchecked")
     @SquigglyMethod
@@ -389,25 +357,6 @@ public class MixedFunctions {
         return value;
     }
 
-    @SuppressWarnings("unchecked")
-    private static Map<String, Object> toMap(Object value) {
-        if (value == null || value instanceof String) {
-            return Collections.emptyMap();
-        }
-
-        if (value instanceof Map) {
-            return (Map) value;
-        }
-
-        try {
-            return CoreBeans.getReadablePropertyDescriptors(value.getClass())
-                    .collect(Collectors.toMap(PropertyDescriptor::getName,
-                            pd -> CoreMethods.invoke(pd.getReadMethod(), value)));
-        } catch (Exception e) {
-            return Collections.emptyMap();
-        }
-    }
-
     @SquigglyMethod
     public static Object values(Object value) {
         if (value == null) {
@@ -423,6 +372,59 @@ public class MixedFunctions {
         }
 
         return CoreLists.of(toMap(value).values());
+    }
+
+    private static OrderByComparable newComparable(Object value, List<OrderBy> orderBys) {
+        return new OrderByComparable(value, orderBys);
+    }
+
+    private static List<Integer> normalizeIndexes(int len, Object... indexes) {
+        return Stream.of(indexes)
+                .flatMap(index -> {
+                    if (index instanceof String) {
+                        try {
+                            index = Double.parseDouble((String) index);
+                        } catch (NumberFormatException e) {
+                            return Stream.empty();
+                        }
+                    }
+
+
+                    if (index instanceof Number) {
+                        int actualIndex = CoreArrays.normalizeIndex(((Number) index).intValue(), len, -1, len);
+                        return actualIndex < 0 ? Stream.empty() : Stream.of(actualIndex);
+                    }
+
+                    if (index instanceof CoreIntRange) {
+                        CoreIntRange range = (CoreIntRange) index;
+                        int start = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getStart(), 0), len);
+                        int end = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getEnd(), len), len);
+                        return (start >= end) ? Stream.empty() : IntStream.range(start, end).boxed();
+                    }
+
+                    return Stream.empty();
+                })
+                .distinct()
+                .collect(toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    static Map<String, Object> toMap(Object value) {
+        if (value == null || value instanceof String) {
+            return Collections.emptyMap();
+        }
+
+        if (value instanceof Map) {
+            return (Map) value;
+        }
+
+        try {
+            return CoreBeans.getReadablePropertyDescriptors(value.getClass())
+                    .collect(Collectors.toMap(PropertyDescriptor::getName,
+                            pd -> CoreMethods.invoke(pd.getReadMethod(), value)));
+        } catch (Exception e) {
+            return Collections.emptyMap();
+        }
     }
 
     private static class OrderByComparable implements Comparable<Object> {

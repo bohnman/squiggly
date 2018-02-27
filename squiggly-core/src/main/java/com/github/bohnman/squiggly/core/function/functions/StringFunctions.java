@@ -113,6 +113,7 @@ public class StringFunctions {
         return value;
     }
 
+    @SquigglyMethod
     public static List<String> split(String value, Object separator) {
         if (value == null) {
             return Collections.emptyList();
@@ -131,6 +132,11 @@ public class StringFunctions {
         }
 
         return Collections.singletonList(value);
+    }
+
+    @SquigglyMethod
+    public static String toString(Object value) {
+        return CoreConversions.toString(value);
     }
 
     @SquigglyMethod

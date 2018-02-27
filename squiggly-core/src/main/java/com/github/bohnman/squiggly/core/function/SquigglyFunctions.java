@@ -140,7 +140,7 @@ public class SquigglyFunctions {
         Map<Class<?>, Class<?>> processed = new IdentityHashMap<>();
 
         return Arrays.stream(owners)
-                .flatMap(owner -> createSingleInternal(registrationStrategy, owner,  processed));
+                .flatMap(owner -> createSingleInternal(registrationStrategy, owner, processed));
 
     }
 

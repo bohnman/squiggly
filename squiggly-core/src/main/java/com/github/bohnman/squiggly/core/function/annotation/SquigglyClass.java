@@ -10,5 +10,6 @@ import java.lang.annotation.Target;
 public @interface SquigglyClass {
 
     String prefix() default "";
+
     Class<?>[] include() default {};
 }
