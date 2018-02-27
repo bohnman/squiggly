@@ -9,7 +9,7 @@ nextVersion="$2"
 
 function releaseVersionReplace() {
     file=$1
-    perl -i -0777 -pe "s/(<artifactId>squiggly-filter-jackson<\/artifactId>.*?<version>).*?(<\/version>)/\${1}${releaseVersion}\${2}/smg" ${file}
+    perl -i -0777 -pe "s/(<artifactId>squiggly-java<\/artifactId>.*?<version>).*?(<\/version>)/\${1}${releaseVersion}\${2}/smg" ${file}
 
     if [ $? -gt 0 ]; then
         exit 1;

@@ -71,7 +71,7 @@ Integrating Squiggly into your webapp is covered in [Custom Integration](#custom
 ```xml
 <dependency>
     <groupId>com.github.bohnman</groupId>
-    <artifactId>squiggly-filter-jackson</artifactId>
+    <artifactId>squiggly-java</artifactId>
     <version>1.3.8</version>
 </dependency>
 ```

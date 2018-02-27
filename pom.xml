@@ -42,6 +42,7 @@
 
 
     <modules>
+        <module>spring-boot-starter-squiggly</module>
         <module>squiggly-core</module>
         <module>squiggly-jackson</module>
         <module>squiggly-parent</module>

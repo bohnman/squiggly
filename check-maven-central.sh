@@ -3,12 +3,12 @@
 version="$1"
 
 if [ "$version" == "" ]; then
-    version=$(perl -0777 -ne 'print $1 if /<artifactId>squiggly-filter-jackson<\/artifactId>.*?<version>(.*?)<\/version>/smg' README.md)
+    version=$(perl -0777 -ne 'print $1 if /<artifactId>squiggly-java<\/artifactId>.*?<version>(.*?)<\/version>/smg' README.md)
 fi
 
 echo -n "Checking Version $version: "
 
-status=$(curl -s -o /dev/null -I -w "%{http_code}" http://central.maven.org/maven2/com/github/bohnman/squiggly-filter-jackson/${version}/squiggly-filter-jackson-${version}.jar)
+status=$(curl -s -o /dev/null -I -w "%{http_code}" http://central.maven.org/maven2/com/github/bohnman/squiggly-java/${version}/squiggly-java-${version}.jar)
 
 
 if [ "$status" == "" ]; then

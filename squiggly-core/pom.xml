@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>Squiggly Core</name>
-    <url>https://github.com/bohnman/squiggly-filter-jackson</url>
+    <url>https://github.com/bohnman/squiggly-java</url>
 
     <description>Squiggly Core library</description>
     <artifactId>squiggly-core</artifactId>

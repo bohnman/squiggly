@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>Squiggly Parent</name>
-    <url>https://github.com/bohnman/squiggly-filter-jackson</url>
+    <url>https://github.com/bohnman/squiggly-java</url>
     <description>The Parent POM.</description>
     <groupId>com.github.bohnman</groupId>
     <artifactId>squiggly-parent</artifactId>
@@ -37,7 +37,7 @@
     <licenses>
         <license>
             <name>BSD License</name>
-            <url>https://raw.githubusercontent.com/bohnman/squiggly-filter-jackson/master/LICENSE.md</url>
+            <url>https://raw.githubusercontent.com/bohnman/squiggly-java/master/LICENSE.md</url>
         </license>
     </licenses>
     <developers>
@@ -46,9 +46,9 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git://github.com/bohnman/squiggly-filter-jackson.git</connection>
-        <developerConnection>scm:git:ssh://github.com:bohnman/squiggly-filter-jackson.git</developerConnection>
-        <url>https://github.com/bohnman/squiggly-filter-jackson/tree/master</url>
+        <connection>scm:git:git://github.com/bohnman/squiggly-java.git</connection>
+        <developerConnection>scm:git:ssh://github.com:bohnman/squiggly-java.git</developerConnection>
+        <url>https://github.com/bohnman/squiggly-java/tree/master</url>
     </scm>
 
     <distributionManagement>
