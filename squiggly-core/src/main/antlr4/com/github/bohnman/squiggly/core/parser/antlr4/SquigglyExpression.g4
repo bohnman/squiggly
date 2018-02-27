@@ -56,15 +56,15 @@ field
     | (Add | Subtract)? IntegerLiteral
     | StringLiteral
     | variable
-    | WildcardLiteral
+    | wildcard
     | wildcardField
     ;
 
 wildcardField
-   : Identifier WildcardLiteral
-   | Identifier (WildcardLiteral Identifier)+ WildcardLiteral?
-   | WildcardLiteral Identifier
-   | WildcardLiteral (Identifier WildcardLiteral)+ Identifier?
+   : Identifier wildcard
+   | Identifier (wildcard Identifier)+ wildcard?
+   | wildcard Identifier
+   | wildcard (Identifier wildcard)+ Identifier?
    ;
 
 wildcardDeepField
@@ -236,6 +236,11 @@ variable
     : Variable
     ;
 
+wildcard
+    : WildcardShallow
+    | QuestionMark
+    ;
+
 //-----------------------------------------------------------------------------
 // Lexer Tokens
 //-----------------------------------------------------------------------------
@@ -331,10 +336,6 @@ StringLiteral
     | QuoteSingle SingleQuotedStringCharacters* QuoteSingle
     ;
 
-WildcardLiteral
-    : WildcardShallow
-    | QuestionMark
-    ;
 
 Identifier
     : IdentifierFirst (IdentifierRest)*

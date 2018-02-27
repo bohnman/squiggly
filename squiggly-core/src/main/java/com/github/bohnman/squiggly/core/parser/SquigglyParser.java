@@ -684,11 +684,11 @@ public class SquigglyParser {
                 Pattern pattern = buildPattern(ctx.RegexLiteral().getText());
 
                 name = new RegexName(pattern.pattern(), pattern);
-            } else if (ctx.WildcardLiteral() != null) {
-                if ("*".equals(ctx.WildcardLiteral().getText())) {
+            } else if (ctx.wildcard() != null) {
+                if ("*".equals(ctx.wildcard().getText())) {
                     name = AnyShallowName.get();
                 } else {
-                    name = new WildcardName(ctx.WildcardLiteral().getText());
+                    name = new WildcardName(ctx.wildcard().getText());
                 }
             } else if (ctx.variable() != null) {
                 name = new VariableName(buildVariableValue(ctx.variable()));

@@ -9,7 +9,6 @@
 
     <description>Squiggly Core library</description>
     <artifactId>squiggly-core</artifactId>
-    <version>1.3.9-SNAPSHOT</version>
 
     <parent>
         <groupId>com.github.bohnman</groupId>
@@ -62,6 +61,7 @@
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
+                <version>${antlr4-runtime.version}</version>
             </plugin>
 
             <plugin>

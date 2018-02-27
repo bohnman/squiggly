@@ -31,6 +31,7 @@
         <maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
         <package-info-maven-plugin.version>1.0.1</package-info-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
+        <squiggly.version>1.3.9-SNAPSHOT</squiggly.version>
     </properties>
 
     <licenses>
@@ -111,6 +112,12 @@
                 <version>${junit.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-core</artifactId>
+                <version>${squiggly.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -121,7 +128,7 @@
                 <plugin>
                     <groupId>org.antlr</groupId>
                     <artifactId>antlr4-maven-plugin</artifactId>
-                    <version>4.7</version>
+                    <version>${antlr4-runtime.version}</version>
                     <configuration>
                         <outputDirectory>${basedir}/src/generated/java</outputDirectory>
                         <visitor>true</visitor>
