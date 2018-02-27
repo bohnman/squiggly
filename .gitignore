@@ -3,4 +3,4 @@
 target/
 *.iml
 /pom.xml.versionsBackup
-src/generated/
+**/src/generated/
