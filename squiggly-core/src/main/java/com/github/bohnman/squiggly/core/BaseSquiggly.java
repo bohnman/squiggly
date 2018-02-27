@@ -2,15 +2,14 @@ package com.github.bohnman.squiggly.core;
 
 import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
-import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
 import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.core.convert.ConverterRecord;
-import com.github.bohnman.squiggly.core.convert.ConverterRecordRepository;
 import com.github.bohnman.squiggly.core.convert.DefaultConversionService;
 import com.github.bohnman.squiggly.core.convert.DefaultConverters;
-import com.github.bohnman.squiggly.core.convert.ListRecordRepository;
+import com.github.bohnman.squiggly.core.convert.ListConverterRegistry;
 import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
+import com.github.bohnman.squiggly.core.convert.SquigglyConverterRegistry;
 import com.github.bohnman.squiggly.core.filter.repository.CompositeFilterRepository;
 import com.github.bohnman.squiggly.core.filter.repository.MapFilterRepository;
 import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterRepository;
@@ -139,16 +138,21 @@ public abstract class BaseSquiggly {
      * @param <B> the builder type
      * @param <S> the squiggly type
      */
+
     @SuppressWarnings("TypeParameterHidesVisibleType")
     public abstract static class BaseBuilder<B extends BaseBuilder<B, S>, S extends BaseSquiggly> {
 
-        private final List<SquigglyConfigSource> configSources = new ArrayList<>();
+        @Nullable
+        private SquigglyConfig config;
 
         @Nullable
         private SquigglyContextProvider contextProvider;
 
         @Nullable
         private Function<List<ConverterRecord>, SquigglyConversionService> conversionService;
+
+        @Nullable
+        private SquigglyConverterRegistry converterRegistry;
 
         @Nullable
         private SquigglyFilterRepository filterRepository;
@@ -200,13 +204,13 @@ public abstract class BaseSquiggly {
         }
 
         /**
-         * Add a config source.
+         * Add a config
          *
-         * @param source the config source
+         * @param config the config
          * @return builder
          */
-        public B config(SquigglyConfigSource source) {
-            configSources.add(notNull(source));
+        public B config(SquigglyConfig config) {
+            this.config = config;
             return getThis();
         }
 
@@ -218,6 +222,17 @@ public abstract class BaseSquiggly {
          */
         public B context(SquigglyContextProvider contextProvider) {
             this.contextProvider = contextProvider;
+            return getThis();
+        }
+
+        /**
+         * Sets a converter registry
+         *
+         * @param converterRegistry converter registry
+         * @return builder
+         */
+        public B converterRegistry(SquigglyConverterRegistry converterRegistry) {
+            this.converterRegistry = converterRegistry;
             return getThis();
         }
 
@@ -392,7 +407,7 @@ public abstract class BaseSquiggly {
          */
         @SuppressWarnings("unchecked")
         public S build() {
-            this.builtConfig = new SquigglyConfig(configSources);
+            this.builtConfig = config == null ? new SquigglyConfig() : config;
             this.builtContextProvider = buildContextProvider();
             this.builtConversionService = buildConversionService(builtConfig);
             this.builtFilterRepository = buildFilterRepository();
@@ -458,7 +473,7 @@ public abstract class BaseSquiggly {
         }
 
         private SquigglyConversionService buildConversionService(SquigglyConfig config) {
-            ConverterRecordRepository recordRepository = new ListRecordRepository();
+            SquigglyConverterRegistry recordRepository = converterRegistry == null ?  new ListConverterRegistry() : converterRegistry;
 
             recordRepository.addAll(converterRecords);
 

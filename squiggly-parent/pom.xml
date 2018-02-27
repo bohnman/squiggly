@@ -118,6 +118,12 @@
                 <version>${squiggly.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-jackson</artifactId>
+                <version>${squiggly.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

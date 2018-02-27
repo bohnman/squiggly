@@ -126,50 +126,8 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
     }
 
     protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
-        return filter;
+        return customizeFilter(filter, beanClass);
     }
 
-    public static RequestSquigglyContextProvider create() {
-        return new RequestSquigglyContextProvider();
-    }
 
-    public static RequestSquigglyContextProvider create(String filterParam) {
-        return new RequestSquigglyContextProvider(filterParam, null);
-    }
-
-    public static RequestSquigglyContextProvider create(String filterParam, String defaultFilter) {
-        return new RequestSquigglyContextProvider(filterParam, defaultFilter);
-    }
-
-    public static RequestSquigglyContextProvider create(FilterCustomizer customizer) {
-        return new RequestSquigglyContextProvider() {
-            @Override
-            protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
-                return customizer.customize(filter, request, beanClass);
-            }
-        };
-    }
-
-    public static RequestSquigglyContextProvider create(String filterParam, FilterCustomizer customizer) {
-        return new RequestSquigglyContextProvider(filterParam, null) {
-            @Override
-            protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
-                return customizer.customize(filter, request, beanClass);
-            }
-        };
-    }
-
-    public static RequestSquigglyContextProvider create(String filterParam, String defaultFilter, FilterCustomizer customizer) {
-        return new RequestSquigglyContextProvider(filterParam, defaultFilter) {
-            @Override
-            protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
-                return customizer.customize(filter, request, beanClass);
-            }
-        };
-    }
-
-    @FunctionalInterface
-    public interface FilterCustomizer {
-        String customize(String filter, HttpServletRequest request, Class beanClass);
-    }
 }

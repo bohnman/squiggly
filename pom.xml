@@ -42,9 +42,11 @@
 
 
     <modules>
-        <module>spring-boot-starter-squiggly</module>
+        <module>examples/spring-boot</module>
+        <module>examples/spring-boot-non-web</module>
         <module>squiggly-core</module>
         <module>squiggly-jackson</module>
         <module>squiggly-parent</module>
+        <module>squiggly-spring-boot-starter</module>
     </modules>
 </project>

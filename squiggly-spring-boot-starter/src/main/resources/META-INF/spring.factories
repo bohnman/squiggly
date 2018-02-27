@@ -1,0 +1,4 @@
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.github.bohnman.squiggly.spring.boot.starter.config.SquigglyAutoConfiguration,\
+  com.github.bohnman.squiggly.spring.boot.starter.config.SquigglyWebAutoConfiguration
