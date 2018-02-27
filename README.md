@@ -16,6 +16,7 @@ escaped.  Square brackets are still permitted in the url and it is preferred to 
 * removed Squiggly.init(Iterable<ObjectMapper>, SquigglyPropertyFilter filter)
 * moved serialize* methods in SquigglyContextProvider to new SquigglySerializer interface
 * all config properties prefixed with squiggly.
+* move classes to core
 
 
 # Squiggly Filter For Jackson

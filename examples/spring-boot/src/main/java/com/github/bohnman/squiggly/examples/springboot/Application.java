@@ -4,9 +4,8 @@ package com.github.bohnman.squiggly.examples.springboot;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.examples.springboot.web.ListResponse;
-import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
-import com.github.bohnman.squiggly.web.SquigglyRequestFilter;
-import com.google.common.collect.Iterables;
+import com.github.bohnman.squiggly.core.web.RequestSquigglyContextProvider;
+import com.github.bohnman.squiggly.core.web.SquigglyRequestFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -46,7 +45,7 @@ public class Application {
             }
         });
 
-        ObjectMapper objectMapper = Iterables.getFirst(objectMappers, null);
+        ObjectMapper objectMapper = CoreIterables.getFirst(objectMappers, null);
 
         // Enable Squiggly for Jackson message converter
         if (objectMapper != null) {

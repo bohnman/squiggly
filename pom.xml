@@ -4,24 +4,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Squiggly Filter Jackson</name>
-    <url>https://github.com/bohnman/squiggly-filter-jackson</url>
+    <name>Squiggly Java</name>
+    <url>https://github.com/bohnman/squiggly-java</url>
     <description>The Squiggly Filter is a Jackson JSON PropertyFilter, which selects properties of an object/list/map using a subset of the Facebook Graph API filtering syntax.</description>
     <groupId>com.github.bohnman</groupId>
-    <artifactId>squiggly-filter-jackson</artifactId>
+    <artifactId>squiggly</artifactId>
+    <packaging>pom</packaging>
     <version>1.3.9-SNAPSHOT</version>
-
-    <properties>
-        <generated.sources.directory>${project.basedir}/src/generated/java</generated.sources.directory>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
 
     <licenses>
         <license>
             <name>BSD License</name>
-            <url>https://raw.githubusercontent.com/bohnman/squiggly-filter-jackson/master/LICENSE.md</url>
+            <url>https://raw.githubusercontent.com/bohnman/squiggly-java/master/LICENSE.md</url>
         </license>
     </licenses>
     <developers>
@@ -30,9 +24,9 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git://github.com/bohnman/squiggly-filter-jackson.git</connection>
-        <developerConnection>scm:git:ssh://github.com:bohnman/squiggly-filter-jackson.git</developerConnection>
-        <url>https://github.com/bohnman/squiggly-filter-jackson/tree/master</url>
+        <connection>scm:git:git://github.com/bohnman/squiggly-java.git</connection>
+        <developerConnection>scm:git:ssh://github.com:bohnman/squiggly-java.git</developerConnection>
+        <url>https://github.com/bohnman/squiggly-java/tree/master</url>
     </scm>
 
     <distributionManagement>
@@ -46,165 +40,10 @@
         </repository>
     </distributionManagement>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr4-runtime</artifactId>
-            <version>4.6</version>
-        </dependency>
 
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>21.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.6.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-            <version>1.9.3</version>
-        </dependency>
-
-        <dependency>
-            <groupId>net.jcip</groupId>
-            <artifactId>jcip-annotations</artifactId>
-            <version>1.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
-
-    </dependencies>
-
-    <build>
-        <plugins>
-            <!-- Antlr 4 Plugin -->
-            <plugin>
-                <groupId>org.antlr</groupId>
-                <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.6</version>
-                <configuration>
-                    <outputDirectory>${basedir}/src/generated/java</outputDirectory>
-                    <visitor>true</visitor>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>antlr4</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <!-- Package Info -->
-            <plugin>
-                <groupId>com.github.bohnman</groupId>
-                <artifactId>package-info-maven-plugin</artifactId>
-                <version>1.0.1</version>
-                <configuration>
-                    <outputDirectory>${generated.sources.directory}</outputDirectory>
-                    <packages>
-                        <package>
-                            <pattern>**</pattern>
-                            <template>${project.basedir}/src/main/java/com/github/bohnman/squiggly/package-info.java</template>
-                        </package>
-                    </packages>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
-
+    <modules>
+        <module>squiggly-core</module>
+        <module>squiggly-jackson</module>
+        <module>squiggly-parent</module>
+    </modules>
 </project>
