@@ -387,7 +387,28 @@ public class SquigglyParser {
 
         private ArgumentNode.Builder buildSubArg(SquigglyExpressionParser.ArgContext arg) {
             if (arg.argGroupStart() != null) {
-                return buildArg(arg.arg(0));
+                ArgumentNode.Builder groupArg = buildArg(arg.arg(0));
+
+                if (arg.argChainLink() != null) {
+                    List<FunctionNode> functionNodes = new ArrayList<>(arg.argChainLink().size() + 1);
+
+                    functionNodes.add(FunctionNode.builder()
+                            .context(parseContext(arg))
+                            .name(FUNCTION_IDENTITY)
+                            .parameter(groupArg)
+                            .build()
+                    );
+
+                    for (SquigglyExpressionParser.ArgChainLinkContext linkContext : arg.argChainLink()) {
+                        functionNodes.add(buildFunction(linkContext, true).build());
+                    }
+
+
+                    groupArg = baseArg(arg, ArgumentNodeType.FUNCTION_CHAIN).value(functionNodes);
+                }
+
+                return groupArg;
+
             }
 
             return buildArgExpression(arg);

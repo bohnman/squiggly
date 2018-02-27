@@ -112,7 +112,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     public static void main(String[] args) {
-        ObjectMapper mapper = Squiggly.builder("firstName,nullProperty?.reverse()")
+        ObjectMapper mapper = Squiggly.builder("firstName,nullProperty.replace((1 / 2).add(1).toInt())")
                 .variable("foo", "name")
                 .build()
                 .apply(new ObjectMapper());

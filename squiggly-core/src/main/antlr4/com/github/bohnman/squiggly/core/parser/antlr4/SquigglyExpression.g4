@@ -157,7 +157,7 @@ arg
     | arg (Equals | EqualsEquals | EqualsName | EqualsNot | EqualsNotSql | EqualsNotName | Match | MatchName | MatchNot | MatchNotName) arg
     | arg (And | AndName) arg
     | arg (Or | OrName) arg
-    | argGroupStart arg argGroupEnd
+    | argGroupStart arg argGroupEnd argChainLink*
     ;
 
 literal
