@@ -55,7 +55,4 @@ public class CoreIterables {
                 : CoreIterators.get(iterable.iterator(), position);
     }
 
-    public static <T> Iterable<T> slice(Iterable<T> iterable, int start, int end) {
-        return null;
-    }
 }

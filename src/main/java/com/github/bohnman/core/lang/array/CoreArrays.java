@@ -26,7 +26,7 @@ public class CoreArrays {
             return min;
         }
 
-        if (index < min) {
+        if (index < 0) {
             return Math.max(min, length + index);
         }
 

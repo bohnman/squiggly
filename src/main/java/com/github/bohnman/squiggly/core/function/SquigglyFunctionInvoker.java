@@ -315,7 +315,16 @@ public class SquigglyFunctionInvoker {
                 IntRangeNode rangeNode = (IntRangeNode) argumentNode.getValue();
                 Integer start = (rangeNode.getStart() == null) ? null : getValue(rangeNode.getStart(), input, Integer.class);
                 Integer end = (rangeNode.getEnd() == null) ? null : getValue(rangeNode.getEnd(), input, Integer.class);
-                return new CoreIntRange(start, end, rangeNode.isExclusiveEnd());
+
+                if (start == null) {
+                    return rangeNode.isExclusiveEnd() ? CoreIntRange.emptyExclusive() : CoreIntRange.emptyInclusive();
+                }
+
+                if (rangeNode.isExclusiveEnd()) {
+                    return (end == null) ? CoreIntRange.inclusiveExclusive(start) : CoreIntRange.inclusiveExclusive(start, end);
+                }
+
+                return (end == null) ? CoreIntRange.inclusiveInclusive(start) : CoreIntRange.inclusiveInclusive(start, end);
             case VARIABLE:
                 return variableResolver.resolveVariable(argumentNode.getValue().toString());
             default:

@@ -226,14 +226,18 @@ public interface CoreArrayWrapper extends List<Object> {
             throw new ArrayIndexOutOfBoundsException(end);
         }
 
-        int len = size();
+        int size = size();
 
-        if (len == 0) {
+        if (size == 0) {
             return create(0);
         }
 
-        if (end > len) {
-            throw new ArrayIndexOutOfBoundsException(end);
+        if (start >= size) {
+            throw new ArrayIndexOutOfBoundsException(start);
+        }
+
+        if (end > size) {
+            throw new ArrayIndexOutOfBoundsException();
         }
 
         if (start > end) {
@@ -241,6 +245,12 @@ public interface CoreArrayWrapper extends List<Object> {
         }
 
         if (start == end) {
+            return create(0);
+        }
+
+        int len = (end - start);
+
+        if (len <= 0) {
             return create(0);
         }
 

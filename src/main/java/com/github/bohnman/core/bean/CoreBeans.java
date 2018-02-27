@@ -1,6 +1,6 @@
 package com.github.bohnman.core.bean;
 
-import com.github.bohnman.core.collect.CoreIterables;
+import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreMethods;
 import com.github.bohnman.core.lang.array.CoreArrayWrapper;
@@ -11,6 +11,8 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -46,22 +48,22 @@ public class CoreBeans {
 
             if (key instanceof CoreIntRange) {
                 CoreIntRange range = ((CoreIntRange) key).toExclusive().normalize(wrapper.size());
-                return range.isEmpty() ? null : wrapper.slice(range.getStart(), range.getEnd());
+                return range.isEmpty() ? wrapper.create(0) : wrapper.slice(range.getStart(), range.getEnd()).getArray();
             }
         }
 
         if (o instanceof Iterable) {
-            Iterable iterable = (Iterable) o;
-            int size = CoreIterables.size(iterable);
+            List list = CoreLists.of((Iterable) o);
+            int size = list.size();
 
             if (key instanceof Number) {
                 int index = CoreArrays.normalizeIndex(((Number) key).intValue(), size, -1, size - 1);
-                return index < 0 ? null : CoreIterables.get(iterable, index);
+                return index < 0 ? null : list.get(index);
             }
 
             if (key instanceof CoreIntRange) {
                 CoreIntRange range = ((CoreIntRange) key).toExclusive().normalize(size);
-                return range.isEmpty() ? null : CoreIterables.slice(iterable, range.getStart(), range.getEnd());
+                return range.isEmpty() ? Collections.emptyList() : list.subList(range.getStart(), range.getEnd());
             }
         }
 
@@ -77,6 +79,22 @@ public class CoreBeans {
                 .map(propertyDescriptor -> CoreMethods.invoke(propertyDescriptor.getReadMethod(), o))
                 .findFirst()
                 .orElse(null);
+
+    }
+
+    public static void main(String[] args) {
+        Object o = new Object[] {};
+        System.out.println(getProperty(o, -1));
+        System.out.println(getProperty(o, 1));
+        o = new Object[] {"one", "two", "three"};
+        System.out.println(getProperty(o, 1));
+        System.out.println(getProperty(o, -1));
+        System.out.println(getProperty(o, CoreIntRange.emptyExclusive()));
+        System.out.println(getProperty(o, CoreIntRange.emptyInclusive()));
+        System.out.println(Arrays.toString((Object[]) getProperty(o, CoreIntRange.inclusiveExclusive(1))));
+        System.out.println(Arrays.toString((Object[]) getProperty(o, CoreIntRange.inclusiveExclusive(1, -1))));
+        System.out.println(Arrays.toString((Object[]) getProperty(o, CoreIntRange.inclusiveInclusive(1))));
+        System.out.println(Arrays.toString((Object[]) getProperty(o, CoreIntRange.inclusiveInclusive(1, -1))));
 
     }
 
