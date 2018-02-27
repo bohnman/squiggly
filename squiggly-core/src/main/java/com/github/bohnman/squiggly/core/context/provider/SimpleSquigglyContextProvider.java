@@ -1,8 +1,7 @@
 package com.github.bohnman.squiggly.core.context.provider;
 
-import net.jcip.annotations.ThreadSafe;
-
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Provider implementation that just takes a fixed filter expression.
@@ -16,7 +15,7 @@ public class SimpleSquigglyContextProvider extends AbstractSquigglyContextProvid
         this(null);
     }
 
-    public SimpleSquigglyContextProvider(@Nullable  String filter) {
+    public SimpleSquigglyContextProvider(@Nullable String filter) {
         this.filter = filter;
     }
 

@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.core.metric.source;
 
 import com.github.bohnman.core.cache.Cache;
-import net.jcip.annotations.ThreadSafe;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Map;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;

@@ -6,19 +6,19 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.github.bohnman.squiggly.jackson.Squiggly;
-import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
-import com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher;
-import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.core.json.jackson.CoreObjectMappers;
-import net.jcip.annotations.ThreadSafe;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
+import com.github.bohnman.squiggly.core.parser.SquigglyNode;
+import com.github.bohnman.squiggly.jackson.Squiggly;
+import com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher.NEVER_MATCH;
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
+import static com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher.NEVER_MATCH;
 
 
 /**

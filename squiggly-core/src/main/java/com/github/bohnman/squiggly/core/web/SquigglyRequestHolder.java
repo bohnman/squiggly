@@ -1,8 +1,7 @@
 package com.github.bohnman.squiggly.core.web;
 
-import net.jcip.annotations.ThreadSafe;
-
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.http.HttpServletRequest;
 
 /**

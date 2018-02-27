@@ -2,8 +2,8 @@ package com.github.bohnman.squiggly.core.metric;
 
 import com.github.bohnman.squiggly.core.metric.source.CompositeSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.metric.source.SquigglyMetricsSource;
-import net.jcip.annotations.ThreadSafe;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.SortedMap;
 import java.util.TreeMap;
 

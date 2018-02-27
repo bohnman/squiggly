@@ -18,7 +18,6 @@ import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionBaseVisi
 import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionLexer;
 import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionParser;
 import com.github.bohnman.squiggly.core.view.PropertyView;
-import net.jcip.annotations.ThreadSafe;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -26,6 +25,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;

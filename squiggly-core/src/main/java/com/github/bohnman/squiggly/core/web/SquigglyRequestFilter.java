@@ -1,7 +1,6 @@
 package com.github.bohnman.squiggly.core.web;
 
-import net.jcip.annotations.ThreadSafe;
-
+import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;

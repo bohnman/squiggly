@@ -4,8 +4,8 @@ import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.name.AnyShallowName;
 import com.github.bohnman.squiggly.core.name.SquigglyName;
 import com.github.bohnman.squiggly.core.name.VariableName;
-import net.jcip.annotations.ThreadSafe;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,14 +29,14 @@ public class SquigglyNode {
     /**
      * Constructor.
      *
-     * @param context  parser context
-     * @param name     name of the node
-     * @param children child nodes
-     * @param keyFunctions key functions
+     * @param context        parser context
+     * @param name           name of the node
+     * @param children       child nodes
+     * @param keyFunctions   key functions
      * @param valueFunctions value functions
-     * @param negated whether or not the node has been negated
-     * @param squiggly whether or not a node is squiggly
-     * @param emptyNested whether of not filter specified {}
+     * @param negated        whether or not the node has been negated
+     * @param squiggly       whether or not a node is squiggly
+     * @param emptyNested    whether of not filter specified {}
      * @see #isSquiggly()
      */
     public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested) {

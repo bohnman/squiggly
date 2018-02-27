@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.model;
+package com.github.bohnman.squiggly.jackson.model;
 
 public class Inner {
 

@@ -5,8 +5,8 @@ import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.squiggly.core.config.source.CompositeConfigSource;
 import com.github.bohnman.squiggly.core.config.source.PropertiesConfigSource;
 import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
-import net.jcip.annotations.ThreadSafe;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;

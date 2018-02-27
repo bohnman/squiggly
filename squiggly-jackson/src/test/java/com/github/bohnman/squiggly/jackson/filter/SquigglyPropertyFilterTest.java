@@ -1,12 +1,12 @@
-package com.github.bohnman.squiggly.filter;
+package com.github.bohnman.squiggly.jackson.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.jackson.Squiggly;
-import com.github.bohnman.squiggly.model.Issue;
-import com.github.bohnman.squiggly.model.IssueAction;
-import com.github.bohnman.squiggly.model.Item;
-import com.github.bohnman.squiggly.model.Outer;
-import com.github.bohnman.squiggly.model.User;
+import com.github.bohnman.squiggly.jackson.model.Issue;
+import com.github.bohnman.squiggly.jackson.model.IssueAction;
+import com.github.bohnman.squiggly.jackson.model.Item;
+import com.github.bohnman.squiggly.jackson.model.Outer;
+import com.github.bohnman.squiggly.jackson.model.User;
 import com.github.bohnman.core.json.jackson.CoreObjectMappers;
 import org.junit.Before;
 import org.junit.Test;

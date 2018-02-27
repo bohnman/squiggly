@@ -5,9 +5,9 @@ import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
-import net.jcip.annotations.NotThreadSafe;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.util.List;
 import java.util.Objects;
 

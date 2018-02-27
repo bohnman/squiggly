@@ -1,7 +1,6 @@
 package com.github.bohnman.squiggly.core.metric.source;
 
-import net.jcip.annotations.ThreadSafe;
-
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;

@@ -10,9 +10,9 @@ import com.github.bohnman.squiggly.jackson.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilterMixin;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
-import net.jcip.annotations.ThreadSafe;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 

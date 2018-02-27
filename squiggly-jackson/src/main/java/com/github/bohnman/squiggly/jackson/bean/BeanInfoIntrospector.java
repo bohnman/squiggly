@@ -10,9 +10,9 @@ import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.view.PropertyView;
-import net.jcip.annotations.ThreadSafe;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
