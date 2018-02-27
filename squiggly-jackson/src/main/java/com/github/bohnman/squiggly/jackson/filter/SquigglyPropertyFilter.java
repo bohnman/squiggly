@@ -112,7 +112,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     public static void main(String[] args) {
-        ObjectMapper mapper = Squiggly.builder("nickNames.map(@.upper())")
+        ObjectMapper mapper = Squiggly.builder("firstName,nullProperty?.reverse()")
                 .variable("foo", "name")
                 .build()
                 .apply(new ObjectMapper());
@@ -163,6 +163,10 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
         public List<NickName> getNickNames() {
             return nickNames;
+        }
+
+        public String getNullProperty() {
+            return null;
         }
     }
 }

@@ -93,6 +93,15 @@ public class MixedFunctions {
     private static List<Integer> normalizeIndexes(int len, Object... indexes) {
         return Stream.of(indexes)
                 .flatMap(index -> {
+                    if (index instanceof String) {
+                        try {
+                            index = Double.parseDouble((String) index);
+                        } catch (NumberFormatException e) {
+                            return Stream.empty();
+                        }
+                    }
+
+
                     if (index instanceof Number) {
                         int actualIndex = CoreArrays.normalizeIndex(((Number) index).intValue(), len, -1, len);
                         return actualIndex < 0 ? Stream.empty() : Stream.of(actualIndex);
@@ -113,14 +122,18 @@ public class MixedFunctions {
 
     @SuppressWarnings("unchecked")
     @SquigglyMethod
-    public static Object pick(Object value, Object... indexes) {
+    public static Object pick(Object value, Object... keys) {
         if (value == null) {
-            return Collections.emptyList();
+            return null;
+        }
+
+        if (keys.length == 0) {
+            return value;
         }
 
         if (value instanceof String) {
             String string = (String) value;
-            List<Integer> actualIndexes = normalizeIndexes(string.length(), indexes);
+            List<Integer> actualIndexes = normalizeIndexes(string.length(), keys);
             if (actualIndexes.isEmpty()) return "";
             StringBuilder builder = new StringBuilder(actualIndexes.size());
             for (Integer actualIndex : actualIndexes) {
@@ -132,7 +145,7 @@ public class MixedFunctions {
 
         if (value.getClass().isArray()) {
             CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), indexes);
+            List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), keys);
             if (actualIndexes.isEmpty()) return wrapper.create(0);
             CoreArrayWrapper newWrapper = wrapper.create(actualIndexes.size());
             for (int i = 0; i < actualIndexes.size(); i++) {
@@ -143,7 +156,7 @@ public class MixedFunctions {
 
         if (value instanceof Iterable) {
             List list = (value instanceof List) ? (List) value : Collections.singletonList(value);
-            List<Integer> actualIndexes = normalizeIndexes(list.size(), indexes);
+            List<Integer> actualIndexes = normalizeIndexes(list.size(), keys);
             if (actualIndexes.isEmpty()) return Collections.emptyList();
             List newList = new ArrayList(actualIndexes.size());
 
@@ -154,19 +167,30 @@ public class MixedFunctions {
             return newList;
         }
 
-        return Collections.emptyList();
+
+        Map<String, Object> map = toMap(value);
+        List<Object> keyList = Arrays.asList(keys);
+
+        return map.entrySet()
+                .stream()
+                .filter(entry -> keyList.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @SuppressWarnings("unchecked")
     @SquigglyMethod
-    public static Object pickExcept(Object value, Object... indexes) {
+    public static Object pickExcept(Object value, Object... keys) {
         if (value == null) {
-            return Collections.emptyList();
+            return null;
+        }
+
+        if (keys.length == 0) {
+            return value;
         }
 
         if (value instanceof String) {
             String string = (String) value;
-            List<Integer> actualIndexes = normalizeIndexes(string.length(), indexes);
+            List<Integer> actualIndexes = normalizeIndexes(string.length(), keys);
             if (actualIndexes.isEmpty()) return "";
             StringBuilder builder = new StringBuilder(actualIndexes.size());
             char[] chars = string.toCharArray();
@@ -181,7 +205,7 @@ public class MixedFunctions {
 
         if (value.getClass().isArray()) {
             CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), indexes);
+            List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), keys);
             if (actualIndexes.isEmpty()) return wrapper.create(0);
             CoreArrayWrapper newWrapper = wrapper.create(Math.max(0, wrapper.size() - actualIndexes.size()));
             int newIdx = 0;
@@ -200,7 +224,7 @@ public class MixedFunctions {
 
         if (value instanceof Iterable) {
             List list = (value instanceof List) ? (List) value : Collections.singletonList(value);
-            List<Integer> actualIndexes = normalizeIndexes(list.size(), indexes);
+            List<Integer> actualIndexes = normalizeIndexes(list.size(), keys);
             if (actualIndexes.isEmpty()) return Collections.emptyList();
             List newList = new ArrayList(Math.max(0, list.size() - actualIndexes.size()));
 
@@ -213,7 +237,13 @@ public class MixedFunctions {
             return newList;
         }
 
-        return Collections.emptyList();
+        Map<String, Object> map = toMap(value);
+        List<Object> keyList = Arrays.asList(keys);
+
+        return map.entrySet()
+                .stream()
+                .filter(entry -> !keyList.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @SquigglyMethod

@@ -373,6 +373,7 @@ public class SquigglyFunctionInvoker {
 
             List<String> configuredArgs = lambdaNode.getArguments();
             Map<String, Object> varBuilder = new HashMap<>();
+            Object input = null;
 
             if (configuredArgs.size() > 0) {
                 int end = Math.min(arguments.length, configuredArgs.size());
@@ -385,18 +386,18 @@ public class SquigglyFunctionInvoker {
                     }
                 }
             } else if (arguments.length > 0) {
-                varBuilder.put("it", arguments[0]);
+                input = arguments[0];
             }
 
             if (varBuilder.isEmpty()) {
-                return invoke(null, lambdaNode.getBody());
+                return invoke(input, lambdaNode.getBody());
             }
 
             Map<String, Object> varMap = Collections.unmodifiableMap(varBuilder);
 
             SquigglyVariableResolver variableResolver = new CompositeVariableResolver(new MapVariableResolver(varMap), this.variableResolver);
             SquigglyFunctionInvoker invoker = new SquigglyFunctionInvoker(conversionService, functionRepository, variableResolver);
-            return invoker.invoke(null, lambdaNode.getBody());
+            return invoker.invoke(input, lambdaNode.getBody());
         };
     }
 

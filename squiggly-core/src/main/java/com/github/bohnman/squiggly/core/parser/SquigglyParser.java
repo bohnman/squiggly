@@ -249,7 +249,7 @@ public class SquigglyParser {
                 op = context.BracketLeft().getText();
             }
 
-            return buildBasePropertyFunction(context, op, input)
+            return buildBasePropertyFunction(context, op)
                     .parameter(baseArg(context, type).value(value));
         }
 
@@ -287,21 +287,16 @@ public class SquigglyParser {
                 throw new IllegalStateException(format("%s: Cannot find initial property name [%s]", parseContext(context), context.getText()));
             }
 
-            return buildBasePropertyFunction(context, op, true)
+            return buildBasePropertyFunction(context, op)
                     .parameter(baseArg(context, type).value(value));
         }
 
-        private FunctionNode.Builder buildBasePropertyFunction(ParserRuleContext context, String operator, boolean input) {
+        private FunctionNode.Builder buildBasePropertyFunction(ParserRuleContext context, String operator) {
             FunctionNode.Builder function = FunctionNode.builder()
                     .context(parseContext(context))
                     .name(FUNCTION_PROPERTY)
-                    .type(FunctionNodeType.PROPERTY);
-
-            if (input) {
-                function.parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT));
-            } else {
-                function.parameter(baseArg(context, ArgumentNodeType.VARIABLE).value("it"));
-            }
+                    .type(FunctionNodeType.PROPERTY)
+                    .parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT));
 
             if (OP_SAFE_NAVIGATION.equals(operator)
                     || OP_AT_BRACKET_LEFT_SAFE.equals(operator)
