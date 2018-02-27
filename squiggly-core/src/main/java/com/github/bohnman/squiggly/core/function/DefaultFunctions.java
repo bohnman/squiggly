@@ -18,8 +18,10 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 import java.beans.PropertyDescriptor;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -27,6 +29,7 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.IdentityHashMap;
 import java.util.IllegalFormatException;
 import java.util.List;
@@ -942,48 +945,112 @@ public class DefaultFunctions {
         return dateTime.truncatedTo(temporalUnit);
     }
 
+    @SquigglyMethod
     public static LocalDateTime parseLocalDate(String input) {
         return parseLocalDate(input, "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm");
     }
 
+    @SquigglyMethod
     public static LocalDateTime parseLocalDate(String input, String mainPattern, String... otherPatterns) {
-        try {
-            return LocalDateTime.parse(input, DateTimeFormatter.ofPattern(mainPattern));
-        } catch (IllegalArgumentException e) {
-            // ignore
-        }
-
-        for (String otherPattern : otherPatterns) {
-            try {
-                return LocalDateTime.parse(input, DateTimeFormatter.ofPattern(otherPattern));
-            } catch (IllegalArgumentException e) {
-                // ignore
-            }
-        }
-
-        throw new IllegalArgumentException("Unable to parse input");
+        return parseDateInternal(input, mainPattern, otherPatterns).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 
+    @SquigglyMethod
     public static ZonedDateTime parseDate(String input) {
         return parseDate(input, "yyyy-MM-dd'T'HH:mm:ss.SSSZ", "yyyy-MM-dd'T'HH:mm:ss.SSSZ", "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mmZ", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm");
     }
 
+    @SquigglyMethod
     public static ZonedDateTime parseDate(String input, String mainPattern, String... otherPatterns) {
+        return parseDateInternal(input, mainPattern, otherPatterns).toInstant().atZone(ZoneId.systemDefault());
+    }
+
+    private static Date parseDateInternal(String input, String mainPattern, String... otherPatterns) {
+
         try {
-            return ZonedDateTime.parse(input, DateTimeFormatter.ofPattern(mainPattern));
-        } catch (IllegalArgumentException e) {
-            // ignore
+            return new SimpleDateFormat(mainPattern).parse(input);
+        } catch (ParseException e) {
+            // ignore;
         }
 
         for (String otherPattern : otherPatterns) {
             try {
-                return ZonedDateTime.parse(input, DateTimeFormatter.ofPattern(otherPattern));
-            } catch (IllegalArgumentException e) {
+                return new SimpleDateFormat(otherPattern).parse(input);
+            } catch (ParseException e) {
                 // ignore
             }
         }
 
         throw new IllegalArgumentException("Unable to parse input");
+
+//        boolean containsZone = false;
+//        boolean quoted = false;
+//        char[] chars = pattern.toCharArray();
+//
+//        for (int i = 0; i < chars.length; i++) {
+//            char ch = chars[i];
+//
+//            if (ch == '\'') {
+//                if (i == chars.length - 1) break;
+//
+//                if (!quoted) {
+//                    quoted = true;
+//                    continue;
+//                }
+//
+//                char nextChar = chars[i + 1];
+//
+//                if (nextChar == '\'') {
+//                    i++;
+//                    continue;
+//                }
+//
+//                quoted = false;
+//                continue;
+//            }
+//
+//            if (quoted) {
+//                continue;
+//            }
+//
+//            if (ch == 'O') {
+//                containsZone = true;
+//                break;
+//            }
+//
+//            if (ch == 'z') {
+//                containsZone = true;
+//                break;
+//            }
+//
+//            if (ch == 'X') {
+//                containsZone = true;
+//                break;
+//            }
+//
+//            if (ch == 'x') {
+//                containsZone = true;
+//                break;
+//            }
+//
+//            if (ch == 'Z') {
+//                containsZone = true;
+//                break;
+//            }
+//        }
+//
+//
+//        try {
+//            if (containsZone) {
+//                return ZonedDateTime.parse(input, DateTimeFormatter.ofPattern(pattern));
+//            }
+//
+//            else {
+//               return LocalDateTime.parse(input, DateTimeFormatter.ofPattern(pattern)).atZone(ZoneId.systemDefault());
+//            }
+//        } catch (DateTimeParseException | IllegalArgumentException e) {
+//            return null;
+//        }
     }
 
     private static TemporalUnit toTemporalUnit(String unit) {

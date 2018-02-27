@@ -280,7 +280,7 @@ public class SquigglyParser {
             } else if (context.variable() != null) {
                 value = buildVariableValue(context.variable());
                 type = ArgumentNodeType.VARIABLE;
-            } else if (OP_AT.equals(op)) {
+            } else if (context.function() != null || OP_AT.equals(op)) {
                 value = "@";
                 type = ArgumentNodeType.STRING;
             } else {
@@ -610,6 +610,12 @@ public class SquigglyParser {
 
             if (context.initialPropertyAccessor() != null) {
                 functionNodes.add(buildPropertyFunction(context.initialPropertyAccessor()).ascending(ascending).build());
+
+                if (context.initialPropertyAccessor().function() != null) {
+                    functionNodes.add(buildFunction(context.initialPropertyAccessor().function(), null, true)
+                            .ignoreNulls(context.initialPropertyAccessor().AtDotSafe() != null)
+                            .build());
+                }
             }
 
             if (context.function() != null) {

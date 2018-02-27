@@ -11,10 +11,11 @@ import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher;
-import com.sun.istack.internal.NotNull;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -111,7 +112,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     public static void main(String[] args) {
-        ObjectMapper mapper = Squiggly.builder("nickNames.map(()->now().format())")
+        ObjectMapper mapper = Squiggly.builder("nickNames.map(@.upper())")
                 .variable("foo", "name")
                 .build()
                 .apply(new ObjectMapper());

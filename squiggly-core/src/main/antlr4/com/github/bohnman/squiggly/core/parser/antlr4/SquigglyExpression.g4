@@ -217,7 +217,7 @@ namedOperator
 
 
 initialPropertyAccessor
-    : (AtDot | AtDotSafe)? Identifier
+    : (AtDot | AtDotSafe)? (Identifier | function)
     | (AtBrackLeft | AtBrackLeftSafe) (StringLiteral | variable) BracketRight
     | At
     ;
