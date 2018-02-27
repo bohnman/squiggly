@@ -313,7 +313,7 @@ public class SquigglyParser {
             return function;
         }
 
-        private FunctionNode.Builder buildFunction(SquigglyExpressionParser.FunctionContext functionContext, SquigglyExpressionParser.AccessOperatorContext operatorContext, boolean input) {
+        private FunctionNode.Builder buildFunction(SquigglyExpressionParser.FunctionContext functionContext, @Nullable SquigglyExpressionParser.AccessOperatorContext operatorContext, boolean input) {
             ParseContext context = parseContext(functionContext);
             FunctionNode.Builder builder = buildBaseFunction(functionContext, context);
 
@@ -486,7 +486,7 @@ public class SquigglyParser {
         }
 
         private boolean matchOp(TerminalNode token1, TerminalNode token2, TerminalNode token3) {
-            return token1 != null || token2 != null  || token3 != null;
+            return token1 != null || token2 != null || token3 != null;
         }
 
         private ArgumentNode.Builder buildLiteral(SquigglyExpressionParser.LiteralContext context) {
@@ -610,6 +610,11 @@ public class SquigglyParser {
 
             if (context.initialPropertyAccessor() != null) {
                 functionNodes.add(buildPropertyFunction(context.initialPropertyAccessor()).ascending(ascending).build());
+            }
+
+            if (context.function() != null) {
+                boolean input = !functionNodes.isEmpty();
+                functionNodes.add(buildFunction(context.function(), null, input).ascending(ascending).build());
             }
 
             if (context.argChainLink() != null) {

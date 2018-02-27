@@ -11,7 +11,9 @@ import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher;
+import com.sun.istack.internal.NotNull;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
 import java.util.List;
@@ -109,7 +111,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     public static void main(String[] args) {
-        ObjectMapper mapper = Squiggly.builder("nickNames.slice([0:-1])")
+        ObjectMapper mapper = Squiggly.builder("nickNames.map(()->now().format())")
                 .variable("foo", "name")
                 .build()
                 .apply(new ObjectMapper());
@@ -117,7 +119,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         System.out.println("\n\n\n\n" + CoreObjectMappers.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
     }
 
-    public static class NickName {
+    public static class NickName implements Comparable<NickName> {
         private final String name;
 
         public NickName(String name) {
@@ -131,6 +133,11 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         @Override
         public String toString() {
             return name;
+        }
+
+        @Override
+        public int compareTo(@Nullable NickName o) {
+            return (o == null) ? -1 : name.compareTo(o.name);
         }
     }
 

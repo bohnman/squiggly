@@ -7,6 +7,7 @@ import com.github.bohnman.core.function.FunctionPredicateBridge;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
+import com.github.bohnman.squiggly.core.convert.ConverterRecord;
 import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.core.parser.ArgumentNode;
@@ -32,11 +33,6 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 import static java.lang.String.format;
 
 public class SquigglyFunctionInvoker {
-
-    private static final int SCORE_NULL = 1;
-    private static final int SCORE_CONVERT = 2;
-    private static final int SCORE_ASSIGNABLE = 4;
-    private static final int SCORE_EXACT = 8;
 
     private final SquigglyFunctionRepository functionRepository;
     private final SquigglyVariableResolver variableResolver;
@@ -97,17 +93,24 @@ public class SquigglyFunctionInvoker {
     private Object invokeProperty(Object input, FunctionNode functionNode) {
         Object object = getValue(functionNode.getParameters().get(0), input);
         Object key = getValue(functionNode.getParameters().get(1), input);
+
+        if ("@".equals(key)) {
+            return input;
+        }
+
         return CoreBeans.getProperty(object, key);
     }
 
     private SquigglyFunction<Object> findBestCandidateFunction(FunctionNode functionNode, Object input, List<Object> requestedParameters, List<SquigglyFunction<Object>> functions) {
         SquigglyFunction<Object> winner = null;
-        int score = 0;
+        Score score = null;
 
         for (SquigglyFunction<Object> function : functions) {
-            Integer candidateScore = score(functionNode, input, requestedParameters, function);
 
-            if (candidateScore != null && candidateScore > score) {
+            Score candidateScore = new Score();
+            boolean candidateScored = score(candidateScore, functionNode, input, requestedParameters, function);
+
+            if (candidateScored && (score == null || candidateScore.compareTo(score) > 0)) {
                 score = candidateScore;
                 winner = function;
             }
@@ -117,7 +120,7 @@ public class SquigglyFunctionInvoker {
         return winner;
     }
 
-    private Integer score(FunctionNode functionNode, Object input, List<Object> requestedParameters, SquigglyFunction<Object> function) {
+    private boolean score(Score score, FunctionNode functionNode, Object input, List<Object> requestedParameters, SquigglyFunction<Object> function) {
         List<SquigglyParameter> configuredParameters = function.getParameters();
 
         int configuredParametersSize = configuredParameters.size();
@@ -128,7 +131,8 @@ public class SquigglyFunctionInvoker {
         int varargsIndex = -1;
 
         if (configuredParametersSize == 0 && requestedParameters.isEmpty()) {
-            return 1;
+            score.base();
+            return true;
         }
 
         if (configuredParametersSize > 0 && configuredParameters.get(configuredParametersSize - 1).isVarArgs()) {
@@ -138,102 +142,105 @@ public class SquigglyFunctionInvoker {
         }
 
         if (requestedParametersSize < minLength) {
-            return null;
+            return false;
         }
 
         if (requestedParametersSize > maxLength) {
-            return null;
+            return false;
         }
-
-        int score = 0;
 
         int end = (varargsIndex < 0) ? configuredParametersSize : varargsIndex;
 
         for (int i = 0; i < end; i++) {
             SquigglyParameter parameter = configuredParameters.get(i);
-            Integer scoreToAdd = score(input, parameter.getType(), requestedParameters, i);
+            boolean scored = score(score, input, parameter.getType(), requestedParameters, i);
 
-            if (scoreToAdd == null) {
-                return null;
+            if (!scored) {
+                return false;
             }
-
-            score += scoreToAdd;
         }
 
         if (varargsIndex >= 0) {
-            int scoreToAdd = 0;
+            Score varargScore = null;
             SquigglyParameter varargParameter = configuredParameters.get(varargsIndex);
             Class<?> varargType = CoreObjects.firstNonNull(varargParameter.getType().getComponentType(), varargParameter.getType());
 
             for (int i = varargsIndex; i < requestedParametersSize; i++) {
-                Integer varargScore = score(input, varargType, requestedParameters, i);
+                Score candidateScore = new Score();
+                boolean scored = score(candidateScore, input, varargType, requestedParameters, i);
 
-                if (varargScore == null) {
-                    return null;
+                if (!scored) {
+                    return false;
                 }
 
-                if (scoreToAdd == 0) {
-                    scoreToAdd = varargScore;
-                } else if (varargScore < scoreToAdd) {
-                    scoreToAdd = varargScore;
+                if (varargScore == null || candidateScore.compareTo(varargScore) > 0) {
+                    varargScore = candidateScore;
                 }
             }
 
-            if (scoreToAdd == 0) {
-                scoreToAdd = SCORE_EXACT;
+            if (varargScore == null) {
+                if (requestedParameters.isEmpty()) score.base();
+            } else {
+                score.add(varargScore);
             }
-
-            score += scoreToAdd;
         }
 
-        return score;
+        return true;
     }
 
     @SuppressWarnings("unchecked")
-    private Integer score(Object input, Class<?> configuredType, List<Object> requestedParameters, int index) {
+    private boolean score(Score score, Object input, Class<?> configuredType, List<Object> requestedParameters, int index) {
         Object requestedParameter = requestedParameters.get(index);
 
         if (requestedParameter == null && configuredType.isPrimitive()) {
-            return null;
+            return false;
         }
 
         if (requestedParameter == null) {
-            return SCORE_NULL;
+            score.base();
+            return true;
         }
 
         Class<?> requestedType = requestedParameter.getClass();
 
         if (configuredType.equals(requestedType)) {
-            return SCORE_EXACT;
+            score.exact();
+            return true;
         }
 
         if (configuredType.equals(CoreLambda.class) && CoreLambda.class.isAssignableFrom(requestedType)) {
-            return SCORE_EXACT;
+            score.exact();
+            return true;
         }
 
         if (configuredType.equals(CoreProperty.class) && CoreProperty.class.isAssignableFrom(requestedType)) {
-            return SCORE_EXACT;
+            score.exact();
+            return true;
         }
 
         if (Function.class.isAssignableFrom(requestedType) && !typeIsLambda(configuredType)) {
             requestedParameters.set(index, ((Function) requestedParameter).apply(input));
-            return score(input, configuredType, requestedParameters, index);
+            return score(score, input, configuredType, requestedParameters, index);
         }
 
         if (Predicate.class.isAssignableFrom(requestedType) && !typeIsLambda(configuredType)) {
             requestedParameters.set(index, ((Predicate) requestedParameter).test(input));
-            return score(input, configuredType, requestedParameters, index);
+            return score(score, input, configuredType, requestedParameters, index);
         }
 
         if (configuredType.isAssignableFrom(requestedType)) {
-            return SCORE_ASSIGNABLE;
+            score.assignable();
+            return true;
         }
 
-        if (conversionService.canConvert(requestedType, configuredType)) {
-            return SCORE_CONVERT;
+        ConverterRecord record = conversionService.findRecord(requestedType, configuredType);
+
+        if (record == null) {
+            return false;
         }
 
-        return null;
+        score.convertible(record.getOrder());
+        return true;
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -395,5 +402,61 @@ public class SquigglyFunctionInvoker {
 
     private <T> T getValue(ArgumentNode argumentNode, Object input, Class<T> targetType) {
         return conversionService.convert(getValue(argumentNode, input), targetType);
+    }
+
+    private static class Score implements Comparable<Score> {
+        private int exactMatches;
+        private int assignableMatches;
+        private int convertibleOrders;
+        private int baseMatches;
+
+        public Score() {
+        }
+
+        private Score exact() {
+            exactMatches++;
+            return this;
+        }
+
+        private Score assignable() {
+            assignableMatches++;
+            return this;
+
+        }
+
+        private Score convertible(int order) {
+            convertibleOrders += order;
+            return this;
+
+        }
+
+        private Score base() {
+            baseMatches++;
+            return this;
+        }
+
+        @Override
+        public int compareTo(Score o) {
+            int cmp;
+            cmp = Integer.compare(exactMatches, o.exactMatches);
+            if (cmp != 0) return cmp;
+            cmp = Integer.compare(assignableMatches, o.assignableMatches);
+            if (cmp != 0) return cmp;
+            cmp = -1 * Integer.compare(convertibleOrders, o.convertibleOrders);
+            if (cmp != 0) return cmp;
+            cmp = Integer.compare(baseMatches, o.baseMatches);
+            return cmp;
+        }
+
+        private int compare(List<Integer> l1, List<Integer> l2) {
+            return 0;
+        }
+
+        public void add(Score score) {
+            exactMatches += score.exactMatches;
+            assignableMatches += score.assignableMatches;
+            convertibleOrders += score.convertibleOrders;
+            baseMatches += score.baseMatches;
+        }
     }
 }

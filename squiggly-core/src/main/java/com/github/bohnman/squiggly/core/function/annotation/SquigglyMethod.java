@@ -9,7 +9,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface SquigglyMethod {
     String value() default "";
+
     String[] aliases() default "";
+
     boolean ignore() default false;
 }
 

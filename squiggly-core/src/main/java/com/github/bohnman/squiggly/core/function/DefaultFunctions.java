@@ -3,8 +3,10 @@ package com.github.bohnman.squiggly.core.function;
 import com.github.bohnman.core.bean.CoreBeans;
 import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.core.collect.CoreLists;
+import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
+import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.lang.CoreMethods;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.CoreStrings;
@@ -16,9 +18,16 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 import java.beans.PropertyDescriptor;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
@@ -84,7 +93,6 @@ public class DefaultFunctions {
                 .collect(toList());
     }
 
-    // Collection Functions
     @SquigglyMethod
     public static Object map(Object value, CoreLambda coreLambda) {
         if (value == null || coreLambda == null) {
@@ -185,36 +193,6 @@ public class DefaultFunctions {
     }
 
     @SquigglyMethod
-    public static Object keys(Object value) {
-        if (value == null) {
-            return Collections.emptyList();
-        }
-
-        if (value.getClass().isArray()) {
-            int length = CoreArrays.wrap(value).size();
-            int[] keys = new int[length];
-            for (int i = 0; i < length; i++) {
-                keys[i] = i;
-            }
-
-            return keys;
-        }
-
-        if (value instanceof Iterable) {
-            int length = CoreIterables.size((Iterable) value);
-            List<Integer> keys = new ArrayList<>(length);
-
-            for (int i = 0; i < length; i++) {
-                keys.add(i);
-            }
-
-            return keys;
-        }
-
-        return CoreLists.of(toMap(value).keySet());
-    }
-
-    @SquigglyMethod
     public static Object values(Object value) {
         if (value == null) {
             return Collections.emptyList();
@@ -278,6 +256,65 @@ public class DefaultFunctions {
         return Collections.emptyList();
     }
 
+    @SuppressWarnings("unchecked")
+    @SquigglyMethod
+    public static Object pickExcept(Object value, Object... indexes) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+
+        if (value instanceof String) {
+            String string = (String) value;
+            List<Integer> actualIndexes = normalizeIndexes(string.length(), indexes);
+            if (actualIndexes.isEmpty()) return "";
+            StringBuilder builder = new StringBuilder(actualIndexes.size());
+            char[] chars = string.toCharArray();
+            for (int i = 0; i < chars.length; i++) {
+                char ch = chars[i];
+                if (!actualIndexes.contains(i)) {
+                    builder.append(ch);
+                }
+            }
+            return builder.toString();
+        }
+
+        if (value.getClass().isArray()) {
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
+            List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), indexes);
+            if (actualIndexes.isEmpty()) return wrapper.create(0);
+            CoreArrayWrapper newWrapper = wrapper.create(Math.max(0, wrapper.size() - actualIndexes.size()));
+            int newIdx = 0;
+
+            for (int i = 0; i < wrapper.size(); i++) {
+                if (!actualIndexes.contains(i)) {
+                    newWrapper.set(newIdx++, wrapper.get(i));
+                }
+            }
+
+            for (int i = 0; i < actualIndexes.size(); i++) {
+                newWrapper.set(i, wrapper.get(actualIndexes.get(i)));
+            }
+            return newWrapper.getArray();
+        }
+
+        if (value instanceof Iterable) {
+            List list = (value instanceof List) ? (List) value : Collections.singletonList(value);
+            List<Integer> actualIndexes = normalizeIndexes(list.size(), indexes);
+            if (actualIndexes.isEmpty()) return Collections.emptyList();
+            List newList = new ArrayList(Math.max(0, list.size() - actualIndexes.size()));
+
+            for (int i = 0; i < list.size(); i++) {
+                if (!actualIndexes.contains(i)) {
+                    newList.add(list.get(i));
+                }
+            }
+
+            return newList;
+        }
+
+        return Collections.emptyList();
+    }
+
 
     @SquigglyMethod
     public static Object reverse(Object value) {
@@ -302,9 +339,77 @@ public class DefaultFunctions {
         return value;
     }
 
-    // TODO: sort/orderBy
-    // TODO: filter/where
-    // TODO: keys Jtwig
+    @SuppressWarnings("unchecked")
+    @SquigglyMethod(aliases = "orderBy")
+    public static Object sort(Object value, CoreProperty... properties) {
+        if (value == null) {
+            return null;
+        }
+
+        List<OrderBy> orderBys = Arrays.stream(properties)
+                .map(PropertyOrderBy::new)
+                .collect(toList());
+
+        if (value.getClass().isArray()) {
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
+
+            List list = wrapper.stream()
+                    .map(item -> newComparable(item, orderBys))
+                    .sorted()
+                    .map(OrderByComparable::getOriginalValue)
+                    .collect(toList());
+
+            CoreArrayWrapper newWrapper = wrapper.create(list.size());
+
+            for (int i = 0; i < list.size(); i++) {
+                newWrapper.set(i, list.get(i));
+            }
+
+            return newWrapper.getArray();
+        }
+
+        if (value instanceof Iterable) {
+            return CoreStreams.of((Iterable<?>) value)
+                    .map(item -> newComparable(item, orderBys))
+                    .sorted()
+                    .map(OrderByComparable::getOriginalValue)
+                    .collect(toList());
+        }
+
+
+        return value;
+    }
+
+    public static Object keys(Object value) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+
+        if (value.getClass().isArray()) {
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
+            int size = wrapper.size();
+            int[] indexes = new int[size];
+            for (int i = 0; i < size; i++) {
+                indexes[i] = i;
+            }
+            return indexes;
+        }
+
+        if (value instanceof Iterable) {
+            int size = CoreIterables.size((Iterable) value);
+            return IntStream.range(0, size)
+                    .boxed()
+                    .collect(toList());
+        }
+
+        if (value instanceof Map) {
+            return ((Map) value).keySet();
+        }
+
+        return CoreBeans.getReadablePropertyDescriptors(value.getClass())
+                .map(PropertyDescriptor::getName)
+                .collect(toList());
+    }
 
     @SquigglyMethod
     public static Object limit(Object value, int limit) {
@@ -397,19 +502,6 @@ public class DefaultFunctions {
     }
 
     // String Functions
-
-    @SquigglyMethod
-    public static String format(String value, Object... args) {
-        if (value == null) {
-            return null;
-        }
-
-        try {
-            return String.format(value, args);
-        } catch (IllegalFormatException e) {
-            return value;
-        }
-    }
 
     @SquigglyMethod
     public static String join(Object value, String separator) {
@@ -523,9 +615,6 @@ public class DefaultFunctions {
         return value;
     }
 
-    // TODO: concat: JTwig
-
-
     @SquigglyMethod(aliases = "capitalise")
     public static String capitalize(String value) {
         return CoreStrings.capitalize(value);
@@ -637,10 +726,6 @@ public class DefaultFunctions {
         return number;
     }
 
-    //
-
-    // TODO: parseNumber
-
     //-------------------------------------------------------------------------
     // Object Functions
     //-------------------------------------------------------------------------
@@ -708,26 +793,250 @@ public class DefaultFunctions {
         return value;
     }
 
-    @SquigglyMethod(aliases = "val")
-    public static Object value(Object to) {
-        return to;
-    }
-
-    @SquigglyMethod(aliases = "val")
-    public static Object value(Object input, Object to) {
-        return to;
-    }
-
 
     // Date functions
-    // TODO: formatDate appkit
-    // TODO: formatDuration appkit
-    // TODO: add(Number, String unit)
-    // TODO: subtract(Number, String unit)
-    // TODO: round(Number, String unit)
-    // TODO: ceil(Number, String unit)
-    // TODO: floor(Number, String unit)
-    // TODO: parseDate
+    @SquigglyMethod
+    public static ZonedDateTime now() {
+        return ZonedDateTime.now();
+    }
+
+    @SquigglyMethod
+    public static LocalDateTime nowLocal() {
+        return LocalDateTime.now();
+    }
+
+
+    @SquigglyMethod
+    public static String format(LocalDateTime dateTime) {
+        return format(dateTime, "yyyy-MM-dd'T'HH:mm:ss.SSS");
+    }
+
+    @SquigglyMethod
+    public static String format(LocalDateTime dateTime, String pattern) {
+        if (dateTime == null) {
+            return "";
+        }
+
+        return dateTime.format(DateTimeFormatter.ofPattern(pattern));
+    }
+
+    @SquigglyMethod
+    public static String format(OffsetDateTime dateTime) {
+        return format(dateTime.toZonedDateTime(), "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    }
+
+    @SquigglyMethod
+    public static String format(ZonedDateTime dateTime, String pattern) {
+        if (dateTime == null) {
+            return "";
+        }
+
+        return dateTime.format(DateTimeFormatter.ofPattern(pattern));
+    }
+
+    @SquigglyMethod
+    public static LocalDateTime add(LocalDateTime dateTime, Number number, String unit) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        if (number == null) {
+            return dateTime;
+        }
+
+        return dateTime.plus(number.intValue(), toTemporalUnit(unit));
+    }
+
+    @SquigglyMethod
+    public static ZonedDateTime add(ZonedDateTime dateTime, Number number, String unit) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        if (number == null) {
+            return dateTime;
+        }
+
+        return dateTime.plus(number.intValue(), toTemporalUnit(unit));
+    }
+
+    @SquigglyMethod
+    public static LocalDateTime subtract(LocalDateTime dateTime, Number number, String unit) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        if (number == null) {
+            return dateTime;
+        }
+
+        return dateTime.minus(number.intValue(), toTemporalUnit(unit));
+    }
+
+    @SquigglyMethod
+    public static ZonedDateTime subtract(ZonedDateTime dateTime, Number number, String unit) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        if (number == null) {
+            return dateTime;
+        }
+
+        return dateTime.minus(number.intValue(), toTemporalUnit(unit));
+    }
+
+    @SquigglyMethod
+    public static LocalDateTime ceil(LocalDateTime dateTime, Number number, String unit) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        if (number == null) {
+            return dateTime;
+        }
+
+        TemporalUnit temporalUnit = toTemporalUnit(unit);
+        return dateTime.truncatedTo(temporalUnit).plus(1, temporalUnit);
+    }
+
+    @SquigglyMethod
+    public static ZonedDateTime ceil(ZonedDateTime dateTime, Number number, String unit) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        if (number == null) {
+            return dateTime;
+        }
+
+        TemporalUnit temporalUnit = toTemporalUnit(unit);
+        return dateTime.truncatedTo(temporalUnit).plus(1, temporalUnit);
+    }
+
+    @SquigglyMethod
+    public static LocalDateTime floor(LocalDateTime dateTime, Number number, String unit) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        if (number == null) {
+            return dateTime;
+        }
+
+        TemporalUnit temporalUnit = toTemporalUnit(unit);
+        return dateTime.truncatedTo(temporalUnit);
+    }
+
+    @SquigglyMethod
+    public static ZonedDateTime floor(ZonedDateTime dateTime, Number number, String unit) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        if (number == null) {
+            return dateTime;
+        }
+
+        TemporalUnit temporalUnit = toTemporalUnit(unit);
+        return dateTime.truncatedTo(temporalUnit);
+    }
+
+    public static LocalDateTime parseLocalDate(String input) {
+        return parseLocalDate(input, "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm");
+    }
+
+    public static LocalDateTime parseLocalDate(String input, String mainPattern, String... otherPatterns) {
+        try {
+            return LocalDateTime.parse(input, DateTimeFormatter.ofPattern(mainPattern));
+        } catch (IllegalArgumentException e) {
+            // ignore
+        }
+
+        for (String otherPattern : otherPatterns) {
+            try {
+                return LocalDateTime.parse(input, DateTimeFormatter.ofPattern(otherPattern));
+            } catch (IllegalArgumentException e) {
+                // ignore
+            }
+        }
+
+        throw new IllegalArgumentException("Unable to parse input");
+    }
+
+    public static ZonedDateTime parseDate(String input) {
+        return parseDate(input, "yyyy-MM-dd'T'HH:mm:ss.SSSZ", "yyyy-MM-dd'T'HH:mm:ss.SSSZ", "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mmZ", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm");
+    }
+
+    public static ZonedDateTime parseDate(String input, String mainPattern, String... otherPatterns) {
+        try {
+            return ZonedDateTime.parse(input, DateTimeFormatter.ofPattern(mainPattern));
+        } catch (IllegalArgumentException e) {
+            // ignore
+        }
+
+        for (String otherPattern : otherPatterns) {
+            try {
+                return ZonedDateTime.parse(input, DateTimeFormatter.ofPattern(otherPattern));
+            } catch (IllegalArgumentException e) {
+                // ignore
+            }
+        }
+
+        throw new IllegalArgumentException("Unable to parse input");
+    }
+
+    private static TemporalUnit toTemporalUnit(String unit) {
+        if (unit == null) {
+            return ChronoUnit.MILLIS;
+        }
+
+        switch (unit) {
+            case "nanos":
+            case "nanosecond":
+            case "nanoseconds":
+            case "ns":
+                return ChronoUnit.NANOS;
+            case "millisecond":
+            case "milliseconds":
+            case "millis":
+            case "ms":
+                return ChronoUnit.MILLIS;
+            case "s":
+            case "sec":
+            case "second":
+            case "seconds":
+                return ChronoUnit.SECONDS;
+            case "min":
+            case "minute":
+            case "minutes":
+            case "m":
+                return ChronoUnit.MINUTES;
+            case "hr":
+            case "hrs":
+            case "hour":
+            case "hours":
+            case "h":
+                return ChronoUnit.HOURS;
+            case "d":
+            case "day":
+            case "days":
+                return ChronoUnit.DAYS;
+            case "M":
+            case "mon":
+            case "month":
+            case "months":
+                return ChronoUnit.MONTHS;
+            case "y":
+            case "yr":
+            case "yrs":
+            case "year":
+            case "years":
+                return ChronoUnit.YEARS;
+            default:
+                throw new IllegalArgumentException("unrecognized temporal unit");
+        }
+    }
 
 
     private static List<Integer> normalizeIndexes(int len, Object... indexes) {
@@ -747,9 +1056,9 @@ public class DefaultFunctions {
 
                     return Stream.empty();
                 })
+                .distinct()
                 .collect(toList());
     }
-
 
 
     @SuppressWarnings("unchecked")
@@ -768,6 +1077,124 @@ public class DefaultFunctions {
                             pd -> CoreMethods.invoke(pd.getReadMethod(), value)));
         } catch (Exception e) {
             return Collections.emptyMap();
+        }
+    }
+
+    private static OrderByComparable newComparable(Object value, List<OrderBy> orderBys) {
+        return new OrderByComparable(value, orderBys);
+    }
+
+    private static class OrderByComparable implements Comparable<Object> {
+
+        private final Object originalValue;
+        private final List<OrderBy> orderBys;
+        private final Map<OrderBy, Comparable> orderByCache = new IdentityHashMap<>();
+
+        public OrderByComparable(Object originalValue, List<OrderBy> orderBys) {
+            this.originalValue = originalValue;
+            this.orderBys = orderBys;
+        }
+
+        public Object getOriginalValue() {
+            return originalValue;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public int compareTo(Object o) {
+            OrderByComparable other = (OrderByComparable) o;
+
+            int cmp = 0;
+
+            for (OrderBy orderBy : orderBys) {
+                Comparable compareValue = getCompareValue(orderBy);
+                Comparable otherCompareValue = other.getCompareValue(orderBy);
+
+                if (compareValue == otherCompareValue) {
+                    cmp = 0;
+                } else if (compareValue == null) {
+                    cmp = -1;
+                } else if (otherCompareValue == null) {
+                    cmp = 1;
+                } else if (compareValue.getClass().isAssignableFrom(otherCompareValue.getClass())) {
+                    cmp = compareValue.compareTo(otherCompareValue);
+                } else if (otherCompareValue.getClass().isAssignableFrom(compareValue.getClass())) {
+                    cmp = otherCompareValue.compareTo(compareValue);
+                } else {
+                    cmp = compareValue.toString().compareTo(otherCompareValue.toString());
+                }
+
+                if (orderBy.isReverse()) {
+                    cmp = cmp * -1;
+                }
+
+                if (cmp != 0) {
+                    break;
+                }
+            }
+
+            return cmp;
+        }
+
+        public Comparable getCompareValue(OrderBy orderBy) {
+
+            if (orderByCache.containsKey(orderBy)) {
+                return orderByCache.get(orderBy);
+            }
+
+            Comparable comparable = orderBy.getComparable(originalValue);
+            orderByCache.put(orderBy, comparable);
+            return comparable;
+        }
+    }
+
+    @SquigglyMethod
+    public static String format(String value, Object... args) {
+        if (value == null) {
+            return null;
+        }
+
+        try {
+            return String.format(value, args);
+        } catch (IllegalFormatException e) {
+            return value;
+        }
+    }
+
+    private static abstract class OrderBy {
+
+        private final boolean reverse;
+
+        public OrderBy(boolean reverse) {
+            this.reverse = reverse;
+        }
+
+        public boolean isReverse() {
+            return reverse;
+        }
+
+        public abstract Comparable getComparable(Object value);
+    }
+
+
+    private static class PropertyOrderBy extends OrderBy {
+
+        private final CoreProperty property;
+
+        public PropertyOrderBy(CoreProperty property) {
+            super(!property.isAscending());
+            this.property = property;
+        }
+
+        @Override
+        public Comparable getComparable(Object value) {
+            Object compareValue = property.get(value);
+
+            if (compareValue instanceof Comparable) {
+                return (Comparable) compareValue;
+            }
+
+            return o -> CoreObjects.firstNonNull(CoreObjects.compare(value, o), -1);
         }
     }
 }

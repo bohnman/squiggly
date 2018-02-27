@@ -6,18 +6,17 @@ import com.github.bohnman.core.lang.CoreClasses;
 import com.github.bohnman.core.lang.Null;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-
-import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static java.util.stream.Collectors.toMap;
 
 public class DefaultConversionService implements SquigglyConversionService {
 
@@ -29,17 +28,19 @@ public class DefaultConversionService implements SquigglyConversionService {
 
     public DefaultConversionService(SquigglyConfig config, List<ConverterRecord> records) {
         this.cache = CacheBuilder.from(config.getConvertCacheSpec()).build();
-        this.registeredConverters = Collections.unmodifiableMap(
-                records.stream()
-                        .collect(toMap(Key::from, Function.identity(), (a, b) -> b))
+        Map<Key, ConverterRecord> map = new HashMap<>(records.size());
 
-        );
+        for (ConverterRecord record : records) {
+            map.putIfAbsent(new Key(record.getSource(), record.getTarget(), record.getOrder()), record);
+        }
+
+        this.registeredConverters = Collections.unmodifiableMap(map);
 
     }
 
     @Override
     public boolean canConvert(Class<?> source, Class<?> target) {
-        ConverterRecord record = get(source, target);
+        ConverterRecord record = getRecord(source, target);
 
         if (record == NO_MATCH) {
             return false;
@@ -59,7 +60,7 @@ public class DefaultConversionService implements SquigglyConversionService {
             sourceClass = source.getClass();
         }
 
-        ConverterRecord record = get(sourceClass, target);
+        ConverterRecord record = getRecord(sourceClass, target);
 
         if (record == NO_MATCH && source == null) {
             record = IDENTITY;
@@ -79,7 +80,14 @@ public class DefaultConversionService implements SquigglyConversionService {
         return result;
     }
 
-    private ConverterRecord get(Class<?> sourceType, Class<?> targetType) {
+    @Nullable
+    @Override
+    public ConverterRecord findRecord(Class<?> source, Class<?> target) {
+        ConverterRecord record = getRecord(source, target);
+        return record == NO_MATCH ? null : record;
+    }
+
+    public ConverterRecord getRecord(Class<?> sourceType, Class<?> targetType) {
         return cache.computeIfAbsent(new Key(sourceType, targetType), this::load);
     }
 
@@ -102,6 +110,8 @@ public class DefaultConversionService implements SquigglyConversionService {
 
         List<Class<?>> sourceCandidates = getClassHierarchy(sourceType);
         List<Class<?>> targetCandidates = getClassHierarchy(targetType);
+        ConverterRecord softMatch = null;
+
         for (Class<?> sourceCandidate : sourceCandidates) {
             for (Class<?> targetCandidate : targetCandidates) {
                 if (sourceType == sourceCandidate && targetType == targetCandidate) {
@@ -115,12 +125,12 @@ public class DefaultConversionService implements SquigglyConversionService {
                     return converter;
                 }
 
-                if (sourceCandidate == targetCandidate) {
-                    return IDENTITY;
+                if (sourceCandidate == targetCandidate && softMatch == null) {
+                    softMatch = IDENTITY;
                 }
             }
         }
-        return null;
+        return softMatch;
     }
 
     private ConverterRecord getRegisteredConverter(Key convertiblePair) {
@@ -178,10 +188,16 @@ public class DefaultConversionService implements SquigglyConversionService {
     private static class Key {
         private final Class<?> source;
         private final Class<?> target;
+        private final int order;
 
         public Key(Class<?> source, Class<?> target) {
-            this.source = notNull(source);
-            this.target = notNull(target);
+            this(source, target, 0);
+        }
+
+        public Key(Class<?> source, Class<?> target, int order) {
+            this.source = source;
+            this.target = target;
+            this.order = order;
         }
 
         public static Key from(ConverterRecord record) {
@@ -201,5 +217,6 @@ public class DefaultConversionService implements SquigglyConversionService {
         public int hashCode() {
             return Objects.hash(source, target);
         }
+
     }
 }

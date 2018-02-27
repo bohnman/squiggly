@@ -34,10 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static java.util.stream.Collectors.toList;
 
 public abstract class BaseSquiggly {
 
@@ -245,7 +243,23 @@ public abstract class BaseSquiggly {
          * @return builder
          */
         public <S, T> B converter(Class<S> source, Class<T> target, Function<S, T> converter) {
-            this.converterRecords.add(new ConverterRecord(source, target, converter));
+            this.converterRecords.add(new ConverterRecord(source, target, converter, converterRecords.size()));
+            return getThis();
+        }
+
+        /**
+         * Adds a converter.
+         *
+         * @param source    source class
+         * @param target    target class
+         * @param converter converter
+         * @param order     order
+         * @param <S>       source type
+         * @param <T>       target type
+         * @return builder
+         */
+        public <S, T> B converter(Class<S> source, Class<T> target, Function<S, T> converter, int order) {
+            this.converterRecords.add(new ConverterRecord(source, target, converter, order));
             return getThis();
         }
 
@@ -446,11 +460,11 @@ public abstract class BaseSquiggly {
         private SquigglyConversionService buildConversionService(SquigglyConfig config) {
             ConverterRecordRepository recordRepository = new ListRecordRepository();
 
+            recordRepository.addAll(converterRecords);
+
             if (registerDefaultConverters) {
                 DefaultConverters.add(recordRepository);
             }
-
-            recordRepository.addAll(converterRecords);
 
             if (this.conversionService == null) {
                 return new DefaultConversionService(config, recordRepository.findAll());
@@ -515,8 +529,11 @@ public abstract class BaseSquiggly {
 
             List<SquigglyFunction<Object>> defaultFunctions = SquigglyFunctions.create(DefaultFunctions.class, SquigglyFunction.RegistrationStrategy.MANUAL);
 
-            return Stream.concat(coreFunctions.stream(), defaultFunctions.stream())
-                    .collect(toList());
+            List combined = new ArrayList(coreFunctions.size() + defaultFunctions.size());
+            combined.addAll(coreFunctions);
+            combined.addAll(defaultFunctions);
+
+            return combined;
         }
 
         @SuppressWarnings("unchecked")

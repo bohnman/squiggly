@@ -81,7 +81,7 @@ public class SquigglyFunctions {
     }
 
     public static SquigglyFunction<Object> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases) {
-        Class<?> ownerClass = (owner instanceof  Class) ? (Class) owner : owner.getClass();
+        Class<?> ownerClass = (owner instanceof Class) ? (Class) owner : owner.getClass();
         return create(method, owner, name, aliases, ownerClass.getAnnotation(SquigglyClass.class));
     }
 
@@ -132,7 +132,7 @@ public class SquigglyFunctions {
 
     public static List<SquigglyFunction<Object>> create(Object owner, SquigglyFunction.RegistrationStrategy registrationStrategy) {
         boolean ownerStatic = owner instanceof Class;
-        Class<?> ownerClass = (owner instanceof  Class) ? (Class) owner : owner.getClass();
+        Class<?> ownerClass = (owner instanceof Class) ? (Class) owner : owner.getClass();
 
         SquigglyClass classAnnotation = ownerClass.getAnnotation(SquigglyClass.class);
 

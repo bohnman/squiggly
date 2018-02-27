@@ -1,6 +1,5 @@
 package com.github.bohnman.squiggly.core.function;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -48,7 +47,7 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
     public Object apply(FunctionRequest request) {
         try {
             return method.invoke(owner, request.getParameters().toArray());
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (Throwable e) {
             throw new RuntimeException(format("Error executing [%s].", method), e);
         }
     }

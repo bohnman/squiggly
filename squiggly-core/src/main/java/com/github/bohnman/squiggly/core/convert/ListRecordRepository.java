@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 @NotThreadSafe
 public class ListRecordRepository implements ConverterRecordRepository {
@@ -24,5 +25,10 @@ public class ListRecordRepository implements ConverterRecordRepository {
     @Override
     public void add(ConverterRecord record) {
         records.add(record);
+    }
+
+    @Override
+    public <S, T> void add(Class<S> source, Class<T> target, Function<S, T> converter) {
+        add(new ConverterRecord(source, target, converter, records.size()));
     }
 }

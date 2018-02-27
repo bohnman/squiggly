@@ -12,7 +12,7 @@ public interface SquigglyContextProvider<S extends BaseSquiggly> {
      * Get the context.
      *
      * @param beanClass the class of the top-level bean being filtered
-     * @param squiggly squiggly object
+     * @param squiggly  squiggly object
      * @return context
      */
     SquigglyContext getContext(Class beanClass, S squiggly);

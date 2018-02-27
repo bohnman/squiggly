@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.core.function.repository;
 
 import com.github.bohnman.core.collect.CoreStreams;
+import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 
@@ -22,7 +23,7 @@ public class MapFunctionRepository implements SquigglyFunctionRepository {
 
     @SuppressWarnings("unchecked")
     public <T> MapFunctionRepository(Iterable<SquigglyFunction<?>> functions) {
-        Map<String, List<SquigglyFunction<Object>>> functionMap =  (Map) CoreStreams.of(functions)
+        Map<String, List<SquigglyFunction<Object>>> functionMap = (Map) CoreStreams.of(functions)
                 .flatMap(f -> Stream.concat(Stream.of(toPair(f.getName(), f)), f.getAliases().stream().map(a -> toPair(a, f))))
                 .collect(groupingBy(CorePair::getLeft, mapping(CorePair::getRight, toList())));
 
@@ -35,6 +36,6 @@ public class MapFunctionRepository implements SquigglyFunctionRepository {
 
     @Override
     public List<SquigglyFunction<Object>> findByName(String name) {
-        return functionMap.get(name);
+        return CoreObjects.firstNonNull(functionMap.get(name), Collections.emptyList());
     }
 }

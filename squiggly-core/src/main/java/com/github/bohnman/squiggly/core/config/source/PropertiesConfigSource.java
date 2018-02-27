@@ -9,7 +9,7 @@ import java.util.Properties;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
-public class PropertiesConfigSource implements  SquigglyConfigSource {
+public class PropertiesConfigSource implements SquigglyConfigSource {
 
     private final Properties properties;
     private final String location;
@@ -35,7 +35,7 @@ public class PropertiesConfigSource implements  SquigglyConfigSource {
 
     @Nullable
     @Override
-    public String getProperty(String name, @Nullable  String defaultValue) {
+    public String getProperty(String name, @Nullable String defaultValue) {
         String value = properties.getProperty(name);
 
         if (value == null) {

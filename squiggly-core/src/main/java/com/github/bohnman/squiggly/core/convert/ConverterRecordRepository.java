@@ -18,4 +18,8 @@ public interface ConverterRecordRepository {
         add(new ConverterRecord(source, target, converter));
     }
 
+    default <S, T> void add(Class<S> source, Class<T> target, Function<S, T> converter, int order) {
+        add(new ConverterRecord(source, target, converter, order));
+    }
+
 }

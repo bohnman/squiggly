@@ -3,7 +3,6 @@ package com.github.bohnman.squiggly.core.config.source;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 
-
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 public class CompositeConfigSource implements SquigglyConfigSource {
@@ -20,7 +19,7 @@ public class CompositeConfigSource implements SquigglyConfigSource {
 
     @Override
     @Nullable
-    public String getProperty(String name, @Nullable  String defaultValue) {
+    public String getProperty(String name, @Nullable String defaultValue) {
         String property = null;
 
         for (SquigglyConfigSource source : sources) {

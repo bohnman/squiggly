@@ -10,7 +10,7 @@ public interface SquigglyConfigSource {
     }
 
     @Nullable
-    String getProperty(String name, @Nullable  String defaultValue);
+    String getProperty(String name, @Nullable String defaultValue);
 
     @Nullable
     String getLocation(String name);
