@@ -14,10 +14,10 @@ import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.core.filter.repository.CompositeFilterRepository;
 import com.github.bohnman.squiggly.core.filter.repository.MapFilterRepository;
 import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterRepository;
-import com.github.bohnman.squiggly.core.function.DefaultFunctions;
+import com.github.bohnman.squiggly.core.function.functions.DefaultFunctions;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
-import com.github.bohnman.squiggly.core.function.SystemFunctions;
+import com.github.bohnman.squiggly.core.function.functions.SystemFunctions;
 import com.github.bohnman.squiggly.core.function.repository.CompositeFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.MapFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
@@ -520,14 +520,14 @@ public abstract class BaseSquiggly {
 
         @SuppressWarnings("unchecked")
         private List<SquigglyFunction<?>> getDefaultFunctions() {
-            List<SquigglyFunction<Object>> coreFunctions = SquigglyFunctions.create(SystemFunctions.class, SquigglyFunction.RegistrationStrategy.MANUAL);
+            List<SquigglyFunction<Object>> coreFunctions = SquigglyFunctions.create(SquigglyFunction.RegistrationStrategy.MANUAL, SystemFunctions.class);
 
 
             if (!registerDefaultFunctions) {
                 return (List) coreFunctions;
             }
 
-            List<SquigglyFunction<Object>> defaultFunctions = SquigglyFunctions.create(DefaultFunctions.class, SquigglyFunction.RegistrationStrategy.MANUAL);
+            List<SquigglyFunction<Object>> defaultFunctions = SquigglyFunctions.create(SquigglyFunction.RegistrationStrategy.MANUAL, DefaultFunctions.class);
 
             List combined = new ArrayList(coreFunctions.size() + defaultFunctions.size());
             combined.addAll(coreFunctions);

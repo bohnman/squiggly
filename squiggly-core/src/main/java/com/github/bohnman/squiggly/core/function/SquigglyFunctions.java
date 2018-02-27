@@ -9,7 +9,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -127,16 +129,32 @@ public class SquigglyFunctions {
 
 
     public static List<SquigglyFunction<Object>> create(Object owner) {
-        return create(owner, SquigglyFunction.RegistrationStrategy.AUTO);
+        return create(SquigglyFunction.RegistrationStrategy.AUTO, owner);
     }
 
-    public static List<SquigglyFunction<Object>> create(Object owner, SquigglyFunction.RegistrationStrategy registrationStrategy) {
+    public static List<SquigglyFunction<Object>> create(SquigglyFunction.RegistrationStrategy registrationStrategy, Object... owners) {
+        return createInternal(registrationStrategy, owners).collect(toList());
+    }
+
+    private static Stream<SquigglyFunction<Object>> createInternal(SquigglyFunction.RegistrationStrategy registrationStrategy, Object... owners) {
+        Map<Class<?>, Class<?>> processed = new IdentityHashMap<>();
+
+        return Arrays.stream(owners)
+                .flatMap(owner -> createSingleInternal(registrationStrategy, owner,  processed));
+
+    }
+
+    private static Stream<SquigglyFunction<Object>> createSingleInternal(SquigglyFunction.RegistrationStrategy registrationStrategy, Object owner, Map<Class<?>, Class<?>> processed) {
         boolean ownerStatic = owner instanceof Class;
         Class<?> ownerClass = (owner instanceof Class) ? (Class) owner : owner.getClass();
 
+        if (processed.putIfAbsent(ownerClass, ownerClass) != null) {
+            return Stream.empty();
+        }
+
         SquigglyClass classAnnotation = ownerClass.getAnnotation(SquigglyClass.class);
 
-        return Arrays.stream(ownerClass.getDeclaredMethods())
+        Stream<SquigglyFunction<Object>> stream = Arrays.stream(ownerClass.getDeclaredMethods())
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .filter(method -> ownerStatic && Modifier.isStatic(method.getModifiers()))
                 .map(method -> {
@@ -152,8 +170,18 @@ public class SquigglyFunctions {
 
                     return create(method, owner, null, null, classAnnotation, functonAnnotation);
                 })
-                .filter(Objects::nonNull)
-                .collect(toList());
+                .filter(Objects::nonNull);
+
+
+        if (classAnnotation != null) {
+            for (Class<?> includeClass : classAnnotation.include()) {
+                stream = Stream.concat(stream, createSingleInternal(registrationStrategy, includeClass, processed));
+            }
+        }
+
+        return stream;
+
+
     }
 }
 
