@@ -33,9 +33,20 @@ public class MathFunctions {
     }
 
     @SquigglyMethod
-    public static Number round(Number n) {
-        if (n == null) return null;
-        return Math.round(n.doubleValue());
+    public static Number max(Number n1, Number n2) {
+        if (n1 == null && n2 == null) {
+            return null;
+        }
+
+        if (n1 == null) {
+            return n2;
+        }
+
+        if (n2 == null) {
+            return n1;
+        }
+
+        return Math.max(n1.doubleValue(), n2.doubleValue());
     }
 
     @SquigglyMethod
@@ -53,23 +64,6 @@ public class MathFunctions {
         }
 
         return Math.min(n1.doubleValue(), n2.doubleValue());
-    }
-
-    @SquigglyMethod
-    public static Number max(Number n1, Number n2) {
-        if (n1 == null && n2 == null) {
-            return null;
-        }
-
-        if (n1 == null) {
-            return n2;
-        }
-
-        if (n2 == null) {
-            return n1;
-        }
-
-        return Math.max(n1.doubleValue(), n2.doubleValue());
     }
 
     @SquigglyMethod
@@ -97,5 +91,11 @@ public class MathFunctions {
         }
 
         return number;
+    }
+
+    @SquigglyMethod
+    public static Number round(Number n) {
+        if (n == null) return null;
+        return Math.round(n.doubleValue());
     }
 }

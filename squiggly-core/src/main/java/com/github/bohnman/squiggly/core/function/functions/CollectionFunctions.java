@@ -72,55 +72,6 @@ public class CollectionFunctions {
     }
 
     @SquigglyMethod
-    public static Object map(Object value, CoreLambda coreLambda) {
-        if (value == null || coreLambda == null) {
-            return Collections.emptyList();
-        }
-
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-
-            return IntStream.range(0, wrapper.size())
-                    .mapToObj(i -> coreLambda.invoke(wrapper.get(i), i))
-                    .toArray();
-        }
-
-        if (!(value instanceof Iterable)) {
-            value = Collections.singletonList(value);
-        }
-
-        List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
-
-        return IntStream.range(0, list.size())
-                .mapToObj(i -> coreLambda.invoke(list.get(i), i))
-                .collect(toList());
-    }
-
-    @SuppressWarnings("unchecked")
-    @SquigglyMethod
-    public static Object map(Object value, Function function) {
-        if (value == null || function == null) {
-            return Collections.emptyList();
-        }
-
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            return wrapper.stream().map((Function<Object, Object>) function).toArray();
-        }
-
-        if (!(value instanceof Iterable)) {
-            value = Collections.singletonList(value);
-        }
-
-        List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
-
-        return list.stream()
-                .map(function)
-                .collect(toList());
-    }
-
-
-    @SquigglyMethod
     public static Object first(Object value) {
         if (value == null) {
             return null;
@@ -168,5 +119,53 @@ public class CollectionFunctions {
         }
 
         return value;
+    }
+
+    @SquigglyMethod
+    public static Object map(Object value, CoreLambda coreLambda) {
+        if (value == null || coreLambda == null) {
+            return Collections.emptyList();
+        }
+
+        if (value.getClass().isArray()) {
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
+
+            return IntStream.range(0, wrapper.size())
+                    .mapToObj(i -> coreLambda.invoke(wrapper.get(i), i))
+                    .toArray();
+        }
+
+        if (!(value instanceof Iterable)) {
+            value = Collections.singletonList(value);
+        }
+
+        List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
+
+        return IntStream.range(0, list.size())
+                .mapToObj(i -> coreLambda.invoke(list.get(i), i))
+                .collect(toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    @SquigglyMethod
+    public static Object map(Object value, Function function) {
+        if (value == null || function == null) {
+            return Collections.emptyList();
+        }
+
+        if (value.getClass().isArray()) {
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
+            return wrapper.stream().map((Function<Object, Object>) function).toArray();
+        }
+
+        if (!(value instanceof Iterable)) {
+            value = Collections.singletonList(value);
+        }
+
+        List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
+
+        return list.stream()
+                .map(function)
+                .collect(toList());
     }
 }

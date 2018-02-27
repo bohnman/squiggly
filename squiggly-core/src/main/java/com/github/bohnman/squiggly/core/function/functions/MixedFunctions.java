@@ -34,22 +34,82 @@ public class MixedFunctions {
     }
 
     @SquigglyMethod
-    public static Object values(Object value) {
+    public static String format(String value, Object... args) {
+        if (value == null) {
+            return null;
+        }
+
+        try {
+            return String.format(value, args);
+        } catch (IllegalFormatException e) {
+            return value;
+        }
+    }
+
+    public static Object keys(Object value) {
         if (value == null) {
             return Collections.emptyList();
         }
 
         if (value.getClass().isArray()) {
-            return value;
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
+            int size = wrapper.size();
+            int[] indexes = new int[size];
+            for (int i = 0; i < size; i++) {
+                indexes[i] = i;
+            }
+            return indexes;
         }
 
         if (value instanceof Iterable) {
-            return value;
+            int size = CoreIterables.size((Iterable) value);
+            return IntStream.range(0, size)
+                    .boxed()
+                    .collect(toList());
         }
 
-        return CoreLists.of(toMap(value).values());
+        if (value instanceof Map) {
+            return ((Map) value).keySet();
+        }
+
+        return CoreBeans.getReadablePropertyDescriptors(value.getClass())
+                .map(PropertyDescriptor::getName)
+                .collect(toList());
     }
 
+    @SquigglyMethod
+    public static Object limit(Object value, int limit) {
+        if (limit < 0) {
+            return slice(value, limit);
+        } else {
+            return slice(value, 0, limit);
+        }
+    }
+
+    private static OrderByComparable newComparable(Object value, List<OrderBy> orderBys) {
+        return new OrderByComparable(value, orderBys);
+    }
+
+    private static List<Integer> normalizeIndexes(int len, Object... indexes) {
+        return Stream.of(indexes)
+                .flatMap(index -> {
+                    if (index instanceof Number) {
+                        int actualIndex = CoreArrays.normalizeIndex(((Number) index).intValue(), len, -1, len);
+                        return actualIndex < 0 ? Stream.empty() : Stream.of(actualIndex);
+                    }
+
+                    if (index instanceof CoreIntRange) {
+                        CoreIntRange range = (CoreIntRange) index;
+                        int start = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getStart(), 0), len);
+                        int end = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getEnd(), len), len);
+                        return (start >= end) ? Stream.empty() : IntStream.range(start, end).boxed();
+                    }
+
+                    return Stream.empty();
+                })
+                .distinct()
+                .collect(toList());
+    }
 
     @SuppressWarnings("unchecked")
     @SquigglyMethod
@@ -156,7 +216,6 @@ public class MixedFunctions {
         return Collections.emptyList();
     }
 
-
     @SquigglyMethod
     public static Object reverse(Object value) {
         if (value == null) {
@@ -178,6 +237,85 @@ public class MixedFunctions {
         }
 
         return value;
+    }
+
+    @SquigglyMethod
+    public static Object slice(Object value, CoreIntRange range) {
+        if (range == null) {
+            return value;
+        }
+
+        range = range.toExclusive();
+
+        Integer start = range.getStart();
+
+        if (start == null) {
+            return slice(value, 0, 0);
+        }
+
+        if (range.getEnd() == null) {
+            return slice(value, start);
+        }
+
+        return slice(value, start, range.getEnd());
+    }
+
+    @SquigglyMethod
+    public static Object slice(Object value, int start) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+
+        if (value instanceof String) {
+            return CoreStrings.substring((String) value, start);
+        }
+
+        if (value.getClass().isArray()) {
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
+            int len = wrapper.size();
+            int realStart = CoreArrays.normalizeIndex(start, len);
+            int realEnd = len;
+            return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart).getArray();
+        }
+
+        if (!(value instanceof Iterable)) {
+            value = Collections.singletonList(value);
+        }
+
+        Iterable iterable = (Iterable) value;
+        List list = (iterable instanceof List) ? (List) iterable : CoreLists.of(iterable);
+        int realStart = CoreArrays.normalizeIndex(start, list.size());
+        int realEnd = list.size();
+        return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
+    }
+
+    @SquigglyMethod
+    public static Object slice(Object value, int start, int end) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+
+        if (value instanceof String) {
+            return CoreStrings.substring((String) value, start, end);
+        }
+
+        if (value.getClass().isArray()) {
+            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
+            int len = wrapper.size();
+            int realStart = CoreArrays.normalizeIndex(start, len);
+            int realEnd = CoreArrays.normalizeIndex(end, len);
+            return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart, realEnd).getArray();
+        }
+
+        if (!(value instanceof Iterable)) {
+            value = Collections.singletonList(value);
+        }
+
+        Iterable iterable = (Iterable) value;
+        List list = (iterable instanceof List) ? (List) iterable : CoreLists.of(iterable);
+        int realStart = CoreArrays.normalizeIndex(start, list.size());
+        int realEnd = CoreArrays.normalizeIndex(end, list.size());
+        return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
     }
 
     @SuppressWarnings("unchecked")
@@ -221,150 +359,6 @@ public class MixedFunctions {
         return value;
     }
 
-    public static Object keys(Object value) {
-        if (value == null) {
-            return Collections.emptyList();
-        }
-
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            int size = wrapper.size();
-            int[] indexes = new int[size];
-            for (int i = 0; i < size; i++) {
-                indexes[i] = i;
-            }
-            return indexes;
-        }
-
-        if (value instanceof Iterable) {
-            int size = CoreIterables.size((Iterable) value);
-            return IntStream.range(0, size)
-                    .boxed()
-                    .collect(toList());
-        }
-
-        if (value instanceof Map) {
-            return ((Map) value).keySet();
-        }
-
-        return CoreBeans.getReadablePropertyDescriptors(value.getClass())
-                .map(PropertyDescriptor::getName)
-                .collect(toList());
-    }
-
-    @SquigglyMethod
-    public static Object limit(Object value, int limit) {
-        if (limit < 0) {
-            return slice(value, limit);
-        } else {
-            return slice(value, 0, limit);
-        }
-    }
-
-    @SquigglyMethod
-    public static Object slice(Object value, CoreIntRange range) {
-        if (range == null) {
-            return value;
-        }
-
-        range = range.toExclusive();
-
-        Integer start = range.getStart();
-
-        if (start == null) {
-            return slice(value, 0, 0);
-        }
-
-        if (range.getEnd() == null) {
-            return slice(value, start);
-        }
-
-        return slice(value, start, range.getEnd());
-    }
-
-
-    @SquigglyMethod
-    public static Object slice(Object value, int start) {
-        if (value == null) {
-            return Collections.emptyList();
-        }
-
-        if (value instanceof String) {
-            return CoreStrings.substring((String) value, start);
-        }
-
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            int len = wrapper.size();
-            int realStart = CoreArrays.normalizeIndex(start, len);
-            int realEnd = len;
-            return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart).getArray();
-        }
-
-        if (!(value instanceof Iterable)) {
-            value = Collections.singletonList(value);
-        }
-
-        Iterable iterable = (Iterable) value;
-        List list = (iterable instanceof List) ? (List) iterable : CoreLists.of(iterable);
-        int realStart = CoreArrays.normalizeIndex(start, list.size());
-        int realEnd = list.size();
-        return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
-    }
-
-
-    @SquigglyMethod
-    public static Object slice(Object value, int start, int end) {
-        if (value == null) {
-            return Collections.emptyList();
-        }
-
-        if (value instanceof String) {
-            return CoreStrings.substring((String) value, start, end);
-        }
-
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            int len = wrapper.size();
-            int realStart = CoreArrays.normalizeIndex(start, len);
-            int realEnd = CoreArrays.normalizeIndex(end, len);
-            return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart, realEnd).getArray();
-        }
-
-        if (!(value instanceof Iterable)) {
-            value = Collections.singletonList(value);
-        }
-
-        Iterable iterable = (Iterable) value;
-        List list = (iterable instanceof List) ? (List) iterable : CoreLists.of(iterable);
-        int realStart = CoreArrays.normalizeIndex(start, list.size());
-        int realEnd = CoreArrays.normalizeIndex(end, list.size());
-        return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
-    }
-
-
-    private static List<Integer> normalizeIndexes(int len, Object... indexes) {
-        return Stream.of(indexes)
-                .flatMap(index -> {
-                    if (index instanceof Number) {
-                        int actualIndex = CoreArrays.normalizeIndex(((Number) index).intValue(), len, -1, len);
-                        return actualIndex < 0 ? Stream.empty() : Stream.of(actualIndex);
-                    }
-
-                    if (index instanceof CoreIntRange) {
-                        CoreIntRange range = (CoreIntRange) index;
-                        int start = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getStart(), 0), len);
-                        int end = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getEnd(), len), len);
-                        return (start >= end) ? Stream.empty() : IntStream.range(start, end).boxed();
-                    }
-
-                    return Stream.empty();
-                })
-                .distinct()
-                .collect(toList());
-    }
-
-
     @SuppressWarnings("unchecked")
     private static Map<String, Object> toMap(Object value) {
         if (value == null || value instanceof String) {
@@ -384,8 +378,21 @@ public class MixedFunctions {
         }
     }
 
-    private static OrderByComparable newComparable(Object value, List<OrderBy> orderBys) {
-        return new OrderByComparable(value, orderBys);
+    @SquigglyMethod
+    public static Object values(Object value) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
+
+        if (value.getClass().isArray()) {
+            return value;
+        }
+
+        if (value instanceof Iterable) {
+            return value;
+        }
+
+        return CoreLists.of(toMap(value).values());
     }
 
     private static class OrderByComparable implements Comparable<Object> {
@@ -451,19 +458,6 @@ public class MixedFunctions {
             Comparable comparable = orderBy.getComparable(originalValue);
             orderByCache.put(orderBy, comparable);
             return comparable;
-        }
-    }
-
-    @SquigglyMethod
-    public static String format(String value, Object... args) {
-        if (value == null) {
-            return null;
-        }
-
-        try {
-            return String.format(value, args);
-        } catch (IllegalFormatException e) {
-            return value;
         }
     }
 

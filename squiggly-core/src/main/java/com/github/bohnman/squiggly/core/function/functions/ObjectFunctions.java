@@ -7,11 +7,6 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 public class ObjectFunctions {
 
     @SquigglyMethod
-    public static Object replace(Object object, Object replace) {
-        return replace;
-    }
-
-    @SquigglyMethod
     public static Object defaultEmpty(Object o1, Object o2) {
         return isEmpty(o1) ? o2 : o1;
     }
@@ -31,7 +26,6 @@ public class ObjectFunctions {
 
         return value;
     }
-
 
     @SquigglyMethod("default")
     public static Object defaultObject(Object o1, Object o2) {
@@ -72,5 +66,10 @@ public class ObjectFunctions {
         }
 
         return false;
+    }
+
+    @SquigglyMethod
+    public static Object replace(Object object, Object replace) {
+        return replace;
     }
 }

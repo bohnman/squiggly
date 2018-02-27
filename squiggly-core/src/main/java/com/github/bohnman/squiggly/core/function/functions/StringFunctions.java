@@ -17,6 +17,10 @@ public class StringFunctions {
     private StringFunctions() {
     }
 
+    @SquigglyMethod(aliases = "capitalise")
+    public static String capitalize(String value) {
+        return CoreStrings.capitalize(value);
+    }
 
     @SquigglyMethod
     public static String join(Object value, String separator) {
@@ -62,26 +66,10 @@ public class StringFunctions {
         return CoreConversions.toString(value);
     }
 
-    public static List<String> split(String value, Object separator) {
-        if (value == null) {
-            return Collections.emptyList();
-        }
-
-        if (separator == null) {
-            return Collections.singletonList(value);
-        }
-
-        if (separator instanceof String) {
-            return Arrays.asList(CoreStrings.split(value, (String) separator));
-        }
-
-        if (separator instanceof Pattern) {
-            return Arrays.asList(((Pattern) separator).split(value));
-        }
-
-        return Collections.singletonList(value);
+    @SquigglyMethod
+    public static String lower(String value) {
+        return CoreStrings.lower(value);
     }
-
 
     @SquigglyMethod
     public static String replace(String value, Object search, String replace) {
@@ -125,14 +113,24 @@ public class StringFunctions {
         return value;
     }
 
-    @SquigglyMethod(aliases = "capitalise")
-    public static String capitalize(String value) {
-        return CoreStrings.capitalize(value);
-    }
+    public static List<String> split(String value, Object separator) {
+        if (value == null) {
+            return Collections.emptyList();
+        }
 
-    @SquigglyMethod
-    public static String lower(String value) {
-        return CoreStrings.lower(value);
+        if (separator == null) {
+            return Collections.singletonList(value);
+        }
+
+        if (separator instanceof String) {
+            return Arrays.asList(CoreStrings.split(value, (String) separator));
+        }
+
+        if (separator instanceof Pattern) {
+            return Arrays.asList(((Pattern) separator).split(value));
+        }
+
+        return Collections.singletonList(value);
     }
 
     @SquigglyMethod

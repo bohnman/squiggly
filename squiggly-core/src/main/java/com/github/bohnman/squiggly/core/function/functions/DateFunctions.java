@@ -18,47 +18,6 @@ public class DateFunctions {
     private DateFunctions() {
     }
 
-
-    // Date functions
-    @SquigglyMethod
-    public static ZonedDateTime now() {
-        return ZonedDateTime.now();
-    }
-
-    @SquigglyMethod
-    public static LocalDateTime nowLocal() {
-        return LocalDateTime.now();
-    }
-
-
-    @SquigglyMethod
-    public static String format(LocalDateTime dateTime) {
-        return format(dateTime, "yyyy-MM-dd'T'HH:mm:ss.SSS");
-    }
-
-    @SquigglyMethod
-    public static String format(LocalDateTime dateTime, String pattern) {
-        if (dateTime == null) {
-            return "";
-        }
-
-        return dateTime.format(DateTimeFormatter.ofPattern(pattern));
-    }
-
-    @SquigglyMethod
-    public static String format(OffsetDateTime dateTime) {
-        return format(dateTime.toZonedDateTime(), "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    }
-
-    @SquigglyMethod
-    public static String format(ZonedDateTime dateTime, String pattern) {
-        if (dateTime == null) {
-            return "";
-        }
-
-        return dateTime.format(DateTimeFormatter.ofPattern(pattern));
-    }
-
     @SquigglyMethod
     public static LocalDateTime add(LocalDateTime dateTime, Number number, String unit) {
         if (dateTime == null) {
@@ -83,32 +42,6 @@ public class DateFunctions {
         }
 
         return dateTime.plus(number.intValue(), toTemporalUnit(unit));
-    }
-
-    @SquigglyMethod
-    public static LocalDateTime subtract(LocalDateTime dateTime, Number number, String unit) {
-        if (dateTime == null) {
-            return null;
-        }
-
-        if (number == null) {
-            return dateTime;
-        }
-
-        return dateTime.minus(number.intValue(), toTemporalUnit(unit));
-    }
-
-    @SquigglyMethod
-    public static ZonedDateTime subtract(ZonedDateTime dateTime, Number number, String unit) {
-        if (dateTime == null) {
-            return null;
-        }
-
-        if (number == null) {
-            return dateTime;
-        }
-
-        return dateTime.minus(number.intValue(), toTemporalUnit(unit));
     }
 
     @SquigglyMethod
@@ -168,13 +101,42 @@ public class DateFunctions {
     }
 
     @SquigglyMethod
-    public static LocalDateTime parseLocalDate(String input) {
-        return parseLocalDate(input, "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm");
+    public static String format(LocalDateTime dateTime) {
+        return format(dateTime, "yyyy-MM-dd'T'HH:mm:ss.SSS");
     }
 
     @SquigglyMethod
-    public static LocalDateTime parseLocalDate(String input, String mainPattern, String... otherPatterns) {
-        return parseDateInternal(input, mainPattern, otherPatterns).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    public static String format(LocalDateTime dateTime, String pattern) {
+        if (dateTime == null) {
+            return "";
+        }
+
+        return dateTime.format(DateTimeFormatter.ofPattern(pattern));
+    }
+
+    @SquigglyMethod
+    public static String format(OffsetDateTime dateTime) {
+        return format(dateTime.toZonedDateTime(), "yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    }
+
+    @SquigglyMethod
+    public static String format(ZonedDateTime dateTime, String pattern) {
+        if (dateTime == null) {
+            return "";
+        }
+
+        return dateTime.format(DateTimeFormatter.ofPattern(pattern));
+    }
+
+    // Date functions
+    @SquigglyMethod
+    public static ZonedDateTime now() {
+        return ZonedDateTime.now();
+    }
+
+    @SquigglyMethod
+    public static LocalDateTime nowLocal() {
+        return LocalDateTime.now();
     }
 
     @SquigglyMethod
@@ -204,6 +166,42 @@ public class DateFunctions {
         }
 
         throw new IllegalArgumentException("Unable to parse input");
+    }
+
+    @SquigglyMethod
+    public static LocalDateTime parseLocalDate(String input) {
+        return parseLocalDate(input, "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm");
+    }
+
+    @SquigglyMethod
+    public static LocalDateTime parseLocalDate(String input, String mainPattern, String... otherPatterns) {
+        return parseDateInternal(input, mainPattern, otherPatterns).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    @SquigglyMethod
+    public static LocalDateTime subtract(LocalDateTime dateTime, Number number, String unit) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        if (number == null) {
+            return dateTime;
+        }
+
+        return dateTime.minus(number.intValue(), toTemporalUnit(unit));
+    }
+
+    @SquigglyMethod
+    public static ZonedDateTime subtract(ZonedDateTime dateTime, Number number, String unit) {
+        if (dateTime == null) {
+            return null;
+        }
+
+        if (number == null) {
+            return dateTime;
+        }
+
+        return dateTime.minus(number.intValue(), toTemporalUnit(unit));
     }
 
     private static TemporalUnit toTemporalUnit(String unit) {
