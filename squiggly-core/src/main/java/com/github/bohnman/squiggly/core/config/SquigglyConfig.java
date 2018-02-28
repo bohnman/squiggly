@@ -41,6 +41,7 @@ public class SquigglyConfig {
     private final CacheBuilderSpec propertyDescriptorCacheSpec;
     private final CacheBuilderSpec convertCacheSpec;
     private final CompositeConfigSource source;
+    private final String filterRequestParam;
 
     public SquigglyConfig(SquigglyConfigSource... sources) {
         this(Arrays.asList(sources));
@@ -74,6 +75,7 @@ public class SquigglyConfig {
         parserNodeCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.parser.nodeCache.spec");
         propertyAddNonAnnotatedFieldsToBaseView = getBool(source, propsMap, locationMap, "squiggly.property.addNonAnnotatedFieldsToBaseView");
         propertyDescriptorCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.property.descriptorCache.spec");
+        filterRequestParam = getString(source, propsMap, locationMap, "squiggly.filter.request.param");
 
         this.propsMap = Collections.unmodifiableSortedMap(propsMap);
         this.locationMap = Collections.unmodifiableSortedMap(locationMap);
@@ -245,6 +247,15 @@ public class SquigglyConfig {
      */
     public boolean isFilterImplicitlyIncludeBaseFieldsInView() {
         return filterImplicitlyIncludeBaseFieldsInView;
+    }
+
+    /**
+     * Get the query parameter for web-based filters
+     *
+     * @return query param
+     */
+    public String getFilterRequestParam() {
+        return filterRequestParam;
     }
 
     /**

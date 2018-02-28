@@ -42,6 +42,12 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         return filter;
     }
 
+    @Nullable
+    @Override
+    protected String provideFilter(Class beanClass) {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     public boolean isFilteringEnabled() {
         HttpServletRequest request = getRequest();

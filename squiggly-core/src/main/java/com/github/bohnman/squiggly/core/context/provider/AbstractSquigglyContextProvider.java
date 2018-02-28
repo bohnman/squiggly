@@ -23,7 +23,12 @@ public abstract class AbstractSquigglyContextProvider<S extends BaseSquiggly> im
      * @return filter expression
      */
     @Nullable
-    protected abstract String getFilter(Class beanClass);
+    protected String getFilter(Class beanClass) {
+        return customizeFilter(provideFilter(beanClass), beanClass);
+    }
+
+    @Nullable
+    protected abstract String provideFilter(Class beanClass);
 
     @Nullable
     protected String customizeFilter(@Nullable String filter, @Nullable Class beanClass) {

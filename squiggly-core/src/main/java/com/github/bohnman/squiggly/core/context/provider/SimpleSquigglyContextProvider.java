@@ -32,9 +32,8 @@ public class SimpleSquigglyContextProvider extends AbstractSquigglyContextProvid
         return true;
     }
 
-    @Nullable
     @Override
-    protected String getFilter(Class beanClass) {
-        return customizeFilter(filter, beanClass);
+    protected String provideFilter(Class beanClass) {
+        return filter;
     }
 }

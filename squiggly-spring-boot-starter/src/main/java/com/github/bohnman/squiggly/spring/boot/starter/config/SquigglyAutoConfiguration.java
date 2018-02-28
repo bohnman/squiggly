@@ -1,7 +1,6 @@
 package com.github.bohnman.squiggly.spring.boot.starter.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
 import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
@@ -22,7 +21,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -127,7 +125,7 @@ public class SquigglyAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean
+    @ConditionalOnNotWebApplication
     public static SquigglyApplicationListener squigglyApplicationListener(Squiggly squiggly) {
         return new SquigglyApplicationListener(squiggly);
     }
@@ -150,27 +148,6 @@ public class SquigglyAutoConfiguration {
 
         protected void apply(ContextRefreshedEvent event, Collection<ObjectMapper> objectMappers) {
             squiggly.applyAll(objectMappers);
-        }
-    }
-
-    public static class RequestSquigglyApplicationListener extends SquigglyApplicationListener {
-        public RequestSquigglyApplicationListener(Squiggly squiggly) {
-            super(squiggly);
-        }
-
-
-        @Override
-        protected void apply(ContextRefreshedEvent event, Collection<ObjectMapper> objectMappers) {
-            super.apply(event, objectMappers);
-            ObjectMapper objectMapper = CoreIterables.getFirst(objectMappers, null);
-
-            // Enable Squiggly for Jackson message converter
-            if (objectMapper != null) {
-                Collection<MappingJackson2HttpMessageConverter> converters = event.getApplicationContext().getBeansOfType(MappingJackson2HttpMessageConverter.class).values();
-                for (MappingJackson2HttpMessageConverter converter : converters) {
-                    converter.setObjectMapper(objectMapper);
-                }
-            }
         }
     }
 }
