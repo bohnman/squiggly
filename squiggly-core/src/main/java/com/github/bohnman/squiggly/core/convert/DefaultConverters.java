@@ -24,7 +24,7 @@ public class DefaultConverters {
             "org.joda.time.LocalDate", DefaultConverters.class.getClassLoader());
 
 
-    public static void add(ConverterRecordRepository repo) {
+    public static void add(SquigglyConverterRegistry repo) {
 
         // Byte
         repo.add(Byte.class, Integer.class, Byte::intValue);

@@ -34,4 +34,9 @@ public class SquigglyMetrics {
         metricsSource.applyMetrics(metrics);
         return metrics;
     }
+
+    @Override
+    public String toString() {
+        return asMap().toString();
+    }
 }

@@ -2,10 +2,13 @@ package com.github.bohnman.squiggly.core.config;
 
 import com.github.bohnman.core.cache.CacheBuilderSpec;
 import com.github.bohnman.core.collect.CoreStreams;
+import com.github.bohnman.core.convert.CoreConversions;
+import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.config.source.CompositeConfigSource;
 import com.github.bohnman.squiggly.core.config.source.PropertiesConfigSource;
 import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.URL;
 import java.util.Arrays;
@@ -37,6 +40,8 @@ public class SquigglyConfig {
     private final boolean propertyAddNonAnnotatedFieldsToBaseView;
     private final CacheBuilderSpec propertyDescriptorCacheSpec;
     private final CacheBuilderSpec convertCacheSpec;
+    private final CompositeConfigSource source;
+    private final String filterRequestParam;
 
     public SquigglyConfig(SquigglyConfigSource... sources) {
         this(Arrays.asList(sources));
@@ -57,7 +62,7 @@ public class SquigglyConfig {
             sourceStream = Stream.concat(sourceStream, Stream.of(new PropertiesConfigSource(squigglyDefaultProps)));
         }
 
-        SquigglyConfigSource source = new CompositeConfigSource(sourceStream.collect(Collectors.toList()));
+        this.source = new CompositeConfigSource(sourceStream.collect(Collectors.toList()));
 
         SortedMap<String, String> propsMap = new TreeMap<>();
         SortedMap<String, String> locationMap = new TreeMap<>();
@@ -70,10 +75,119 @@ public class SquigglyConfig {
         parserNodeCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.parser.nodeCache.spec");
         propertyAddNonAnnotatedFieldsToBaseView = getBool(source, propsMap, locationMap, "squiggly.property.addNonAnnotatedFieldsToBaseView");
         propertyDescriptorCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.property.descriptorCache.spec");
+        filterRequestParam = getString(source, propsMap, locationMap, "squiggly.filter.request.param");
 
         this.propsMap = Collections.unmodifiableSortedMap(propsMap);
         this.locationMap = Collections.unmodifiableSortedMap(locationMap);
     }
+
+    @Nullable
+    public String getString(String key) {
+        return getString(key, null);
+    }
+
+    @Nullable
+    public String getString(String key, @Nullable  String defaultValue) {
+
+        if (key == null) {
+            return defaultValue;
+        }
+
+        String value = propsMap.get(key);
+
+        if (value == null) {
+            value = source.getProperty(key);
+        }
+
+        return CoreObjects.firstNonNull(value, defaultValue);
+    }
+
+    @Nullable
+    public Boolean getBoolean(String key) {
+        return getBoolean(key, null);
+    }
+
+    @Nullable
+    public Boolean getBoolean(String key, @Nullable Boolean defaultValue) {
+        String value = propsMap.get(key);
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        return CoreConversions.toBoolean(value);
+    }
+
+    @Nullable
+    public Integer getInt(String key) {
+        return getInt(key, null);
+    }
+
+    @Nullable
+    public Integer getInt(String key, @Nullable  Integer defaultValue) {
+        String value = propsMap.get(key);
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        return CoreConversions.toNumber(value, defaultValue).intValue();
+    }
+
+
+    @Nullable
+    public Long getLong(String key) {
+        return getLong(key, null);
+    }
+
+    @Nullable
+    public Long getLong(String key, @Nullable Long defaultValue) {
+        String value = propsMap.get(key);
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        return CoreConversions.toNumber(value, defaultValue).longValue();
+    }
+
+
+    @Nullable
+    public Float getFloat(String key) {
+        return getFloat(key, null);
+    }
+
+    @Nullable
+    public Float getFloat(String key, @Nullable Float defaultValue) {
+        String value = propsMap.get(key);
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        return CoreConversions.toNumber(value, defaultValue).floatValue();
+    }
+
+
+    @Nullable
+    public Double getDouble(String key) {
+        return getDouble(key, null);
+    }
+
+    @Nullable
+    public Double getDouble(String key, @Nullable Double defaultValue) {
+        String value = propsMap.get(key);
+
+        if (value == null) {
+            return defaultValue;
+        }
+
+        return CoreConversions.toNumber(value, defaultValue).doubleValue();
+    }
+
+
+
+
 
     private CacheBuilderSpec getCacheSpec(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
         String value = getString(source, props, locations, key);
@@ -133,6 +247,15 @@ public class SquigglyConfig {
      */
     public boolean isFilterImplicitlyIncludeBaseFieldsInView() {
         return filterImplicitlyIncludeBaseFieldsInView;
+    }
+
+    /**
+     * Get the query parameter for web-based filters
+     *
+     * @return query param
+     */
+    public String getFilterRequestParam() {
+        return filterRequestParam;
     }
 
     /**

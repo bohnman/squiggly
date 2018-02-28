@@ -6,7 +6,7 @@
 
     <name>Squiggly Filter Jackson Dropwizard Example</name>
     <groupId>com.github.bohnman.squiggly.example</groupId>
-    <artifactId>squiggly-filter-jackson-example-dropwizard</artifactId>
+    <artifactId>squiggly-java-example-dropwizard</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>com.github.bohnman</groupId>
-            <artifactId>squiggly-filter-jackson</artifactId>
+            <artifactId>squiggly-java</artifactId>
             <version>1.3.8</version>
             <exclusions>
                 <exclusion>

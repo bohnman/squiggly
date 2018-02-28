@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.core.convert.joda;
 
-import com.github.bohnman.squiggly.core.convert.ConverterRecordRepository;
+import com.github.bohnman.squiggly.core.convert.SquigglyConverterRegistry;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.base.AbstractInstant;
@@ -19,7 +19,7 @@ import java.util.TimeZone;
 
 public class JodaConverters {
 
-    public static void add(ConverterRecordRepository repo) {
+    public static void add(SquigglyConverterRegistry repo) {
 
         repo.add(String.class, DateTimeZone.class, DateTimeZone::forID);
         repo.add(DateTimeZone.class, TimeZone.class, DateTimeZone::toTimeZone);

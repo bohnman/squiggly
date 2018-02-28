@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.function.Function;
 
 @NotThreadSafe
-public class ListRecordRepository implements ConverterRecordRepository {
+public class ListConverterRegistry implements SquigglyConverterRegistry {
 
     private final List<ConverterRecord> records = new ArrayList<>();
 
