@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.std.MapProperty;
 import com.github.bohnman.core.json.jackson.CoreObjectMappers;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
@@ -14,8 +15,6 @@ import com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -98,13 +97,20 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         SquigglyNode match = nodeMatcher.match(writer, jgen);
 
         if (match != null && match != NEVER_MATCH) {
-            if ((match.getKeyFunctions().isEmpty() && match.getValueFunctions().isEmpty()) || !(writer instanceof BeanPropertyWriter)) {
+            if (match.getKeyFunctions().isEmpty() && match.getValueFunctions().isEmpty()) {
                 squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
-            } else {
+            } else if (writer instanceof BeanPropertyWriter) {
                 BeanPropertyWriter beanPropertyWriter = (BeanPropertyWriter) writer;
                 String name = "" + functionInvoker.invoke(writer.getName(), match.getKeyFunctions());
                 Object value = functionInvoker.invoke(beanPropertyWriter.get(pojo), match.getValueFunctions());
                 squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
+            } else if (writer instanceof MapProperty){
+                MapProperty mapProperty = (MapProperty) writer;
+                String name = "" + functionInvoker.invoke(writer.getName(), match.getKeyFunctions());
+                Object value = functionInvoker.invoke(pojo, match.getValueFunctions());
+                squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
+            } else {
+                squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
             }
         } else if (!jgen.canOmitFields()) {
             squiggly.getSerializer().serializeAsExcludedField(pojo, jgen, provider, writer);

@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.core;
 
 import com.github.bohnman.core.collect.CoreStreams;
+import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
@@ -250,6 +251,18 @@ public abstract class BaseSquiggly {
         /**
          * Adds a converter.
          *
+         * @param record converter record
+         * @return builder
+         */
+        public B converter(ConverterRecord record) {
+            CoreAssert.notNull(record);
+            converterRecords.add(record);
+            return getThis();
+        }
+
+        /**
+         * Adds a converter.
+         *
          * @param source    source class
          * @param target    target class
          * @param converter converter
@@ -334,6 +347,30 @@ public abstract class BaseSquiggly {
         }
 
         /**
+         * Registers all public static methods of the supplied classes
+         *
+         * @param functionClass function class
+         * @return builder
+         */
+        @SuppressWarnings("UnnecessaryLocalVariable")
+        public B function(Class<?>... functionClass) {
+            return functions(functionClass);
+        }
+
+        /**
+         * Registers all public static methods of the supplied classes
+         *
+         * @param classes classes
+         * @return builder
+         */
+        @SuppressWarnings("UnnecessaryLocalVariable")
+        public B functions(Class<?>... classes) {
+            Object[] owners = classes;
+            return functions(SquigglyFunctions.create(owners));
+        }
+
+
+        /**
          * Indicate whether or not to register default functions.
          *
          * @param registerDefaultConverters flag
@@ -365,16 +402,6 @@ public abstract class BaseSquiggly {
         public B savedFilter(String name, String filter) {
             savedFilters.put(name, filter);
             return getThis();
-        }
-
-        /**
-         * Set a static filter.
-         *
-         * @param filter the filter
-         * @return builder
-         */
-        public B staticFilter(String filter) {
-            return context(new SimpleSquigglyContextProvider(filter));
         }
 
         /**
@@ -473,7 +500,7 @@ public abstract class BaseSquiggly {
         }
 
         private SquigglyConversionService buildConversionService(SquigglyConfig config) {
-            SquigglyConverterRegistry recordRepository = converterRegistry == null ?  new ListConverterRegistry() : converterRegistry;
+            SquigglyConverterRegistry recordRepository = converterRegistry == null ? new ListConverterRegistry() : converterRegistry;
 
             recordRepository.addAll(converterRecords);
 
@@ -535,14 +562,14 @@ public abstract class BaseSquiggly {
 
         @SuppressWarnings("unchecked")
         private List<SquigglyFunction<?>> getDefaultFunctions() {
-            List<SquigglyFunction<Object>> coreFunctions = SquigglyFunctions.create(SquigglyFunction.RegistrationStrategy.MANUAL, SystemFunctions.class);
+            List<SquigglyFunction<?>> coreFunctions = SquigglyFunctions.create(SystemFunctions.class);
 
 
             if (!registerDefaultFunctions) {
-                return (List) coreFunctions;
+                return coreFunctions;
             }
 
-            List<SquigglyFunction<Object>> defaultFunctions = SquigglyFunctions.create(SquigglyFunction.RegistrationStrategy.MANUAL, DefaultFunctions.class);
+            List<SquigglyFunction<?>> defaultFunctions = SquigglyFunctions.create(DefaultFunctions.class);
 
             List combined = new ArrayList(coreFunctions.size() + defaultFunctions.size());
             combined.addAll(coreFunctions);

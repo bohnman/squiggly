@@ -12,6 +12,11 @@
     <packaging>pom</packaging>
     <version>2.0.0-SNAPSHOT</version>
 
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
     <licenses>
         <license>
             <name>BSD License</name>
@@ -45,9 +50,10 @@
         <!--<module>examples/spring-boot</module>-->
         <!--<module>examples/spring-boot-non-web</module>-->
         <!--<module>examples/spring-boot-webflux-annotation-example</module>-->
-        <module>examples/spring-boot-webflux-functional-example</module>
+        <!--<module>examples/spring-boot-webflux-functional-example</module>-->
         <module>squiggly-core</module>
         <module>squiggly-jackson</module>
+        <module>squiggly-kotlin-jackson</module>
         <module>squiggly-parent</module>
         <module>squiggly-spring-boot-starter</module>
     </modules>

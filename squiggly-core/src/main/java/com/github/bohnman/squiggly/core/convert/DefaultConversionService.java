@@ -125,7 +125,7 @@ public class DefaultConversionService implements SquigglyConversionService {
                     return converter;
                 }
 
-                if (sourceCandidate == targetCandidate && softMatch == null) {
+                if (sourceCandidate == targetCandidate && sourceCandidate != Object.class && softMatch == null) {
                     softMatch = IDENTITY;
                 }
             }

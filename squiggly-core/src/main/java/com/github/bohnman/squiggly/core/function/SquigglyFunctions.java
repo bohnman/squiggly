@@ -53,45 +53,45 @@ public class SquigglyFunctions {
         };
     }
 
-    public static SquigglyFunction<Object> create(Method method) {
+    public static SquigglyFunction<?> create(Method method) {
         return create(method, null, (Iterable<String>) null);
     }
 
 
-    public static SquigglyFunction<Object> create(Method method, String name) {
+    public static SquigglyFunction<?> create(Method method, String name) {
         return create(method, name, (Iterable<String>) null);
     }
 
-    public static SquigglyFunction<Object> create(Method method, String name, String... aliases) {
+    public static SquigglyFunction<?> create(Method method, String name, String... aliases) {
         return create(method, name, Arrays.asList(aliases));
     }
 
-    public static SquigglyFunction<Object> create(Method method, @Nullable String name, @Nullable Iterable<String> aliases) {
+    public static SquigglyFunction<?> create(Method method, @Nullable String name, @Nullable Iterable<String> aliases) {
         return create(method, method.getDeclaringClass(), name, aliases);
     }
 
-    public static SquigglyFunction<Object> create(Method method, Object owner) {
+    public static SquigglyFunction<?> create(Method method, Object owner) {
         return create(method, owner, null);
     }
 
-    public static SquigglyFunction<Object> create(Method method, Object owner, @Nullable String name) {
+    public static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name) {
         return create(method, owner, name, (Iterable<String>) null);
     }
 
-    public static SquigglyFunction<Object> create(Method method, Object owner, String name, String... aliases) {
+    public static SquigglyFunction<?> create(Method method, Object owner, String name, String... aliases) {
         return create(method, owner, name, Arrays.asList(aliases));
     }
 
-    public static SquigglyFunction<Object> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases) {
+    public static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases) {
         Class<?> ownerClass = (owner instanceof Class) ? (Class) owner : owner.getClass();
         return create(method, owner, name, aliases, ownerClass.getAnnotation(SquigglyClass.class));
     }
 
-    private static SquigglyFunction<Object> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyClass classAnnotation) {
+    private static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyClass classAnnotation) {
         return create(method, owner, name, aliases, classAnnotation, method.getAnnotation(SquigglyMethod.class));
     }
 
-    private static SquigglyFunction<Object> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyClass classAnnotation, @Nullable SquigglyMethod functionAnnotation) {
+    private static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyClass classAnnotation, @Nullable SquigglyMethod functionAnnotation) {
         if (functionAnnotation != null && functionAnnotation.ignore()) {
             throw new IllegalArgumentException(format("Method [%s] is marked as ignored.", method));
         }
@@ -118,7 +118,7 @@ public class SquigglyFunctions {
 
         if (aliases != null) {
             functionAliases = aliases;
-        } else if (functionAliases != null && functionAnnotation.aliases() != null & functionAnnotation.aliases().length > 0) {
+        } else if (functionAnnotation != null && functionAnnotation.aliases() != null & functionAnnotation.aliases().length > 0) {
             functionAliases = Stream.of(functionAnnotation.aliases())
                     .map(alias -> prefix + alias)
                     .collect(toList());
@@ -128,23 +128,20 @@ public class SquigglyFunctions {
     }
 
 
-    public static List<SquigglyFunction<Object>> create(Object owner) {
-        return create(SquigglyFunction.RegistrationStrategy.AUTO, owner);
+    public static List<SquigglyFunction<?>> create(Object... owners) {
+        return createInternal(owners).collect(toList());
     }
 
-    public static List<SquigglyFunction<Object>> create(SquigglyFunction.RegistrationStrategy registrationStrategy, Object... owners) {
-        return createInternal(registrationStrategy, owners).collect(toList());
-    }
-
-    private static Stream<SquigglyFunction<Object>> createInternal(SquigglyFunction.RegistrationStrategy registrationStrategy, Object... owners) {
+    private static Stream<SquigglyFunction<?>> createInternal(Object... owners) {
         Map<Class<?>, Class<?>> processed = new IdentityHashMap<>();
 
         return Arrays.stream(owners)
-                .flatMap(owner -> createSingleInternal(registrationStrategy, owner, processed));
+                .flatMap(owner -> createSingleInternal(owner, processed));
 
     }
 
-    private static Stream<SquigglyFunction<Object>> createSingleInternal(SquigglyFunction.RegistrationStrategy registrationStrategy, Object owner, Map<Class<?>, Class<?>> processed) {
+    @SuppressWarnings("unchecked")
+    private static Stream<SquigglyFunction<?>> createSingleInternal(Object owner, Map<Class<?>, Class<?>> processed) {
         boolean ownerStatic = owner instanceof Class;
         Class<?> ownerClass = (owner instanceof Class) ? (Class) owner : owner.getClass();
 
@@ -153,8 +150,9 @@ public class SquigglyFunctions {
         }
 
         SquigglyClass classAnnotation = ownerClass.getAnnotation(SquigglyClass.class);
+        SquigglyFunction.RegistrationStrategy registrationStrategy = (classAnnotation == null) ? SquigglyFunction.RegistrationStrategy.AUTO : classAnnotation.strategy();
 
-        Stream<SquigglyFunction<Object>> stream = Arrays.stream(ownerClass.getDeclaredMethods())
+        Stream<? extends SquigglyFunction<?>> stream = Arrays.stream(ownerClass.getDeclaredMethods())
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .filter(method -> ownerStatic && Modifier.isStatic(method.getModifiers()))
                 .map(method -> {
@@ -175,13 +173,11 @@ public class SquigglyFunctions {
 
         if (classAnnotation != null) {
             for (Class<?> includeClass : classAnnotation.include()) {
-                stream = Stream.concat(stream, createSingleInternal(registrationStrategy, includeClass, processed));
+                stream = Stream.concat(stream, createSingleInternal(includeClass, processed));
             }
         }
 
-        return stream;
-
-
+        return (Stream) stream;
     }
 }
 

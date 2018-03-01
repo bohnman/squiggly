@@ -126,7 +126,7 @@ public class Squiggly extends BaseSquiggly {
      * @return builder
      */
     public static Builder builder(String filter) {
-        return builder().staticFilter(filter);
+        return builder().context(new SimpleSquigglyContextProvider(filter));
     }
 
     /**
@@ -231,5 +231,4 @@ public class Squiggly extends BaseSquiggly {
         }
 
     }
-
 }
