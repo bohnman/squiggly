@@ -16,10 +16,10 @@ expressionList
 
 expression
     : negatedExpression
-    | fieldList fieldFunctionChain? (nestedExpression|emptyNestedExpression)
-    | dottedField fieldFunctionChain? (nestedExpression|emptyNestedExpression)?
-    | field fieldFunctionChain?
-    | wildcardDeepField fieldFunctionChain?
+    | fieldList keyValueFieldArgChain? (nestedExpression|emptyNestedExpression)
+    | dottedField keyValueFieldArgChain? (nestedExpression|emptyNestedExpression)?
+    | field keyValueFieldArgChain?
+    | wildcardDeepField keyValueFieldArgChain?
     ;
 
 negatedExpression
@@ -36,7 +36,6 @@ emptyNestedExpression
     : SquigglyLeft SquigglyRight
     | BracketLeft BracketRight
     ;
-
 
 // Fields
 
@@ -71,6 +70,32 @@ wildcardDeepField
     : WildcardDeep
     ;
 
+keyValueFieldArgChain
+    : Colon (fieldArgChain | assignment) Colon (fieldArgChain| assignment)
+    | Colon fieldArgChain
+    | Colon assignment
+    | assignment
+    | continuingFieldArgChain
+    ;
+
+fieldArgChain
+    : (standaloneFieldArg | function) continuingFieldArgChain?
+    ;
+
+continuingFieldArgChain
+    :  continuingFieldArgChainLink+
+    ;
+
+continuingFieldArgChainLink
+    : accessOperator function
+    | standaloneFieldArg
+    ;
+
+standaloneFieldArg
+    : intRange
+    ;
+
+
 // Assignment
 assignment
     : Equals arg
@@ -78,17 +103,8 @@ assignment
 
 // Functions
 
-fieldFunctionChain
-    : Colon (functionChain | assignment) Colon (functionChain | assignment)
-    | Colon functionChain
-    | Colon assignment
-    | assignment
-    | accessOperator functionChain
-    ;
 
-functionChain
-    : function (argChainLink)*
-    ;
+
 
 functionAccessor
     : accessOperator function

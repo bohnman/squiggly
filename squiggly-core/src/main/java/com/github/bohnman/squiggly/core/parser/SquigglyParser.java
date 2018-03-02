@@ -45,9 +45,10 @@ import static java.util.stream.Collectors.toList;
 @ThreadSafe
 public class SquigglyParser {
 
+    public static final String FUNCTION_ASSIGN = "assign";
     public static final String FUNCTION_IDENTITY = "identity";
     public static final String FUNCTION_PROPERTY = "property";
-    public static final String FUNCTION_ASSIGN = "assign";
+    public static final String FUNCTION_SLICE = "slice";
 
     public static final String OP_AT_BRACKET_LEFT_SAFE = "@?[";
     public static final String OP_BRACKET_LEFT_SAFE = "?[";
@@ -156,9 +157,9 @@ public class SquigglyParser {
             List<FunctionNode> keyFunctions = Collections.emptyList();
             List<FunctionNode> valueFunctions = Collections.emptyList();
 
-            if (ctx.fieldFunctionChain() != null) {
-                keyFunctions = parseKeyFunctionChain(ctx.fieldFunctionChain());
-                valueFunctions = parseValueFunctionChain(ctx.fieldFunctionChain());
+            if (ctx.keyValueFieldArgChain() != null) {
+                keyFunctions = parseKeyFunctionChain(ctx.keyValueFieldArgChain());
+                valueFunctions = parseValueFunctionChain(ctx.keyValueFieldArgChain());
             }
 
             for (int i = 0; i < names.size(); i++) {
@@ -177,13 +178,13 @@ public class SquigglyParser {
             }
         }
 
-        private List<FunctionNode> parseKeyFunctionChain(SquigglyExpressionParser.FieldFunctionChainContext context) {
+        private List<FunctionNode> parseKeyFunctionChain(SquigglyExpressionParser.KeyValueFieldArgChainContext context) {
             if (context.Colon().isEmpty()) {
                 return Collections.emptyList();
             }
 
-            if (!context.functionChain().isEmpty()) {
-                return parseFunctionChain(context.functionChain().get(0), null, true);
+            if (!context.fieldArgChain().isEmpty()) {
+                return parseFieldArgChain(context.fieldArgChain().get(0));
             }
 
             if (!context.assignment().isEmpty()) {
@@ -193,15 +194,13 @@ public class SquigglyParser {
             return Collections.emptyList();
         }
 
-        private List<FunctionNode> parseValueFunctionChain(SquigglyExpressionParser.FieldFunctionChainContext context) {
-            SquigglyExpressionParser.AccessOperatorContext operatorContext = context.accessOperator();
-
-            if (context.Colon().isEmpty() && context.functionChain().size() == 1) {
-                return parseFunctionChain(context.functionChain(0), operatorContext, true);
+        private List<FunctionNode> parseValueFunctionChain(SquigglyExpressionParser.KeyValueFieldArgChainContext context) {
+            if (context.Colon().isEmpty() && context.fieldArgChain().size() == 1) {
+                return parseFieldArgChain(context.fieldArgChain(0));
             }
 
-            if (context.functionChain().size() == 2) {
-                return parseFunctionChain(context.functionChain(1), operatorContext, true);
+            if (context.fieldArgChain().size() == 2) {
+                return parseFieldArgChain(context.fieldArgChain(1));
             }
 
             if (context.Colon().isEmpty() && context.assignment().size() == 1) {
@@ -210,6 +209,10 @@ public class SquigglyParser {
 
             if (context.assignment().size() == 2) {
                 return parseAssignment(context.assignment(1));
+            }
+
+            if (context.continuingFieldArgChain() != null) {
+                return parseContinuingFieldArgChain(context.continuingFieldArgChain());
             }
 
             return Collections.emptyList();
@@ -225,20 +228,69 @@ public class SquigglyParser {
 
         }
 
-        private List<FunctionNode> parseFunctionChain(SquigglyExpressionParser.FunctionChainContext chainContext) {
-            return parseFunctionChain(chainContext, null, false);
+        private List<FunctionNode> parseFieldArgChain(SquigglyExpressionParser.FieldArgChainContext context) {
+            int size = 1;
+
+            if (context.continuingFieldArgChain() != null) {
+                size += context.continuingFieldArgChain().continuingFieldArgChainLink().size();
+            }
+
+            List<FunctionNode> functionNodes = new ArrayList<>(size);
+
+            if (context.standaloneFieldArg() != null) {
+                functionNodes.add(buildStandaloneFieldArg(context.standaloneFieldArg(), null));
+            }
+
+            if (context.function() != null) {
+                functionNodes.add(buildFunction(context.function(), null, true).build());
+            }
+
+            if (context.continuingFieldArgChain() != null) {
+                parseContinuingFieldArgChain(context.continuingFieldArgChain(), functionNodes);
+            }
+
+            return functionNodes;
         }
 
-        @SuppressWarnings("CodeBlock2Expr")
-        private List<FunctionNode> parseFunctionChain(SquigglyExpressionParser.FunctionChainContext chainContext, @Nullable SquigglyExpressionParser.AccessOperatorContext operatorContext, boolean input) {
-            List<FunctionNode> functions = new ArrayList<>(chainContext.argChainLink().size() + 1);
-            functions.add(buildFunction(chainContext.function(), operatorContext, input).build());
+        private List<FunctionNode> parseContinuingFieldArgChain(SquigglyExpressionParser.ContinuingFieldArgChainContext context) {
+            List<FunctionNode> functionNodes = new ArrayList<>(context.continuingFieldArgChainLink().size());
+            parseContinuingFieldArgChain(context, functionNodes);
+            return functionNodes;
+        }
 
-            chainContext.argChainLink().forEach(ctx -> {
-                functions.add(parseFunction(ctx, true));
-            });
+        private void parseContinuingFieldArgChain(SquigglyExpressionParser.ContinuingFieldArgChainContext context, List<FunctionNode> functionNodes) {
+            for (SquigglyExpressionParser.ContinuingFieldArgChainLinkContext linkContext : context.continuingFieldArgChainLink()) {
+                functionNodes.add(parseContinuingFieldArgChainLink(linkContext));
 
-            return functions;
+            }
+        }
+
+        private FunctionNode parseContinuingFieldArgChainLink(SquigglyExpressionParser.ContinuingFieldArgChainLinkContext context) {
+            SquigglyExpressionParser.AccessOperatorContext opContext = context.accessOperator();
+
+            if (context.function() != null) {
+                return buildFunction(context.function(), opContext, true).build();
+            }
+
+            if (context.standaloneFieldArg() != null) {
+                return buildStandaloneFieldArg(context.standaloneFieldArg(), opContext);
+            }
+
+            throw new IllegalStateException(format("%s: unknown field arg chain link [%s]", parseContext(context), context.getText()));
+        }
+
+        private FunctionNode buildStandaloneFieldArg(SquigglyExpressionParser.StandaloneFieldArgContext context, SquigglyExpressionParser.AccessOperatorContext opContext) {
+            if (context.intRange() != null) {
+                ArgumentNode.Builder arg = buildIntRange(context.intRange());
+                return FunctionNode.builder()
+                        .context(parseContext(context))
+                        .name(FUNCTION_SLICE)
+                        .parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
+                        .parameter(arg)
+                        .build();
+            }
+
+            throw new IllegalStateException(format("%s: unknown standalone field arg [%s]", parseContext(context), context.getText()));
         }
 
         private FunctionNode.Builder buildFunction(SquigglyExpressionParser.ArgChainLinkContext context, boolean input) {
