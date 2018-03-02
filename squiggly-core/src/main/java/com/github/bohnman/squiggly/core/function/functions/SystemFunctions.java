@@ -10,12 +10,12 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("unchecked")
 public class SystemFunctions {
 
     private SystemFunctions() {
     }
 
-    @SquigglyMethod
     public static Number add(Object o1, Object o2) {
         Number n1 = CoreConversions.toNumber(o1);
         Number n2 = CoreConversions.toNumber(o2);
@@ -28,10 +28,9 @@ public class SystemFunctions {
             return n1;
         }
 
-        return n1.doubleValue() + n2.doubleValue();
+        return NumberFunctions.cast(n1.doubleValue() + n2.doubleValue());
     }
 
-    @SquigglyMethod
     public static boolean and(Object o1, Object o2) {
         return CoreConversions.toBoolean(o1) && CoreConversions.toBoolean(o2);
     }
@@ -49,10 +48,9 @@ public class SystemFunctions {
             return 0;
         }
 
-        return n1.doubleValue() / n2.doubleValue();
+        return NumberFunctions.cast(n1.doubleValue() / n2.doubleValue());
     }
 
-    @SquigglyMethod
     public static boolean equals(Object o1, Object o2) {
         return Objects.equals(o1, o2);
     }
@@ -69,7 +67,6 @@ public class SystemFunctions {
         return compare != null && compare >= 0;
     }
 
-    @SquigglyMethod
     public static Object identity(Object object) {
         return object;
     }
@@ -86,8 +83,6 @@ public class SystemFunctions {
         return compare != null && compare <= 0;
     }
 
-    @SquigglyMethod
-    @SuppressWarnings("unchecked")
     public static boolean match(Object o, Pattern pattern) {
 
         if (o == null) {
@@ -123,7 +118,7 @@ public class SystemFunctions {
             return 0;
         }
 
-        return n1.doubleValue() % n2.doubleValue();
+        return NumberFunctions.cast(n1.doubleValue() % n2.doubleValue());
     }
 
     @SquigglyMethod(aliases = "mul")
@@ -139,10 +134,9 @@ public class SystemFunctions {
             return 0;
         }
 
-        return n1.doubleValue() * n2.doubleValue();
+        return NumberFunctions.cast(n1.doubleValue() * n2.doubleValue());
     }
 
-    @SquigglyMethod
     public static boolean not(Object o) {
         return !CoreConversions.toBoolean(o);
     }
@@ -157,7 +151,6 @@ public class SystemFunctions {
         return !match(o, pattern);
     }
 
-    @SquigglyMethod
     public static boolean or(Object o1, Object o2) {
         return CoreConversions.toBoolean(o1) || CoreConversions.toBoolean(o2);
     }
@@ -175,6 +168,6 @@ public class SystemFunctions {
             return n1;
         }
 
-        return n1.doubleValue() - n2.doubleValue();
+        return NumberFunctions.cast(n1.doubleValue() - n2.doubleValue());
     }
 }

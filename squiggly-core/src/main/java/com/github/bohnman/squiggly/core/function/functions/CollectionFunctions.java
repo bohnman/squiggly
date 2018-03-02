@@ -17,6 +17,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+@SuppressWarnings("unchecked")
 public class CollectionFunctions {
     private CollectionFunctions() {
     }
@@ -71,7 +72,6 @@ public class CollectionFunctions {
                 .collect(Collectors.toList());
     }
 
-    @SquigglyMethod
     public static Object first(Object value) {
         if (value == null) {
             return null;
@@ -96,7 +96,6 @@ public class CollectionFunctions {
         return value;
     }
 
-    @SquigglyMethod
     public static Object last(Object value) {
         if (value == null) {
             return null;
@@ -121,7 +120,6 @@ public class CollectionFunctions {
         return value;
     }
 
-    @SquigglyMethod
     public static Object map(Object value, CoreLambda coreLambda) {
         if (value == null || coreLambda == null) {
             return Collections.emptyList();
@@ -146,8 +144,6 @@ public class CollectionFunctions {
                 .collect(Collectors.toList());
     }
 
-    @SuppressWarnings("unchecked")
-    @SquigglyMethod
     public static Object map(Object value, Function function) {
         if (value == null || function == null) {
             return Collections.emptyList();
@@ -169,8 +165,6 @@ public class CollectionFunctions {
                 .collect(Collectors.toList());
     }
 
-    @SuppressWarnings("unchecked")
-    @SquigglyMethod
     public static Object[] toArray(Object value) {
         if (value == null) {
             return new Object[]{};
@@ -195,8 +189,6 @@ public class CollectionFunctions {
         return new Object[]{value};
     }
 
-    @SuppressWarnings("unchecked")
-    @SquigglyMethod
     public static List<Object> toList(Object value) {
         if (value == null) {
             return Collections.emptyList();
@@ -217,7 +209,6 @@ public class CollectionFunctions {
         return Collections.singletonList(value);
     }
 
-    @SquigglyMethod
     public static Map<?, ?> toMap(Object value) {
         if (value == null) {
             return Collections.emptyMap();

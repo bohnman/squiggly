@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.IdentityHashMap;
-import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,25 +27,12 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
+@SuppressWarnings("unchecked")
 public class MixedFunctions {
 
     public MixedFunctions() {
     }
 
-    @SquigglyMethod
-    public static String format(String value, Object... args) {
-        if (value == null) {
-            return null;
-        }
-
-        try {
-            return String.format(value, args);
-        } catch (IllegalFormatException e) {
-            return value;
-        }
-    }
-
-    @SquigglyMethod
     public static Object keys(Object value) {
         if (value == null) {
             return Collections.emptyList();
@@ -78,7 +64,6 @@ public class MixedFunctions {
                 .collect(toList());
     }
 
-    @SquigglyMethod
     public static Object limit(Object value, int limit) {
         if (limit < 0) {
             return slice(value, limit);
@@ -88,8 +73,6 @@ public class MixedFunctions {
     }
 
 
-    @SuppressWarnings("unchecked")
-    @SquigglyMethod
     public static Object pick(Object value, Object... keys) {
         if (value == null) {
             return null;
@@ -145,8 +128,6 @@ public class MixedFunctions {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    @SuppressWarnings("unchecked")
-    @SquigglyMethod
     public static Object pickExcept(Object value, Object... keys) {
         if (value == null) {
             return null;
@@ -214,7 +195,6 @@ public class MixedFunctions {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    @SquigglyMethod
     public static Object reverse(Object value) {
         if (value == null) {
             return null;
@@ -237,7 +217,6 @@ public class MixedFunctions {
         return value;
     }
 
-    @SquigglyMethod
     public static Object slice(Object value, CoreIntRange range) {
         if (range == null) {
             return value;
@@ -258,7 +237,6 @@ public class MixedFunctions {
         return slice(value, start, range.getEnd());
     }
 
-    @SquigglyMethod
     public static Object slice(Object value, int start) {
         if (value == null) {
             return Collections.emptyList();
@@ -287,7 +265,6 @@ public class MixedFunctions {
         return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
     }
 
-    @SquigglyMethod
     public static Object slice(Object value, int start, int end) {
         if (value == null) {
             return Collections.emptyList();
@@ -316,7 +293,6 @@ public class MixedFunctions {
         return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
     }
 
-    @SuppressWarnings("unchecked")
     @SquigglyMethod(aliases = "orderBy")
     public static Object sort(Object value, CoreProperty... properties) {
         if (value == null) {
@@ -357,7 +333,6 @@ public class MixedFunctions {
         return value;
     }
 
-    @SquigglyMethod
     public static Object values(Object value) {
         if (value == null) {
             return Collections.emptyList();

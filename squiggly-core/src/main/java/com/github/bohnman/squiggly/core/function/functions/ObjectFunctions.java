@@ -6,12 +6,10 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 
 public class ObjectFunctions {
 
-    @SquigglyMethod
     public static Object defaultEmpty(Object o1, Object o2) {
         return isEmpty(o1) ? o2 : o1;
     }
 
-    @SquigglyMethod
     public static Object defaultEmpty(Object o1, Object o2, Object... oN) {
         Object value = isEmpty(o1) ? o2 : o1;
 

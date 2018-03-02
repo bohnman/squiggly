@@ -9,6 +9,7 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -20,6 +21,18 @@ public class StringFunctions {
     @SquigglyMethod(aliases = "capitalise")
     public static String capitalize(String value) {
         return CoreStrings.capitalize(value);
+    }
+
+    public static String format(String value, Object... args) {
+        if (value == null) {
+            return null;
+        }
+
+        try {
+            return String.format(value, args);
+        } catch (IllegalFormatException e) {
+            return value;
+        }
     }
 
     @SquigglyMethod
@@ -66,12 +79,10 @@ public class StringFunctions {
         return CoreConversions.toString(value);
     }
 
-    @SquigglyMethod
     public static String lower(String value) {
         return CoreStrings.lower(value);
     }
 
-    @SquigglyMethod
     public static String replace(String value, Object search, String replace) {
         if (value == null) {
             return null;
@@ -92,7 +103,6 @@ public class StringFunctions {
         return value;
     }
 
-    @SquigglyMethod
     public static String replaceFirst(String value, Object search, String replace) {
         if (value == null) {
             return null;
@@ -113,7 +123,6 @@ public class StringFunctions {
         return value;
     }
 
-    @SquigglyMethod
     public static List<String> split(String value, Object separator) {
         if (value == null) {
             return Collections.emptyList();
@@ -134,17 +143,11 @@ public class StringFunctions {
         return Collections.singletonList(value);
     }
 
-    @SquigglyMethod
-    public static String toString(Object value) {
-        return CoreConversions.toString(value);
-    }
-
-    @SquigglyMethod
     public static String trim(String value) {
         return CoreStrings.trim(value);
     }
 
-    @SquigglyMethod
+    @SquigglyMethod(aliases = { "uppercase" })
     public static String upper(String value) {
         return CoreStrings.upper(value);
     }

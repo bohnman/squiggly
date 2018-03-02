@@ -118,7 +118,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     public static void main(String[] args) {
-        ObjectMapper mapper = Squiggly.builder("firstName,nullProperty.replace((1 / 2).add(1).toInt())")
+        ObjectMapper mapper = Squiggly.builder("nickNames.replace(4 + 4.2)")
                 .variable("foo", "name")
                 .build()
                 .apply(new ObjectMapper());
@@ -140,6 +140,10 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         @Override
         public String toString() {
             return name;
+        }
+
+        public String getChuck() {
+            return "chuck";
         }
 
         @Override
