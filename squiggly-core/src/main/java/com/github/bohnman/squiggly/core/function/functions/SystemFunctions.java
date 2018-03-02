@@ -35,6 +35,11 @@ public class SystemFunctions {
         return CoreConversions.toBoolean(o1) && CoreConversions.toBoolean(o2);
     }
 
+    @SquigglyMethod
+    public static Object assign(Object object, Object newValue) {
+        return newValue;
+    }
+
     @SquigglyMethod(aliases = "div")
     public static Number divide(Object o1, Object o2) {
         Number n1 = CoreConversions.toNumber(o1);

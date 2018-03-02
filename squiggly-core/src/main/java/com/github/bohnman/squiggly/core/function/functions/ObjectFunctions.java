@@ -66,8 +66,4 @@ public class ObjectFunctions {
         return false;
     }
 
-    @SquigglyMethod
-    public static Object replace(Object object, Object replace) {
-        return replace;
-    }
 }

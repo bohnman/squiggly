@@ -71,20 +71,19 @@ wildcardDeepField
     : WildcardDeep
     ;
 
+// Assignment
+assignment
+    : Equals arg
+    ;
+
 // Functions
 
 fieldFunctionChain
-    : keyFunctionChain Colon valueFunctionChain
-    | keyFunctionChain
-    | accessOperator valueFunctionChain
-    ;
-
-keyFunctionChain
-    : Colon functionChain
-    ;
-
-valueFunctionChain
-    : functionChain
+    : Colon (functionChain | assignment) Colon (functionChain | assignment)
+    | Colon functionChain
+    | Colon assignment
+    | assignment
+    | accessOperator functionChain
     ;
 
 functionChain
@@ -154,7 +153,7 @@ arg
     | arg (WildcardShallow | MultiplyName | SlashForward | DivideName | Modulus | ModulusName) arg
     | arg (Add | AddName | Subtract | SubtractName) arg
     | arg (AngleLeft | LessThanName | LessThanEquals | LessThanEqualsName | AngleRight | GreaterThanName | GreaterThanEquals | GreaterThanEqualsName) arg
-    | arg (Equals | EqualsEquals | EqualsName | EqualsNot | EqualsNotSql | EqualsNotName | Match | MatchName | MatchNot | MatchNotName) arg
+    | arg (EqualsEquals | EqualsName | EqualsNot | EqualsNotSql | EqualsNotName | Match | MatchName | MatchNot | MatchNotName) arg
     | arg (And | AndName) arg
     | arg (Or | OrName) arg
     | argGroupStart arg argGroupEnd argChainLink*

@@ -47,6 +47,7 @@ public class SquigglyParser {
 
     public static final String FUNCTION_IDENTITY = "identity";
     public static final String FUNCTION_PROPERTY = "property";
+    public static final String FUNCTION_ASSIGN = "assign";
 
     public static final String OP_AT_BRACKET_LEFT_SAFE = "@?[";
     public static final String OP_BRACKET_LEFT_SAFE = "?[";
@@ -156,13 +157,8 @@ public class SquigglyParser {
             List<FunctionNode> valueFunctions = Collections.emptyList();
 
             if (ctx.fieldFunctionChain() != null) {
-                if (ctx.fieldFunctionChain().keyFunctionChain() != null) {
-                    keyFunctions = parseKeyFunctionChain(ctx.fieldFunctionChain().keyFunctionChain());
-                }
-
-                if (ctx.fieldFunctionChain().valueFunctionChain() != null) {
-                    valueFunctions = parseValueFunctionChain(ctx.fieldFunctionChain().valueFunctionChain(), ctx.fieldFunctionChain().accessOperator());
-                }
+                keyFunctions = parseKeyFunctionChain(ctx.fieldFunctionChain());
+                valueFunctions = parseValueFunctionChain(ctx.fieldFunctionChain());
             }
 
             for (int i = 0; i < names.size(); i++) {
@@ -181,12 +177,52 @@ public class SquigglyParser {
             }
         }
 
-        private List<FunctionNode> parseKeyFunctionChain(SquigglyExpressionParser.KeyFunctionChainContext functionChainContext) {
-            return parseFunctionChain(functionChainContext.functionChain(), null, true);
+        private List<FunctionNode> parseKeyFunctionChain(SquigglyExpressionParser.FieldFunctionChainContext context) {
+            if (context.Colon().isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            if (!context.functionChain().isEmpty()) {
+                return parseFunctionChain(context.functionChain().get(0), null, true);
+            }
+
+            if (!context.assignment().isEmpty()) {
+                return parseAssignment(context.assignment().get(0));
+            }
+
+            return Collections.emptyList();
         }
 
-        private List<FunctionNode> parseValueFunctionChain(SquigglyExpressionParser.ValueFunctionChainContext functionChainContext, SquigglyExpressionParser.AccessOperatorContext accessOperatorContext) {
-            return parseFunctionChain(functionChainContext.functionChain(), accessOperatorContext, true);
+        private List<FunctionNode> parseValueFunctionChain(SquigglyExpressionParser.FieldFunctionChainContext context) {
+            SquigglyExpressionParser.AccessOperatorContext operatorContext = context.accessOperator();
+
+            if (context.Colon().isEmpty() && context.functionChain().size() == 1) {
+                return parseFunctionChain(context.functionChain(0), operatorContext, true);
+            }
+
+            if (context.functionChain().size() == 2) {
+                return parseFunctionChain(context.functionChain(1), operatorContext, true);
+            }
+
+            if (context.Colon().isEmpty() && context.assignment().size() == 1) {
+                return parseAssignment(context.assignment(0));
+            }
+
+            if (context.assignment().size() == 2) {
+                return parseAssignment(context.assignment(1));
+            }
+
+            return Collections.emptyList();
+        }
+
+        private List<FunctionNode> parseAssignment(SquigglyExpressionParser.AssignmentContext context) {
+            return Collections.singletonList(FunctionNode.builder()
+                    .context(parseContext(context))
+                    .name(FUNCTION_ASSIGN)
+                    .parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
+                    .parameter(buildArg(context.arg()))
+                    .build());
+
         }
 
         private List<FunctionNode> parseFunctionChain(SquigglyExpressionParser.FunctionChainContext chainContext) {
@@ -454,7 +490,7 @@ public class SquigglyParser {
                 return "mod";
             }
 
-            if (matchOp(arg.Equals(), arg.EqualsEquals(), arg.EqualsName())) {
+            if (matchOp(arg.EqualsEquals(), arg.EqualsName())) {
                 return "equals";
             }
 
