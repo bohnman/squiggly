@@ -134,11 +134,11 @@ intRange
     ;
 
 inclusiveExclusiveIntRange
-    : BracketLeft intRangeArg Colon intRangeArg? ParenRight
+    : BracketLeft intRangeArg Colon intRangeArg? BracketRight
     ;
 
 inclusiveInclusiveIntRange
-    : BracketLeft intRangeArg Colon intRangeArg? BracketRight
+    : BracketLeft intRangeArg DotDot intRangeArg? BracketRight
     ;
 
 intRangeArg
@@ -297,6 +297,7 @@ Colon: ':';
 Comma: ',';
 Dollar: '$';
 Dot: '.';
+DotDot: '..';
 Equals: '=';
 EqualsEquals: '==';
 EqualsNot: '!=';
