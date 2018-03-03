@@ -8,6 +8,7 @@ import com.github.bohnman.squiggly.core.function.ValueHandler;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 
 import java.util.Objects;
+import java.util.function.Predicate;
 
 @SuppressWarnings("unchecked")
 public class ObjectFunctions {
@@ -79,6 +80,14 @@ public class ObjectFunctions {
 
     public static Object identity(Object object) {
         return object;
+    }
+
+    public static Object ifelse(Boolean value, Object trueValue, Object falseValue) {
+        return value ? trueValue : falseValue;
+    }
+
+    public static Object ifelse(Object value, Predicate predicate, Object trueValue, Object falseValue) {
+        return predicate.test(value) ? trueValue : falseValue;
     }
 
     @SquigglyMethod(aliases = "lt")
