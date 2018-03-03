@@ -1,5 +1,8 @@
 package com.github.bohnman.squiggly.core.function.functions;
 
+import com.github.bohnman.core.convert.CoreConversions;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
+
 import java.text.DecimalFormat;
 import java.text.ParseException;
 
@@ -16,9 +19,40 @@ public class NumberFunctions {
         return Math.abs(n.doubleValue());
     }
 
+    public static Number add(Object o1, Object o2) {
+        Number n1 = CoreConversions.toNumber(o1);
+        Number n2 = CoreConversions.toNumber(o2);
+
+        if (n1 == null) {
+            return null;
+        }
+
+        if (n2 == null) {
+            return n1;
+        }
+
+        return cast(n1.doubleValue() + n2.doubleValue());
+    }
+
     public static Number ceil(Number n) {
         if (n == null) return null;
         return cast(Math.ceil(n.doubleValue()));
+    }
+
+    @SquigglyMethod(aliases = "div")
+    public static Number divide(Object o1, Object o2) {
+        Number n1 = CoreConversions.toNumber(o1);
+        Number n2 = CoreConversions.toNumber(o2);
+
+        if (n1 == null) {
+            return null;
+        }
+
+        if (n2 == null) {
+            return 0;
+        }
+
+        return cast(n1.doubleValue() / n2.doubleValue());
     }
 
     public static Number floor(Number n) {
@@ -58,6 +92,37 @@ public class NumberFunctions {
         return cast(Math.min(n1.doubleValue(), n2.doubleValue()));
     }
 
+    @SquigglyMethod(aliases = "mod")
+    public static Number modulus(Object o1, Object o2) {
+        Number n1 = CoreConversions.toNumber(o1);
+        Number n2 = CoreConversions.toNumber(o2);
+
+        if (n1 == null) {
+            return null;
+        }
+
+        if (n2 == null) {
+            return 0;
+        }
+
+        return NumberFunctions.cast(n1.doubleValue() % n2.doubleValue());
+    }
+
+    @SquigglyMethod(aliases = "mul")
+    public static Number multiply(Object o1, Object o2) {
+        Number n1 = CoreConversions.toNumber(o1);
+        Number n2 = CoreConversions.toNumber(o2);
+
+        if (n1 == null) {
+            return null;
+        }
+
+        if (n2 == null) {
+            return 0;
+        }
+
+        return NumberFunctions.cast(n1.doubleValue() * n2.doubleValue());
+    }
 
     public static Number round(Number n) {
         if (n == null) return null;
@@ -67,6 +132,22 @@ public class NumberFunctions {
     public static Number sqrt(Number n) {
         if (n == null) return null;
         return (Math.sqrt(n.doubleValue()));
+    }
+
+    @SquigglyMethod(aliases = "sub")
+    public static Number subtract(Object o1, Object o2) {
+        Number n1 = CoreConversions.toNumber(o1);
+        Number n2 = CoreConversions.toNumber(o2);
+
+        if (n1 == null) {
+            return null;
+        }
+
+        if (n2 == null) {
+            return n1;
+        }
+
+        return NumberFunctions.cast(n1.doubleValue() - n2.doubleValue());
     }
 
     public static Double toFloat(Number number) {
@@ -137,7 +218,7 @@ public class NumberFunctions {
         return number;
     }
 
-    static Number cast(Number n) {
+    private static Number cast(Number n) {
         if (n == null) {
             return null;
         }

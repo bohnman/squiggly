@@ -10,15 +10,18 @@ parse
 
 // Expressions
 
+
 expressionList
     : expression (Comma expression)*
     ;
 
 expression
     : negatedExpression
-    | fieldList keyValueFieldArgChain? (nestedExpression|emptyNestedExpression)
-    | dottedField keyValueFieldArgChain? (nestedExpression|emptyNestedExpression)?
-    | field keyValueFieldArgChain?
+    | fieldGroup nestedExpression
+    | fieldGroup keyValueFieldArgChain
+    | fieldGroup keyValueFieldArgChain nestedExpression
+    | dottedField nestedExpression?
+    | dottedField keyValueFieldArgChain (nestedExpression | (Dot dottedField nestedExpression?))?
     | wildcardDeepField keyValueFieldArgChain?
     ;
 
@@ -28,31 +31,24 @@ negatedExpression
     ;
 
 nestedExpression
-    : SquigglyLeft expressionList SquigglyRight
-    | BracketLeft expressionList BracketRight
-    ;
-
-emptyNestedExpression
-    : SquigglyLeft SquigglyRight
-    | BracketLeft BracketRight
+    : SquigglyLeft expressionList? SquigglyRight
+    | BracketLeft expressionList? BracketRight
     ;
 
 // Fields
 
-fieldList
-    : ParenLeft field ((Pipe|Comma) field)* ParenRight
-    | field
+fieldGroup
+    : ParenLeft field (Comma field)* ParenRight
     ;
 
 dottedField
-    : field (Dot field)+
+    : field (Dot field)*
     ;
 
 field
     : Identifier
     | namedOperator
     | RegexLiteral
-    | (Add | Subtract)? IntegerLiteral
     | StringLiteral
     | variable
     | wildcard
@@ -93,6 +89,7 @@ continuingFieldArgChainLink
 
 standaloneFieldArg
     : intRange
+    | arrayAccessor
     ;
 
 
@@ -101,9 +98,12 @@ assignment
     : Equals arg
     ;
 
+
+arrayAccessor
+    : BracketLeft (Add | Subtract)? IntegerLiteral BracketRight
+    ;
+
 // Functions
-
-
 
 
 functionAccessor
@@ -295,6 +295,7 @@ BracketLeftSafe: '?[';
 BracketRight: ']';
 Colon: ':';
 Comma: ',';
+Dollar: '$';
 Dot: '.';
 Equals: '=';
 EqualsEquals: '==';
@@ -359,8 +360,8 @@ Identifier
 // Variables
 
 Variable
-    : At Identifier
-    | At StringLiteral
+    : Dollar Identifier
+    | Dollar StringLiteral
     ;
 
 // Whitespace and Comments
@@ -375,11 +376,11 @@ Whitespace
 //-----------------------------------------------------------------------------
 
 fragment IdentifierFirst
-    : [a-zA-Z$_]
+    : [a-zA-Z_]
     ;
 
 fragment IdentifierRest
-    : [a-zA-Z$_0-9]
+    : [a-zA-Z_0-9]
     ;
 
 // Numbers

@@ -17,7 +17,7 @@ import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterReposito
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
 import com.github.bohnman.squiggly.core.function.functions.DefaultFunctions;
-import com.github.bohnman.squiggly.core.function.functions.SystemFunctions;
+import com.github.bohnman.squiggly.core.config.SystemFunctionName;
 import com.github.bohnman.squiggly.core.function.repository.CompositeFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.MapFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
@@ -33,7 +33,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
@@ -562,20 +564,22 @@ public abstract class BaseSquiggly {
 
         @SuppressWarnings("unchecked")
         private List<SquigglyFunction<?>> getDefaultFunctions() {
-            List<SquigglyFunction<?>> coreFunctions = SquigglyFunctions.create(SystemFunctions.class);
+            List<SquigglyFunction<?>> defaultFunctions = SquigglyFunctions.create(DefaultFunctions.class);
 
 
             if (!registerDefaultFunctions) {
-                return coreFunctions;
+                Set<String> systemFunctionNames = Arrays.stream(SystemFunctionName.values())
+                        .map(SystemFunctionName::getFunctionName)
+                        .map(String::toLowerCase)
+                        .collect(Collectors.toSet());
+
+                defaultFunctions = defaultFunctions.stream()
+                        .filter(f -> systemFunctionNames.contains(f.getName().toLowerCase())
+                                || f.getAliases().stream().anyMatch(a -> systemFunctionNames.contains(a.toLowerCase())))
+                        .collect(Collectors.toList());
             }
 
-            List<SquigglyFunction<?>> defaultFunctions = SquigglyFunctions.create(DefaultFunctions.class);
-
-            List combined = new ArrayList(coreFunctions.size() + defaultFunctions.size());
-            combined.addAll(coreFunctions);
-            combined.addAll(defaultFunctions);
-
-            return combined;
+            return defaultFunctions;
         }
 
         @SuppressWarnings("unchecked")

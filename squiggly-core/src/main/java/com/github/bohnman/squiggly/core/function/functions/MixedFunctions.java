@@ -4,6 +4,7 @@ import com.github.bohnman.core.bean.CoreBeans;
 import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.collect.CoreStreams;
+import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.lang.CoreMethods;
 import com.github.bohnman.core.lang.CoreObjects;
@@ -11,6 +12,7 @@ import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.core.lang.array.CoreArrayWrapper;
 import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
+import com.github.bohnman.squiggly.core.function.ValueHandler;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
 
 import javax.annotation.Nullable;
@@ -21,6 +23,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -33,35 +36,89 @@ public class MixedFunctions {
     public MixedFunctions() {
     }
 
-    public static Object keys(Object value) {
-        if (value == null) {
-            return Collections.emptyList();
+    public static Object get(Object value, Object key) {
+        if (key == null) {
+            return null;
         }
 
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            int size = wrapper.size();
-            int[] indexes = new int[size];
-            for (int i = 0; i < size; i++) {
-                indexes[i] = i;
+        return new ValueHandler<Object>(key) {
+
+            @Override
+            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+                Integer actualIndex = normalizeIndex(wrapper.size(), key);
+                if (actualIndex == null) return null;
+                return wrapper.get(actualIndex);
             }
-            return indexes;
-        }
 
-        if (value instanceof Iterable) {
-            int size = CoreIterables.size((Iterable) value);
-            return IntStream.range(0, size)
-                    .boxed()
-                    .collect(toList());
-        }
 
-        if (value instanceof Map) {
-            return ((Map) value).keySet();
-        }
+            @Override
+            protected Object handleList(List<Object> list) {
+                Integer actualIndex = normalizeIndex(list.size(), key);
+                if (actualIndex == null) return null;
+                return list.get(actualIndex);
+            }
 
-        return CoreBeans.getReadablePropertyDescriptors(value.getClass())
-                .map(PropertyDescriptor::getName)
-                .collect(toList());
+            @Override
+            protected Object handleMap(Map<Object, Object> map) {
+                return map.get(key);
+            }
+
+            @Override
+            protected Object handleString(String string) {
+                Integer actualIndex = normalizeIndex(string.length(), key);
+                if (actualIndex == null) return null;
+                return Character.toString(string.charAt(actualIndex));
+            }
+
+            @Override
+            protected Object handleObject(Object value) {
+                return CoreBeans.getReadablePropertyDescriptors(value.getClass())
+                        .filter(pd -> pd.getName().equals(CoreConversions.toString(key)))
+                        .map(pd -> CoreMethods.invoke(pd.getReadMethod(), value))
+                        .findFirst()
+                        .orElse(null);
+            }
+        }.handle(value);
+
+    }
+
+    public static Object keys(Object value) {
+        return new ValueHandler<Object>() {
+            @Override
+            protected Object handleNull() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+                int size = wrapper.size();
+                int[] indexes = new int[size];
+                for (int i = 0; i < size; i++) {
+                    indexes[i] = i;
+                }
+                return indexes;
+            }
+
+            @Override
+            protected Object handleIterable(Iterable<Object> iterable) {
+                int size = CoreIterables.size(iterable);
+                return IntStream.range(0, size)
+                        .boxed()
+                        .collect(toList());
+            }
+
+            @Override
+            protected Object handleMap(Map<Object, Object> map) {
+                return ((Map) value).keySet();
+            }
+
+            @Override
+            protected Object handleObject(Object value) {
+                return CoreBeans.getReadablePropertyDescriptors(value.getClass())
+                        .map(PropertyDescriptor::getName)
+                        .collect(toList());
+            }
+        }.handle(value);
     }
 
     public static Object limit(Object value, int limit) {
@@ -72,149 +129,191 @@ public class MixedFunctions {
         }
     }
 
+    public static boolean match(Object value, Pattern pattern) {
+        return new ValueHandler<Boolean>(pattern) {
+            @Override
+            protected Boolean handleNull() {
+                return false;
+            }
+
+            @Override
+            protected Boolean handleArrayWrapper(CoreArrayWrapper wrapper) {
+                return wrapper.stream().anyMatch(e -> match(e, pattern));
+            }
+
+            @Override
+            protected Boolean handleIterable(Iterable<Object> iterable) {
+                return CoreStreams.of(iterable).anyMatch(e -> match(e, pattern));
+            }
+
+            @Override
+            protected Boolean handleString(String string) {
+                return pattern.matcher(string).find();
+            }
+
+            @Override
+            protected Boolean handleObject(Object value) {
+                return handleString(CoreConversions.toString(value));
+            }
+        }.handle(value);
+    }
+
+    @SquigglyMethod(aliases = "nmatch")
+    public static boolean notMatch(Object o, Pattern pattern) {
+        return !match(o, pattern);
+    }
+
 
     public static Object pick(Object value, Object... keys) {
-        if (value == null) {
-            return null;
-        }
-
         if (keys.length == 0) {
             return value;
         }
 
-        if (value instanceof String) {
-            String string = (String) value;
-            List<Integer> actualIndexes = normalizeIndexes(string.length(), keys);
-            if (actualIndexes.isEmpty()) return "";
-            StringBuilder builder = new StringBuilder(actualIndexes.size());
-            for (Integer actualIndex : actualIndexes) {
-                builder.append(string.charAt(actualIndex));
+        return new ValueHandler<Object>() {
+
+            @Override
+            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+                List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), keys);
+                if (actualIndexes.isEmpty()) return wrapper.create(0);
+                CoreArrayWrapper newWrapper = wrapper.create(actualIndexes.size());
+                for (int i = 0; i < actualIndexes.size(); i++) {
+                    newWrapper.set(i, wrapper.get(actualIndexes.get(i)));
+                }
+                return newWrapper.getArray();
             }
 
-            return builder.toString();
-        }
+            @Override
+            protected Object handleList(List<Object> list) {
+                List<Integer> actualIndexes = normalizeIndexes(list.size(), keys);
+                if (actualIndexes.isEmpty()) return Collections.emptyList();
+                List newList = new ArrayList(actualIndexes.size());
 
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), keys);
-            if (actualIndexes.isEmpty()) return wrapper.create(0);
-            CoreArrayWrapper newWrapper = wrapper.create(actualIndexes.size());
-            for (int i = 0; i < actualIndexes.size(); i++) {
-                newWrapper.set(i, wrapper.get(actualIndexes.get(i)));
-            }
-            return newWrapper.getArray();
-        }
+                for (Integer actualIndex : actualIndexes) {
+                    newList.add(list.get(actualIndex));
+                }
 
-        if (value instanceof Iterable) {
-            List list = (value instanceof List) ? (List) value : Collections.singletonList(value);
-            List<Integer> actualIndexes = normalizeIndexes(list.size(), keys);
-            if (actualIndexes.isEmpty()) return Collections.emptyList();
-            List newList = new ArrayList(actualIndexes.size());
-
-            for (Integer actualIndex : actualIndexes) {
-                newList.add(list.get(actualIndex));
+                return newList;
             }
 
-            return newList;
-        }
+            @Override
+            protected Object handleString(String string) {
+                List<Integer> actualIndexes = normalizeIndexes(string.length(), keys);
+                if (actualIndexes.isEmpty()) return "";
+                StringBuilder builder = new StringBuilder(actualIndexes.size());
+                for (Integer actualIndex : actualIndexes) {
+                    builder.append(string.charAt(actualIndex));
+                }
 
+                return builder.toString();
+            }
 
-        Map<String, Object> map = toMap(value);
-        List<Object> keyList = Arrays.asList(keys);
+            @Override
+            protected Object handleObject(Object value) {
+                Map<String, Object> map = toMap(value);
+                List<Object> keyList = Arrays.asList(keys);
 
-        return map.entrySet()
-                .stream()
-                .filter(entry -> keyList.contains(entry.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                return map.entrySet()
+                        .stream()
+                        .filter(entry -> keyList.contains(entry.getKey()))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            }
+        }.handle(value);
+
     }
 
     public static Object pickExcept(Object value, Object... keys) {
-        if (value == null) {
-            return null;
-        }
-
         if (keys.length == 0) {
             return value;
         }
 
-        if (value instanceof String) {
-            String string = (String) value;
-            List<Integer> actualIndexes = normalizeIndexes(string.length(), keys);
-            if (actualIndexes.isEmpty()) return "";
-            StringBuilder builder = new StringBuilder(actualIndexes.size());
-            char[] chars = string.toCharArray();
-            for (int i = 0; i < chars.length; i++) {
-                char ch = chars[i];
-                if (!actualIndexes.contains(i)) {
-                    builder.append(ch);
+        return new ValueHandler<Object>() {
+            @Override
+            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+                List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), keys);
+                if (actualIndexes.isEmpty()) return wrapper.create(0);
+                CoreArrayWrapper newWrapper = wrapper.create(Math.max(0, wrapper.size() - actualIndexes.size()));
+                int newIdx = 0;
+
+                for (int i = 0; i < wrapper.size(); i++) {
+                    if (!actualIndexes.contains(i)) {
+                        newWrapper.set(newIdx++, wrapper.get(i));
+                    }
                 }
-            }
-            return builder.toString();
-        }
 
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), keys);
-            if (actualIndexes.isEmpty()) return wrapper.create(0);
-            CoreArrayWrapper newWrapper = wrapper.create(Math.max(0, wrapper.size() - actualIndexes.size()));
-            int newIdx = 0;
-
-            for (int i = 0; i < wrapper.size(); i++) {
-                if (!actualIndexes.contains(i)) {
-                    newWrapper.set(newIdx++, wrapper.get(i));
+                for (int i = 0; i < actualIndexes.size(); i++) {
+                    newWrapper.set(i, wrapper.get(actualIndexes.get(i)));
                 }
+                return newWrapper.getArray();
             }
 
-            for (int i = 0; i < actualIndexes.size(); i++) {
-                newWrapper.set(i, wrapper.get(actualIndexes.get(i)));
-            }
-            return newWrapper.getArray();
-        }
+            @Override
+            protected Object handleList(List<Object> list) {
+                List<Integer> actualIndexes = normalizeIndexes(list.size(), keys);
+                if (actualIndexes.isEmpty()) return Collections.emptyList();
+                List newList = new ArrayList(Math.max(0, list.size() - actualIndexes.size()));
 
-        if (value instanceof Iterable) {
-            List list = (value instanceof List) ? (List) value : Collections.singletonList(value);
-            List<Integer> actualIndexes = normalizeIndexes(list.size(), keys);
-            if (actualIndexes.isEmpty()) return Collections.emptyList();
-            List newList = new ArrayList(Math.max(0, list.size() - actualIndexes.size()));
-
-            for (int i = 0; i < list.size(); i++) {
-                if (!actualIndexes.contains(i)) {
-                    newList.add(list.get(i));
+                for (int i = 0; i < list.size(); i++) {
+                    if (!actualIndexes.contains(i)) {
+                        newList.add(list.get(i));
+                    }
                 }
+
+                return newList;
             }
 
-            return newList;
-        }
+            @Override
+            protected Object handleObject(Object value) {
+                Map<String, Object> map = toMap(value);
+                List<Object> keyList = Arrays.asList(keys);
 
-        Map<String, Object> map = toMap(value);
-        List<Object> keyList = Arrays.asList(keys);
+                return map.entrySet()
+                        .stream()
+                        .filter(entry -> !keyList.contains(entry.getKey()))
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            }
 
-        return map.entrySet()
-                .stream()
-                .filter(entry -> !keyList.contains(entry.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            @Override
+            protected Object handleString(String string) {
+                List<Integer> actualIndexes = normalizeIndexes(string.length(), keys);
+                if (actualIndexes.isEmpty()) return "";
+                StringBuilder builder = new StringBuilder(actualIndexes.size());
+                char[] chars = string.toCharArray();
+                for (int i = 0; i < chars.length; i++) {
+                    char ch = chars[i];
+                    if (!actualIndexes.contains(i)) {
+                        builder.append(ch);
+                    }
+                }
+                return builder.toString();
+            }
+        }.handle(value);
+
     }
 
     public static Object reverse(Object value) {
-        if (value == null) {
-            return null;
-        }
+        return new ValueHandler<Object>() {
+            @Override
+            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+                return CoreArrays.wrap(value).reverse().getArray();
+            }
 
-        if (value instanceof String) {
-            return CoreStrings.reverse((String) value);
-        }
+            @Override
+            protected Object handleIterable(Iterable<Object> iterable) {
+                List<Object> list = iterable instanceof List ? new ArrayList<>((List) iterable) : CoreLists.of(iterable);
+                Collections.reverse(list);
+                return list;
+            }
 
-        if (value.getClass().isArray()) {
-            return CoreArrays.wrap(value).reverse().getArray();
-        }
+            @Override
+            protected Object handleObject(Object value) {
+                return value;
+            }
 
-        if (value instanceof Iterable) {
-            List list = CoreLists.of((Iterable) value);
-            Collections.reverse(list);
-            return list;
-        }
-
-        return value;
+            @Override
+            protected Object handleString(String string) {
+                return CoreStrings.reverse((String) value);
+            }
+        }.handle(value);
     }
 
     public static Object slice(Object value, CoreIntRange range) {
@@ -238,137 +337,162 @@ public class MixedFunctions {
     }
 
     public static Object slice(Object value, int start) {
-        if (value == null) {
-            return Collections.emptyList();
-        }
+        return new ValueHandler<Object>(start) {
 
-        if (value instanceof String) {
-            return CoreStrings.substring((String) value, start);
-        }
+            @Override
+            protected Object handleNull() {
+                return Collections.emptyList();
+            }
 
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            int len = wrapper.size();
-            int realStart = CoreArrays.normalizeIndex(start, len);
-            int realEnd = len;
-            return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart).getArray();
-        }
+            @Override
+            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+                int len = wrapper.size();
+                int realStart = CoreArrays.normalizeIndex(start, len);
+                int realEnd = len;
+                return (realStart >= realEnd) ? wrapper.create(0).getArray() : wrapper.slice(realStart).getArray();
+            }
 
-        if (!(value instanceof Iterable)) {
-            value = Collections.singletonList(value);
-        }
+            @Override
+            protected Object handleList(List<Object> list) {
+                int realStart = CoreArrays.normalizeIndex(start, list.size());
+                int realEnd = list.size();
+                return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
+            }
 
-        Iterable iterable = (Iterable) value;
-        List list = (iterable instanceof List) ? (List) iterable : CoreLists.of(iterable);
-        int realStart = CoreArrays.normalizeIndex(start, list.size());
-        int realEnd = list.size();
-        return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
+            @Override
+            protected Object handleObject(Object value) {
+                return Collections.singletonList(value);
+            }
+
+            @Override
+            protected Object handleString(String string) {
+                return CoreStrings.substring(string, start);
+            }
+        }.handle(value);
     }
 
     public static Object slice(Object value, int start, int end) {
-        if (value == null) {
-            return Collections.emptyList();
-        }
+        return new ValueHandler<Object>(start, end) {
+            @Override
+            protected Object handleNull() {
+                return Collections.emptyList();
+            }
 
-        if (value instanceof String) {
-            return CoreStrings.substring((String) value, start, end);
-        }
+            @Override
+            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+                int len = wrapper.size();
+                int realStart = CoreArrays.normalizeIndex(start, len);
+                int realEnd = CoreArrays.normalizeIndex(end, len);
+                return (realStart >= realEnd) ? wrapper.create(0).getArray() : wrapper.slice(realStart, realEnd).getArray();
+            }
 
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
-            int len = wrapper.size();
-            int realStart = CoreArrays.normalizeIndex(start, len);
-            int realEnd = CoreArrays.normalizeIndex(end, len);
-            return (realStart >= realEnd) ? wrapper.create(0) : wrapper.slice(realStart, realEnd).getArray();
-        }
+            @Override
+            protected Object handleList(List<Object> list) {
+                int realStart = CoreArrays.normalizeIndex(start, list.size());
+                int realEnd = CoreArrays.normalizeIndex(end, list.size());
+                return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
+            }
 
-        if (!(value instanceof Iterable)) {
-            value = Collections.singletonList(value);
-        }
+            @Override
+            protected Object handleObject(Object value) {
+                return Collections.singletonList(value);
+            }
 
-        Iterable iterable = (Iterable) value;
-        List list = (iterable instanceof List) ? (List) iterable : CoreLists.of(iterable);
-        int realStart = CoreArrays.normalizeIndex(start, list.size());
-        int realEnd = CoreArrays.normalizeIndex(end, list.size());
-        return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
+            @Override
+            protected Object handleString(String string) {
+                return CoreStrings.substring(string, start, end);
+            }
+        }.handle(value);
     }
 
     @SquigglyMethod(aliases = "orderBy")
     public static Object sort(Object value, CoreProperty... properties) {
-        if (value == null) {
-            return null;
-        }
-
         List<OrderBy> orderBys = Arrays.stream(properties)
                 .map(PropertyOrderBy::new)
                 .collect(toList());
 
-        if (value.getClass().isArray()) {
-            CoreArrayWrapper wrapper = CoreArrays.wrap(value);
+        return new ValueHandler<Object>((Object[]) properties) {
+            @Override
+            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+                List list = wrapper.stream()
+                        .map(item -> newComparable(item, orderBys))
+                        .sorted()
+                        .map(OrderByComparable::getOriginalValue)
+                        .collect(toList());
 
-            List list = wrapper.stream()
-                    .map(item -> newComparable(item, orderBys))
-                    .sorted()
-                    .map(OrderByComparable::getOriginalValue)
-                    .collect(toList());
+                CoreArrayWrapper newWrapper = wrapper.create(list.size());
 
-            CoreArrayWrapper newWrapper = wrapper.create(list.size());
+                for (int i = 0; i < list.size(); i++) {
+                    newWrapper.set(i, list.get(i));
+                }
 
-            for (int i = 0; i < list.size(); i++) {
-                newWrapper.set(i, list.get(i));
+                return newWrapper.getArray();
             }
 
-            return newWrapper.getArray();
-        }
+            @Override
+            protected Object handleIterable(Iterable<Object> iterable) {
+                return CoreStreams.of(iterable)
+                        .map(item -> newComparable(item, orderBys))
+                        .sorted()
+                        .map(OrderByComparable::getOriginalValue)
+                        .collect(toList());
+            }
 
-        if (value instanceof Iterable) {
-            return CoreStreams.of((Iterable<?>) value)
-                    .map(item -> newComparable(item, orderBys))
-                    .sorted()
-                    .map(OrderByComparable::getOriginalValue)
-                    .collect(toList());
-        }
-
-
-        return value;
+            @Override
+            protected Object handleObject(Object value) {
+                return value;
+            }
+        }.handle(value);
     }
 
     public static Object values(Object value) {
-        if (value == null) {
-            return Collections.emptyList();
-        }
+        return new ValueHandler<Object>() {
+            @Override
+            protected Object handleNull() {
+                return Collections.emptyList();
+            }
 
-        if (value.getClass().isArray()) {
-            return value;
-        }
+            @Override
+            protected Object handleArray(Object array) {
+                return array;
+            }
 
-        if (value instanceof Iterable) {
-            return value;
-        }
+            @Override
+            protected Object handleIterable(Iterable<Object> iterable) {
+                return iterable;
+            }
 
-        return CoreLists.of(toMap(value).values());
+            @Override
+            protected Object handleObject(Object value) {
+                return CoreLists.of(toMap(value).values());
+            }
+        }.handle(value);
     }
 
     private static OrderByComparable newComparable(Object value, List<OrderBy> orderBys) {
         return new OrderByComparable(value, orderBys);
     }
 
+    private static Integer normalizeIndex(int len, Object index) {
+        if (index instanceof String) {
+            try {
+                index = Double.parseDouble((String) index);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+
+        if (index instanceof Number) {
+            int actualIndex = CoreArrays.normalizeIndex(((Number) index).intValue(), len, -1, len);
+            return actualIndex < 0 ? null : actualIndex;
+        }
+
+        return null;
+    }
+
     private static List<Integer> normalizeIndexes(int len, Object... indexes) {
         return Stream.of(indexes)
                 .flatMap(index -> {
-                    if (index instanceof String) {
-                        try {
-                            index = Double.parseDouble((String) index);
-                        } catch (NumberFormatException e) {
-                            return Stream.empty();
-                        }
-                    }
-
-
-                    if (index instanceof Number) {
-                        int actualIndex = CoreArrays.normalizeIndex(((Number) index).intValue(), len, -1, len);
-                        return actualIndex < 0 ? Stream.empty() : Stream.of(actualIndex);
-                    }
 
                     if (index instanceof CoreIntRange) {
                         CoreIntRange range = (CoreIntRange) index;
@@ -377,7 +501,8 @@ public class MixedFunctions {
                         return (start >= end) ? Stream.empty() : IntStream.range(start, end).boxed();
                     }
 
-                    return Stream.empty();
+                    Integer normalized = normalizeIndex(len, index);
+                    return normalized == null ? Stream.empty() : Stream.of(normalized);
                 })
                 .distinct()
                 .collect(toList());
