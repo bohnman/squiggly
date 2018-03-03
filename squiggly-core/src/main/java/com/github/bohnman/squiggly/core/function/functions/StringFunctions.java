@@ -23,6 +23,14 @@ public class StringFunctions {
         return CoreStrings.capitalize(value);
     }
 
+    public static boolean endsWith(String value, String search) {
+        if (value == null || search == null) {
+            return false;
+        }
+
+        return value.endsWith(search);
+    }
+
     public static String format(String value, Object... args) {
         if (value == null) {
             return null;
@@ -142,6 +150,15 @@ public class StringFunctions {
 
         return Collections.singletonList(value);
     }
+
+    public static boolean startsWith(String value, String search) {
+        if (value == null || search == null) {
+            return false;
+        }
+
+        return value.startsWith(search);
+    }
+
 
     public static String trim(String value) {
         return CoreStrings.trim(value);
