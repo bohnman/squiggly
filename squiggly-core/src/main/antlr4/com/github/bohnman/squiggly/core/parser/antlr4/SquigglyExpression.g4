@@ -1,28 +1,42 @@
 grammar SquigglyExpression;
 
 //-----------------------------------------------------------------------------
-// Parser Rules
+//region Parser Rules
 //-----------------------------------------------------------------------------
+nodeFilter
+    : nodeExpressionList (Pipe nodeExpressionList)* EOF
+    ;
 
-parse
+propertyFilter
     : expressionList EOF
     ;
 
-// Expressions
-
-
+//region Expressions
 expressionList
     : expression (Comma expression)*
     ;
 
+nodeExpressionList
+    : expressionList
+    | selfReferencingExpression
+    ;
+
 expression
     : negatedExpression
-    | fieldGroup nestedExpression
+    | fieldGroupExpression
+    | dottedFieldExpression
+    | recursiveFieldExpression
+    ;
+
+dottedFieldExpression
+    : dottedField nestedExpression?
+    | dottedField keyValueFieldArgChain (nestedExpression | (Dot dottedField nestedExpression?))?
+    ;
+
+fieldGroupExpression
+    : fieldGroup nestedExpression
     | fieldGroup keyValueFieldArgChain
     | fieldGroup keyValueFieldArgChain nestedExpression
-    | dottedField nestedExpression?
-    | dottedField keyValueFieldArgChain (nestedExpression | (Dot dottedField nestedExpression?))?
-    | wildcardDeepField keyValueFieldArgChain?
     ;
 
 negatedExpression
@@ -35,12 +49,22 @@ nestedExpression
     | BracketLeft expressionList? BracketRight
     ;
 
-// Fields
-
-fieldGroup
-    : ParenLeft field (Comma field)* ParenRight
+recursiveFieldExpression
+    : recursiveField keyValueFieldArgChain?
     ;
 
+selfReferencingExpression
+    : Dollar selfReferencingArgChain? nestedExpression?
+    | Dollar Dot dottedFieldExpression
+    ;
+
+selfReferencingArgChain
+    : assignment
+    | standaloneFieldArg? continuingFieldArgChain
+    ;
+//endregion
+
+//region Fields
 dottedField
     : field (Dot field)*
     ;
@@ -55,6 +79,26 @@ field
     | wildcardField
     ;
 
+fieldGroup
+    : ParenLeft field (Comma field)* ParenRight
+    ;
+
+recursiveField
+    : WildcardShallow recursiveDepth
+    | WildcardDeep
+    ;
+
+recursiveDepth
+    : SquigglyLeft recursiveDepthArg SquigglyRight
+    | SquigglyLeft recursiveDepthArg Colon recursiveDepth? SquigglyRight
+    | QuestionMark
+    | WildcardShallow
+    ;
+
+recursiveDepthArg
+    : IntegerLiteral
+    ;
+
 wildcardField
    : Identifier wildcard
    | Identifier (wildcard Identifier)+ wildcard?
@@ -65,19 +109,9 @@ wildcardField
 wildcardDeepField
     : WildcardDeep
     ;
+//endregion
 
-keyValueFieldArgChain
-    : Colon (fieldArgChain | assignment) Colon (fieldArgChain| assignment)
-    | Colon fieldArgChain
-    | Colon assignment
-    | assignment
-    | continuingFieldArgChain
-    ;
-
-fieldArgChain
-    : (standaloneFieldArg | function) continuingFieldArgChain?
-    ;
-
+//region Field Arguments
 continuingFieldArgChain
     :  continuingFieldArgChainLink+
     ;
@@ -87,47 +121,110 @@ continuingFieldArgChainLink
     | standaloneFieldArg
     ;
 
+fieldArgChain
+    : (standaloneFieldArg | function) continuingFieldArgChain?
+    ;
+
+keyValueFieldArgChain
+    : Colon (fieldArgChain | assignment) Colon (fieldArgChain| assignment)
+    | Colon fieldArgChain
+    | Colon assignment
+    | assignment
+    | continuingFieldArgChain
+    ;
+
 standaloneFieldArg
     : intRange
     | arrayAccessor
     ;
+//endregion
 
 
-// Assignment
-assignment
-    : Equals arg
-    ;
-
-
+//region Arrays
 arrayAccessor
     : BracketLeft (Add | Subtract)? IntegerLiteral BracketRight
     ;
 
-// Functions
+arrayDeclaration
+    : BracketLeft (arg (Comma arg)*)? BracketRight
+    ;
+//endregion
 
+//region Assignment
+assignment
+    : Equals arg
+    ;
+//endregion
 
+//region Functions
 functionAccessor
     : accessOperator function
     ;
 
-
 function
-    : functionName ParenLeft functionParameters? ParenRight
+    : functionName ParenLeft (arg (Comma arg)*)? ParenRight
     ;
 
 functionName
     : Identifier
     | namedOperator
     ;
+//endregion
 
-functionParameters
-    : functionParameter (Comma functionParameter)*
+//region Function Arguments
+arg
+    : argChain
+    | lambda
+    | (NotName | Not) arg
+    | arg (WildcardShallow | MultiplyName | SlashForward | DivideName | Modulus | ModulusName) arg
+    | arg (Add | AddName | Subtract | SubtractName) arg
+    | arg (AngleLeft | LessThanName | LessThanEquals | LessThanEqualsName | AngleRight | GreaterThanName | GreaterThanEquals | GreaterThanEqualsName) arg
+    | arg (EqualsEquals | EqualsName | EqualsNot | EqualsNotSql | EqualsNotName | Match | MatchName | MatchNot | MatchNotName) arg
+    | arg (And | AndName) arg
+    | arg (Or | OrName) arg
+    | argGroupStart arg argGroupEnd argChainLink*
     ;
 
-functionParameter
+argChain
+    : (arrayDeclaration | objectDeclaration | literal | intRange | variable | initialPropertyAccessor | function) argChainLink*
+    | propertySortDirection (variable | initialPropertyAccessor | function) argChainLink*
+    ;
+
+argChainLink
+    : propertyAccessor
+    | functionAccessor
+    ;
+
+argGroupStart
+    : ParenLeft
+    ;
+
+argGroupEnd
+    : ParenRight
+    ;
+//endregion
+
+//region Objects
+objectDeclaration
+    : SquigglyLeft (objectKeyValue (Comma objectKeyValue)*)? SquigglyRight
+    ;
+
+objectKeyValue
+    : objectKey Colon objectValue
+    ;
+
+objectKey
+    : Identifier
+    | variable
+    | literal
+    ;
+
+objectValue
     : arg
     ;
+//endregion
 
+//region Ranges
 intRange
     : inclusiveExclusiveIntRange
     | inclusiveInclusiveIntRange
@@ -146,7 +243,9 @@ intRangeArg
     | variable
     ;
 
-// Closures
+//endregion
+
+//region Lambdas
 
 lambda
     : lambdaArg Lambda lambdaBody
@@ -161,19 +260,9 @@ lambdaArg
     : variable
     | Underscore
     ;
+//endregion
 
-arg
-    : argChain
-    | lambda
-    | (NotName | Not) arg
-    | arg (WildcardShallow | MultiplyName | SlashForward | DivideName | Modulus | ModulusName) arg
-    | arg (Add | AddName | Subtract | SubtractName) arg
-    | arg (AngleLeft | LessThanName | LessThanEquals | LessThanEqualsName | AngleRight | GreaterThanName | GreaterThanEquals | GreaterThanEqualsName) arg
-    | arg (EqualsEquals | EqualsName | EqualsNot | EqualsNotSql | EqualsNotName | Match | MatchName | MatchNot | MatchNotName) arg
-    | arg (And | AndName) arg
-    | arg (Or | OrName) arg
-    | argGroupStart arg argGroupEnd argChainLink*
-    ;
+//region Literals
 
 literal
     : BooleanLiteral
@@ -183,33 +272,12 @@ literal
     | StringLiteral
     ;
 
-argChain
-    : (literal | intRange | variable | initialPropertyAccessor | function) argChainLink*
-    | propertySortDirection (variable | initialPropertyAccessor | function) argChainLink*
-    ;
+//region Operators
 
-
-argChainLink
-    : propertyAccessor
-    | functionAccessor
-    ;
-
-argGroupStart
-    : ParenLeft
-    ;
-
-argGroupEnd
-    : ParenRight
-    ;
-
-
-// Operators
 accessOperator
     : Dot
     | SafeNavigation
     ;
-
-
 
 namedOperator
     : AddName
@@ -229,12 +297,13 @@ namedOperator
     | OrName
     | NotName
     ;
+//endregion
 
-
+//region Properties
 initialPropertyAccessor
-    : (AtDot | AtDotSafe)? (Identifier | function)
-    | (AtBrackLeft | AtBrackLeftSafe) (StringLiteral | variable) BracketRight
-    | At
+    : (Dollar QuestionMark? Dot)? (Identifier | function)
+    | (Dollar QuestionMark? BracketLeft) (StringLiteral | variable) BracketRight
+    | Dollar
     ;
 
 propertySortDirection
@@ -245,23 +314,31 @@ propertySortDirection
 propertyAccessor
     : accessOperator Identifier
     | (BracketLeft | BracketLeftSafe) (StringLiteral | variable) BracketRight
+    | arrayAccessor
+    | intRange
     ;
+//endregion
 
+//region Variables
 variable
     : Variable
     ;
+//endregion
 
+//region Wildcards
 wildcard
     : WildcardShallow
     | QuestionMark
     ;
+//endregion
+
+//endregion
 
 //-----------------------------------------------------------------------------
-// Lexer Tokens
+//region Lexer Tokens
 //-----------------------------------------------------------------------------
 
-// Keywords
-
+//region Keywords
 AddName: 'add';
 AndName: 'and';
 EqualsName: 'eq';
@@ -278,18 +355,14 @@ MultiplyName: 'mul';
 NotName: 'not';
 OrName: 'or';
 SubtractName: 'sub';
+//endregion
 
-// Symbols
-
+//region Symbols
 Add: '+';
 And: '&&';
 AngleLeft: '<';
 AngleRight: '>';
 At: '@';
-AtBrackLeft: '@[';
-AtBrackLeftSafe: '@?[';
-AtDot: '@.';
-AtDotSafe: '@?.';
 BracketLeft: '[';
 BracketLeftSafe: '?[';
 BracketRight: ']';
@@ -325,15 +398,14 @@ Underscore: '_';
 WildcardShallow: '*';
 WildcardDeep: '**';
 Or: '||';
+//endregion
 
 
-// Literals
-
+//region Literals
 BooleanLiteral
     : 'true'
     | 'false'
     ;
-
 
 IntegerLiteral
     : IntegerNumeral
@@ -357,25 +429,28 @@ StringLiteral
 Identifier
     : IdentifierFirst (IdentifierRest)*
     ;
+//endregion
 
-// Variables
-
+//region Variables
 Variable
     : Dollar Identifier
     | Dollar StringLiteral
     ;
+//endregion
 
-// Whitespace and Comments
-
+//region Whitespace and Comments
 Whitespace
     : [ \t\n\r]+ -> skip
     ;
+//endregion
 
+//endregion
 
 //-----------------------------------------------------------------------------
-// Lexer Fragments
+//region Lexer Fragments
 //-----------------------------------------------------------------------------
 
+//region Identifiers
 fragment IdentifierFirst
     : [a-zA-Z_]
     ;
@@ -383,9 +458,9 @@ fragment IdentifierFirst
 fragment IdentifierRest
     : [a-zA-Z_0-9]
     ;
+//endregion
 
-// Numbers
-
+//region Numbers
 fragment Digit : [0-9];
 
 fragment IntegerNumeral
@@ -398,10 +473,10 @@ fragment FloatNumeral
     : IntegerNumeral '.' Digit+
     | '.' Digit+
     ;
+//endregion
 
 
-// Regex
-
+//region Regex
 fragment RegexChar
     : ~[/]
     ;
@@ -413,22 +488,23 @@ fragment RegexEscape
 fragment RegexFlag
     : 'i'
     ;
+//endregion
 
 
-// Strings
-
+//region Strings
 fragment DoubleQuotedStringCharacters
     :    ~["\\]
     |    StringEscape
     ;
-
 
 fragment SingleQuotedStringCharacters
     :    ~['\\]
     |    StringEscape
     ;
 
-
 fragment StringEscape
     :    '\\' ["'\\]
     ;
+//endregion
+
+//endregion

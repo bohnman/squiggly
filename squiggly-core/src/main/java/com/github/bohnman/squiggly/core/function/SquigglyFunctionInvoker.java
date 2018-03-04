@@ -7,6 +7,7 @@ import com.github.bohnman.core.function.FunctionPredicateBridge;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
+import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.convert.ConverterRecord;
 import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
@@ -15,6 +16,7 @@ import com.github.bohnman.squiggly.core.parser.FunctionNode;
 import com.github.bohnman.squiggly.core.parser.FunctionNodeType;
 import com.github.bohnman.squiggly.core.parser.IntRangeNode;
 import com.github.bohnman.squiggly.core.parser.LambdaNode;
+import com.github.bohnman.squiggly.core.parser.SquigglyParser;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
@@ -31,7 +33,9 @@ import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toMap;
 
+@SuppressWarnings("unchecked")
 public class SquigglyFunctionInvoker {
 
     private final SquigglyFunctionRepository functionRepository;
@@ -94,8 +98,12 @@ public class SquigglyFunctionInvoker {
         Object object = getValue(functionNode.getParameters().get(0), input);
         Object key = getValue(functionNode.getParameters().get(1), input);
 
-        if ("@".equals(key)) {
+        if (SquigglyParser.OP_DOLLAR.equals(key)) {
             return input;
+        }
+
+        if (key instanceof Function) {
+            return ((Function) key).apply(object);
         }
 
         return CoreBeans.getProperty(object, key);
@@ -312,6 +320,8 @@ public class SquigglyFunctionInvoker {
     @SuppressWarnings("unchecked")
     private Object getValue(ArgumentNode argumentNode, Object input) {
         switch (argumentNode.getType()) {
+            case ARRAY_DECLARATION:
+                return buildArrayDeclaration(input, (List<ArgumentNode>) argumentNode.getValue());
             case FUNCTION_CHAIN:
                 return buildFunctionChain((List<FunctionNode>) argumentNode.getValue());
             case LAMBDA:
@@ -332,11 +342,36 @@ public class SquigglyFunctionInvoker {
                 }
 
                 return (end == null) ? CoreIntRange.inclusiveInclusive(start) : CoreIntRange.inclusiveInclusive(start, end);
+            case OBJECT_DECLARATION:
+                return buildObjectDeclaration(input, (List<CorePair<ArgumentNode, ArgumentNode>>) argumentNode.getValue());
             case VARIABLE:
                 return variableResolver.resolveVariable(argumentNode.getValue().toString());
             default:
                 return argumentNode.getValue();
         }
+    }
+
+    private Map<Object, Object> buildObjectDeclaration(Object input, List<CorePair<ArgumentNode, ArgumentNode>> pairs) {
+        return pairs.stream()
+                .collect(toMap(
+                        pair -> invokeAndGetValue(pair.getLeft(), input),
+                        pair -> invokeAndGetValue(pair.getRight(), input),
+                        (a, b) -> b
+                ));
+    }
+
+    private List<Object> buildArrayDeclaration(Object input, List<ArgumentNode> elements) {
+        return elements.stream().map(arg -> invokeAndGetValue(arg, input)).collect(Collectors.toList());
+    }
+
+    private Object invokeAndGetValue(ArgumentNode arg, Object input) {
+        Object value = getValue(arg, input);
+
+        if (value instanceof Function) {
+            return ((Function) value).apply(input);
+        }
+
+        return value;
     }
 
     private Function buildFunctionChain(List<FunctionNode> functionNodes) {

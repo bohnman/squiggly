@@ -4,6 +4,7 @@ import com.github.bohnman.core.antlr4.ThrowingErrorListener;
 import com.github.bohnman.core.cache.Cache;
 import com.github.bohnman.core.cache.CacheBuilder;
 import com.github.bohnman.core.lang.CoreStrings;
+import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.config.SystemFunctionName;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
@@ -46,11 +47,11 @@ import static java.util.stream.Collectors.toList;
 @ThreadSafe
 public class SquigglyParser {
 
-    public static final String OP_AT_BRACKET_LEFT_SAFE = "@?[";
+    public static final String OP_DOLLAR_BRACKET_LEFT_SAFE = "$?[";
     public static final String OP_BRACKET_LEFT_SAFE = "?[";
     public static final String OP_SAFE_NAVIGATION = "?.";
-    public static final String OP_AT_DOT_SAFE = "@?.";
-    public static final String OP_AT = "@";
+    public static final String OP_DOLLAR_DOT_SAFE = "$?.";
+    public static final String OP_DOLLAR = "$";
 
     // Caches parsed filter expressions
     private final Cache<String, List<SquigglyNode>> cache;
@@ -85,7 +86,7 @@ public class SquigglyParser {
         SquigglyExpressionParser parser = ThrowingErrorListener.overwrite(new SquigglyExpressionParser(new CommonTokenStream(lexer)));
 
         Visitor visitor = new Visitor();
-        List<SquigglyNode> nodes = Collections.unmodifiableList(visitor.visit(parser.parse()));
+        List<SquigglyNode> nodes = Collections.unmodifiableList(visitor.visit(parser.propertyFilter()));
 
         cache.put(filter, nodes);
         return nodes;
@@ -93,7 +94,7 @@ public class SquigglyParser {
 
     private class Visitor extends SquigglyExpressionBaseVisitor<List<SquigglyNode>> {
         @Override
-        public List<SquigglyNode> visitParse(SquigglyExpressionParser.ParseContext ctx) {
+        public List<SquigglyNode> visitPropertyFilter(SquigglyExpressionParser.PropertyFilterContext ctx) {
             MutableNode root = new MutableNode(parseContext(ctx), new ExactName("root")).dotPathed(true);
             handleExpressionList(ctx.expressionList(), root);
             MutableNode analyzedRoot = analyze(root);
@@ -121,24 +122,35 @@ public class SquigglyParser {
 
             List<SquigglyName> names;
             List<ParserRuleContext> ruleContexts;
-            List<SquigglyExpressionParser.DottedFieldContext> dottedFields = ctx.dottedField();
+            List<SquigglyExpressionParser.DottedFieldContext> dottedFields = Collections.emptyList();
+            SquigglyExpressionParser.KeyValueFieldArgChainContext keyValueFieldArgChainContext = null;
+            SquigglyExpressionParser.NestedExpressionContext nestedExpressionContext = null;
 
-            if (dottedFields.size() > 0) {
+            if (ctx.dottedFieldExpression() != null) {
+                dottedFields = ctx.dottedFieldExpression().dottedField();
+                keyValueFieldArgChainContext = ctx.dottedFieldExpression().keyValueFieldArgChain();
+                nestedExpressionContext = ctx.dottedFieldExpression().nestedExpression();
                 SquigglyExpressionParser.DottedFieldContext dottedField = dottedFields.get(0);
                 parent = handleDottedField(dottedField, parent);
                 SquigglyExpressionParser.FieldContext lastField = dottedField.field().get(dottedField.field().size() - 1);
                 names = Collections.singletonList(createName(lastField));
                 ruleContexts = Collections.singletonList(lastField);
-            } else if (ctx.fieldGroup() != null) {
-                names = new ArrayList<>(ctx.fieldGroup().field().size());
-                ruleContexts = new ArrayList<>(ctx.fieldGroup().field().size());
-                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.fieldGroup().field()) {
+            } else if (ctx.fieldGroupExpression() != null) {
+                SquigglyExpressionParser.FieldGroupContext fieldGroup = ctx.fieldGroupExpression().fieldGroup();
+                keyValueFieldArgChainContext = ctx.fieldGroupExpression().keyValueFieldArgChain();
+                nestedExpressionContext = ctx.fieldGroupExpression().nestedExpression();
+                names = new ArrayList<>(fieldGroup.field().size());
+                ruleContexts = new ArrayList<>(fieldGroup.field().size());
+                for (SquigglyExpressionParser.FieldContext fieldContext : fieldGroup.field()) {
                     names.add(createName(fieldContext));
                     ruleContexts.add(fieldContext);
                 }
-            } else if (ctx.wildcardDeepField() != null) {
+            } else if (ctx.recursiveFieldExpression() != null) {
+                // TODO: finish
+                keyValueFieldArgChainContext = ctx.recursiveFieldExpression().keyValueFieldArgChain();
+                SquigglyExpressionParser.RecursiveFieldContext recursiveField = ctx.recursiveFieldExpression().recursiveField();
                 names = Collections.singletonList(AnyDeepName.get());
-                ruleContexts = Collections.singletonList(ctx.wildcardDeepField());
+                ruleContexts = Collections.singletonList(recursiveField);
             } else {
                 ruleContexts = Collections.singletonList(ctx);
                 names = Collections.emptyList();
@@ -147,11 +159,10 @@ public class SquigglyParser {
             List<FunctionNode> keyFunctions = Collections.emptyList();
             List<FunctionNode> valueFunctions = Collections.emptyList();
 
-            if (ctx.keyValueFieldArgChain() != null) {
-                keyFunctions = parseKeyFunctionChain(ctx.keyValueFieldArgChain());
-                valueFunctions = parseValueFunctionChain(ctx.keyValueFieldArgChain());
+            if (keyValueFieldArgChainContext != null) {
+                keyFunctions = parseKeyFunctionChain(keyValueFieldArgChainContext);
+                valueFunctions = parseValueFunctionChain(keyValueFieldArgChainContext);
             }
-
 
             for (int i = 0; i < names.size(); i++) {
                 SquigglyName name = names.get(i);
@@ -160,12 +171,12 @@ public class SquigglyParser {
                 node.keyFunctions(keyFunctions);
                 node.valueFunctions(valueFunctions);
 
-                if (ctx.nestedExpression() != null) {
-                    if (ctx.nestedExpression().expressionList() == null) {
+                if (nestedExpressionContext != null) {
+                    if (nestedExpressionContext.expressionList() == null) {
                         node.emptyNested = true;
                     } else {
                         node.squiggly = true;
-                        handleExpressionList(ctx.nestedExpression().expressionList(), node);
+                        handleExpressionList(nestedExpressionContext.expressionList(), node);
                     }
                 } else if (dottedFields.size() > 1) {
                     SquigglyExpressionParser.DottedFieldContext dottedField = dottedFields.get(1);
@@ -289,28 +300,28 @@ public class SquigglyParser {
 
         private FunctionNode buildStandaloneFieldArg(SquigglyExpressionParser.StandaloneFieldArgContext context, SquigglyExpressionParser.AccessOperatorContext opContext) {
             if (context.intRange() != null) {
-                ArgumentNode.Builder arg = buildIntRange(context.intRange());
-                return FunctionNode.builder()
-                        .context(parseContext(context))
-                        .name(SystemFunctionName.SLICE.getFunctionName())
-                        .parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
-                        .parameter(arg)
-                        .build();
+                SquigglyExpressionParser.IntRangeContext intRange = context.intRange();
+                return buildIntRangeFunction(intRange);
             }
 
             if (context.arrayAccessor() != null) {
-                String integer = CoreStrings.substring(context.arrayAccessor().getText(), 1, -1);
-                ArgumentNode.Builder arg = baseArg(context, ArgumentNodeType.INTEGER).value(Integer.parseInt(integer));
-
-                return FunctionNode.builder()
-                        .context(parseContext(context))
-                        .name(SystemFunctionName.GET.getFunctionName())
-                        .parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
-                        .parameter(arg)
-                        .build();
+                SquigglyExpressionParser.ArrayAccessorContext arrayAccessorContext = context.arrayAccessor();
+                return buildArrayAccessorFunction(arrayAccessorContext);
             }
 
             throw new IllegalStateException(format("%s: unknown standalone field arg [%s]", parseContext(context), context.getText()));
+        }
+
+        private FunctionNode buildArrayAccessorFunction(SquigglyExpressionParser.ArrayAccessorContext arrayAccessor) {
+            String integer = CoreStrings.substring(arrayAccessor.getText(), 1, -1);
+            ArgumentNode.Builder arg = baseArg(arrayAccessor, ArgumentNodeType.INTEGER).value(Integer.parseInt(integer));
+
+            return FunctionNode.builder()
+                    .context(parseContext(arrayAccessor))
+                    .name(SystemFunctionName.GET.getFunctionName())
+                    .parameter(baseArg(arrayAccessor, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
+                    .parameter(arg)
+                    .build();
         }
 
         private FunctionNode.Builder buildFunction(SquigglyExpressionParser.ArgChainLinkContext context, boolean input) {
@@ -343,6 +354,12 @@ public class SquigglyParser {
             } else if (context.variable() != null) {
                 value = buildVariableValue(context.variable());
                 type = ArgumentNodeType.VARIABLE;
+            } else if (context.intRange() != null) {
+                value = Collections.singletonList(buildIntRangeFunction(context.intRange()));
+                type = ArgumentNodeType.FUNCTION_CHAIN;
+            } else if (context.arrayAccessor() != null) {
+                value = Collections.singletonList(buildArrayAccessorFunction(context.arrayAccessor()));
+                type = ArgumentNodeType.FUNCTION_CHAIN;
             } else {
                 throw new IllegalStateException(format("%s: Cannot find property name [%s]", parseContext(context), context.getText()));
             }
@@ -367,16 +384,21 @@ public class SquigglyParser {
 
             String op = null;
 
-            if (context.At() != null) {
-                op = context.At().getText();
-            } else if (context.AtDotSafe() != null) {
-                op = context.AtDotSafe().getText();
-            } else if (context.AtDotSafe() != null) {
-                op = context.AtDotSafe().getText();
-            } else if (context.AtBrackLeft() != null) {
-                op = context.AtBrackLeft().getText();
-            } else if (context.AtBrackLeftSafe() != null) {
-                op = context.AtBrackLeftSafe().getText();
+            if (context.Dollar() != null) {
+                op = context.Dollar().getText();
+
+                if (context.QuestionMark() != null) {
+                    op += context.QuestionMark().getText();
+                }
+
+                if (context.Dot() != null) {
+                    op += context.Dot().getText();
+                }
+
+                if (context.BracketLeft() != null) {
+                    op += context.BracketLeft().getText();
+                }
+
             }
 
             if (context.Identifier() != null) {
@@ -388,8 +410,8 @@ public class SquigglyParser {
             } else if (context.variable() != null) {
                 value = buildVariableValue(context.variable());
                 type = ArgumentNodeType.VARIABLE;
-            } else if (context.function() != null || OP_AT.equals(op)) {
-                value = "@";
+            } else if (context.function() != null || OP_DOLLAR.equals(op)) {
+                value = OP_DOLLAR;
                 type = ArgumentNodeType.STRING;
             } else {
                 throw new IllegalStateException(format("%s: Cannot find initial property name [%s]", parseContext(context), context.getText()));
@@ -407,8 +429,8 @@ public class SquigglyParser {
                     .parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT));
 
             if (OP_SAFE_NAVIGATION.equals(operator)
-                    || OP_AT_BRACKET_LEFT_SAFE.equals(operator)
-                    || OP_AT_DOT_SAFE.equals(operator)
+                    || OP_DOLLAR_BRACKET_LEFT_SAFE.equals(operator)
+                    || OP_DOLLAR_DOT_SAFE.equals(operator)
                     || OP_BRACKET_LEFT_SAFE.equals(operator)) {
                 function.ignoreNulls(true);
             }
@@ -441,15 +463,11 @@ public class SquigglyParser {
         }
 
         private void applyParameters(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionContext functionContext) {
-            SquigglyExpressionParser.FunctionParametersContext functionParametersContext = functionContext.functionParameters();
-
-            if (functionParametersContext != null) {
-                functionParametersContext.functionParameter().forEach(parameter -> applyParameter(builder, parameter));
-            }
+            functionContext.arg().forEach(parameter -> applyParameter(builder, parameter));
         }
 
-        private void applyParameter(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionParameterContext parameter) {
-            ArgumentNode.Builder arg = buildArg(parameter.arg());
+        private void applyParameter(FunctionNode.Builder builder, SquigglyExpressionParser.ArgContext parameter) {
+            ArgumentNode.Builder arg = buildArg(parameter);
             builder.parameter(arg);
         }
 
@@ -671,6 +689,16 @@ public class SquigglyParser {
                     .value(new IntRangeNode(start, end, exclusiveEnd));
         }
 
+        private FunctionNode buildIntRangeFunction(SquigglyExpressionParser.IntRangeContext intRange) {
+            ArgumentNode.Builder arg = buildIntRange(intRange);
+            return FunctionNode.builder()
+                    .context(parseContext(intRange))
+                    .name(SystemFunctionName.SLICE.getFunctionName())
+                    .parameter(baseArg(intRange, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
+                    .parameter(arg)
+                    .build();
+        }
+
         private ArgumentNode.Builder buildIntRangeArg(SquigglyExpressionParser.IntRangeArgContext context) {
             if (context.variable() != null) {
                 return buildVariable(context.variable());
@@ -703,6 +731,15 @@ public class SquigglyParser {
             functionLength += 2;
             List<FunctionNode> functionNodes = new ArrayList<>(functionLength);
 
+            if (context.arrayDeclaration() != null) {
+                functionNodes.add(FunctionNode.builder()
+                        .context(parseContext(context.arrayDeclaration()))
+                        .name(SystemFunctionName.IDENTITY.getFunctionName())
+                        .parameter(buildArrayDeclaration(context.arrayDeclaration()))
+                        .build()
+                );
+            }
+
             if (context.literal() != null) {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.literal()))
@@ -720,6 +757,16 @@ public class SquigglyParser {
                         .build()
                 );
             }
+
+            if (context.objectDeclaration() != null) {
+                functionNodes.add(FunctionNode.builder()
+                        .context(parseContext(context.objectDeclaration()))
+                        .name(SystemFunctionName.IDENTITY.getFunctionName())
+                        .parameter(buildObjectDeclaration(context.objectDeclaration()))
+                        .build()
+                );
+            }
+
 
             if (context.variable() != null) {
                 functionNodes.add(FunctionNode.builder()
@@ -741,7 +788,7 @@ public class SquigglyParser {
 
                 if (context.initialPropertyAccessor().function() != null) {
                     functionNodes.add(buildFunction(context.initialPropertyAccessor().function(), null, true)
-                            .ignoreNulls(context.initialPropertyAccessor().AtDotSafe() != null)
+                            .ignoreNulls(context.initialPropertyAccessor().QuestionMark() != null)
                             .build());
                 }
             }
@@ -763,10 +810,50 @@ public class SquigglyParser {
                     .value(functionNodes);
         }
 
+        private ArgumentNode.Builder buildArrayDeclaration(SquigglyExpressionParser.ArrayDeclarationContext context) {
+            List<ArgumentNode> argumentNodes = new ArrayList<>(context.arg().size());
+
+            for (int i = 0; i < context.arg().size(); i++) {
+                SquigglyExpressionParser.ArgContext arg = context.arg().get(i);
+                argumentNodes.add(buildArg(arg).index(i).build());
+            }
+
+            return baseArg(context, ArgumentNodeType.ARRAY_DECLARATION)
+                    .value(argumentNodes);
+        }
+
         private ArgumentNode.Builder buildInteger(ParserRuleContext context) {
             return baseArg(context, ArgumentNodeType.INTEGER).value(Integer.parseInt(context.getText()));
         }
 
+        private ArgumentNode.Builder buildObjectDeclaration(SquigglyExpressionParser.ObjectDeclarationContext context) {
+            return baseArg(context, ArgumentNodeType.OBJECT_DECLARATION)
+                    .value(
+                            context.objectKeyValue()
+                                    .stream()
+                                    .map(this::buildObjectArgPair)
+                                    .collect(toList())
+                    );
+        }
+
+        private CorePair<ArgumentNode, ArgumentNode> buildObjectArgPair(SquigglyExpressionParser.ObjectKeyValueContext context) {
+            ArgumentNode key = buildObjectArgKey(context.objectKey()).index(0).build();
+            ArgumentNode value = buildArg(context.objectValue().arg()).index(0).build();
+
+            return CorePair.of(key, value);
+        }
+
+        private ArgumentNode.Builder buildObjectArgKey(SquigglyExpressionParser.ObjectKeyContext context) {
+            if (context.Identifier() != null) {
+                return baseArg(context, ArgumentNodeType.STRING).value(context.Identifier().getText());
+            } else if (context.literal() != null) {
+                return buildLiteral(context.literal());
+            } else if (context.variable() != null) {
+                return buildVariable(context.variable());
+            }
+
+            throw new IllegalStateException(format("%s: unknown object arg key [%s]", parseContext(context), context.getText()));
+        }
 
         private ArgumentNode.Builder buildRegex(ParserRuleContext context) {
             return baseArg(context, ArgumentNodeType.REGEX).value(buildPattern(context.getText()));
