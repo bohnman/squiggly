@@ -655,6 +655,10 @@ public class SquigglyParser {
             ArgumentNode.Builder start = null;
             ArgumentNode.Builder end = null;
 
+            if (intRangeArgs.isEmpty()) {
+                start = baseArg(context, ArgumentNodeType.INTEGER).value(0);
+            }
+
             if (intRangeArgs.size() > 0) {
                 start = buildIntRangeArg(intRangeArgs.get(0));
             }

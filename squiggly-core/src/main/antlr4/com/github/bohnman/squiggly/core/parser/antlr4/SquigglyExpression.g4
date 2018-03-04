@@ -134,11 +134,11 @@ intRange
     ;
 
 inclusiveExclusiveIntRange
-    : BracketLeft intRangeArg Colon intRangeArg? BracketRight
+    : BracketLeft intRangeArg? Colon intRangeArg? BracketRight
     ;
 
 inclusiveInclusiveIntRange
-    : BracketLeft intRangeArg DotDot intRangeArg? BracketRight
+    : BracketLeft intRangeArg? DotDot intRangeArg? BracketRight
     ;
 
 intRangeArg
