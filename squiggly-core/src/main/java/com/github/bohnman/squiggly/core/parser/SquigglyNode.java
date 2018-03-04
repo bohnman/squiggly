@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.core.parser;
 
 import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.name.AnyShallowName;
+import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.name.SquigglyName;
 import com.github.bohnman.squiggly.core.name.VariableName;
 
@@ -16,6 +17,17 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
  */
 @ThreadSafe
 public class SquigglyNode {
+
+    public static final String ROOT = "root";
+    public static final SquigglyNode EMPTY = new SquigglyNode(
+            new ParseContext(1, 1),
+            new ExactName(ROOT),
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList(),
+            false,
+            false,
+            false);
 
     private final ParseContext context;
     private final SquigglyName name;
@@ -170,5 +182,15 @@ public class SquigglyNode {
      */
     public SquigglyNode withName(SquigglyName newName) {
         return new SquigglyNode(context, newName, children, keyFunctions, valueFunctions, negated, squiggly, emptyNested);
+    }
+
+    /**
+     * Create a squiggly with the specified children.
+     *
+     * @param newChildren new children
+     * @return children
+     */
+    public SquigglyNode withChildren(List<SquigglyNode> newChildren) {
+        return new SquigglyNode(context, name, newChildren, keyFunctions, valueFunctions, negated, squiggly, emptyNested);
     }
 }

@@ -2,8 +2,6 @@ package com.github.bohnman.squiggly.core.context;
 
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 
-import java.util.List;
-
 /**
  * A squiggly context provides parsing and filtering information for parsing.
  */
@@ -17,11 +15,11 @@ public interface SquigglyContext {
     Class getBeanClass();
 
     /**
-     * Get the parsed nodes.
+     * Get the parsed node.
      *
      * @return nodes
      */
-    List<SquigglyNode> getNodes();
+    SquigglyNode getNode();
 
     /**
      * Get the filter expression.

@@ -8,6 +8,7 @@ import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,7 +26,7 @@ public class LazySquigglyContext implements SquigglyContext {
     private final BaseSquiggly squiggly;
 
     @Nullable
-    private List<SquigglyNode> nodes;
+    private SquigglyNode node;
 
     public LazySquigglyContext(Class beanClass, BaseSquiggly squiggly, String filter) {
         this.beanClass = notNull(beanClass);
@@ -40,31 +41,42 @@ public class LazySquigglyContext implements SquigglyContext {
     }
 
     @Override
-    public List<SquigglyNode> getNodes() {
-        if (nodes == null) {
-            nodes = normalize(squiggly.getParser().parse(filter));
+    public SquigglyNode getNode() {
+        if (node == null) {
+            node = normalize(squiggly.getParser().parsePropertyFilter(filter));
         }
 
-        return nodes;
+        return node;
     }
 
-    private List<SquigglyNode> normalize(List<SquigglyNode> nodes) {
-        return nodes.stream()
-                .map(node -> {
-                    if (node.isVariable()) {
-                        SquigglyVariableResolver variableResolver = squiggly.getVariableResolver();
-                        String value = Objects.toString(variableResolver.resolveVariable(node.getName()));
+    private SquigglyNode normalize(SquigglyNode node) {
+        if (node.isVariable()) {
+            SquigglyVariableResolver variableResolver = squiggly.getVariableResolver();
+            String value = Objects.toString(variableResolver.resolveVariable(node.getName()));
 
-                        if (value == null) {
-                            value = ':' + node.getName();
-                        }
+            if (value == null) {
+                value = ':' + node.getName();
+            }
 
-                        node = node.withName(new ExactName(value));
-                    }
+            node = node.withName(new ExactName(value));
+            List<SquigglyNode> newChildren = null;
 
-                    return node;
-                })
-                .collect(toList());
+            for (int i = 0; i < node.getChildren().size(); i++) {
+                SquigglyNode child = node.getChildren().get(i);
+                SquigglyNode normalizedChild = normalize(child);
+
+                if (child != normalizedChild) {
+                    if (newChildren == null) new ArrayList<>(node.getChildren());
+                    newChildren.set(i, normalizedChild);
+                }
+            }
+
+            if (newChildren != null) {
+                node = node.withChildren(newChildren);
+            }
+        }
+
+        return node;
     }
 
     @Override

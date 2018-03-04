@@ -3,8 +3,8 @@ package com.github.bohnman.squiggly.jackson.match;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
-import com.github.bohnman.core.cache.Cache;
-import com.github.bohnman.core.cache.CacheBuilder;
+import com.github.bohnman.core.cache.CoreCache;
+import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
@@ -31,14 +31,14 @@ public class SquigglyNodeMatcher {
     public static final SquigglyNode ALWAYS_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, false, false);
     private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(new SquigglyNode(new ParseContext(1, 1), new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, true, false));
 
-    private final Cache<CorePair<Path, String>, SquigglyNode> matchCache;
+    private final CoreCache<CorePair<Path, String>, SquigglyNode> matchCache;
     private final Squiggly squiggly;
 
 
     @SuppressWarnings("unchecked")
     public SquigglyNodeMatcher(Squiggly squiggly) {
         this.squiggly = notNull(squiggly);
-        this.matchCache = CacheBuilder.from(squiggly.getConfig().getFilterPathCacheSpec()).build();
+        this.matchCache = CoreCacheBuilder.from(squiggly.getConfig().getFilterPathCacheSpec()).build();
         squiggly.getMetrics().add(new CoreCacheSquigglyMetricsSource("squiggly.filter.pathCache.", matchCache));
     }
 
@@ -81,7 +81,7 @@ public class SquigglyNodeMatcher {
 
     // perform the actual matching
     private SquigglyNode matchPath(Path path, SquigglyContext context) {
-        List<SquigglyNode> nodes = context.getNodes();
+        List<SquigglyNode> nodes = context.getNode().getChildren();
         Set<String> viewStack = null;
         SquigglyNode viewNode = null;
         SquigglyNode match = null;

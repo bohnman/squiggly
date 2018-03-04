@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.core.parser;
 
 import com.github.bohnman.core.antlr4.ThrowingErrorListener;
-import com.github.bohnman.core.cache.Cache;
-import com.github.bohnman.core.cache.CacheBuilder;
+import com.github.bohnman.core.cache.CoreCache;
+import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
@@ -47,6 +47,7 @@ import static java.util.stream.Collectors.toList;
 @ThreadSafe
 public class SquigglyParser {
 
+
     public static final String OP_DOLLAR_BRACKET_LEFT_SAFE = "$?[";
     public static final String OP_BRACKET_LEFT_SAFE = "?[";
     public static final String OP_SAFE_NAVIGATION = "?.";
@@ -54,10 +55,10 @@ public class SquigglyParser {
     public static final String OP_DOLLAR = "$";
 
     // Caches parsed filter expressions
-    private final Cache<String, List<SquigglyNode>> cache;
+    private final CoreCache<String, SquigglyNode> cache;
 
     public SquigglyParser(SquigglyConfig config, SquigglyMetrics metrics) {
-        cache = CacheBuilder.from(config.getParserNodeCacheSpec()).build();
+        cache = CoreCacheBuilder.from(config.getParserNodeCacheSpec()).build();
         metrics.add(new CoreCacheSquigglyMetricsSource("squiggly.parser.nodeCache.", cache));
     }
 
@@ -67,38 +68,41 @@ public class SquigglyParser {
      * @param filter the filter expression
      * @return compiled nodes
      */
-    public List<SquigglyNode> parse(String filter) {
+    public SquigglyNode parsePropertyFilter(String filter) {
         filter = CoreStrings.trim(filter);
 
         if (CoreStrings.isEmpty(filter)) {
-            return Collections.emptyList();
+            return SquigglyNode.EMPTY;
         }
 
         // get it from the cache if we can
-        List<SquigglyNode> cachedNodes = cache.get(filter);
+        SquigglyNode cachedNode = cache.get(filter);
 
-        if (cachedNodes != null) {
-            return cachedNodes;
+        if (cachedNode != null) {
+            return cachedNode;
         }
 
 
         SquigglyExpressionLexer lexer = ThrowingErrorListener.overwrite(new SquigglyExpressionLexer(CharStreams.fromString(filter)));
         SquigglyExpressionParser parser = ThrowingErrorListener.overwrite(new SquigglyExpressionParser(new CommonTokenStream(lexer)));
 
-        Visitor visitor = new Visitor();
-        List<SquigglyNode> nodes = Collections.unmodifiableList(visitor.visit(parser.propertyFilter()));
+        PropertyFilterVisitor visitor = new PropertyFilterVisitor();
+        SquigglyNode node = visitor.visit(parser.propertyFilter());
 
-        cache.put(filter, nodes);
-        return nodes;
+        if (node != null) {
+            cache.put(filter, node);
+        }
+
+        return node;
     }
 
-    private class Visitor extends SquigglyExpressionBaseVisitor<List<SquigglyNode>> {
+    private class PropertyFilterVisitor extends SquigglyExpressionBaseVisitor<SquigglyNode> {
         @Override
-        public List<SquigglyNode> visitPropertyFilter(SquigglyExpressionParser.PropertyFilterContext ctx) {
+        public SquigglyNode visitPropertyFilter(SquigglyExpressionParser.PropertyFilterContext ctx) {
             MutableNode root = new MutableNode(parseContext(ctx), new ExactName("root")).dotPathed(true);
             handleExpressionList(ctx.expressionList(), root);
             MutableNode analyzedRoot = analyze(root);
-            return analyzedRoot.toSquigglyNode().getChildren();
+            return analyzedRoot.toSquigglyNode();
         }
 
         private ParseContext parseContext(ParserRuleContext ctx) {

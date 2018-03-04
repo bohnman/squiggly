@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.core.convert;
 
-import com.github.bohnman.core.cache.Cache;
-import com.github.bohnman.core.cache.CacheBuilder;
+import com.github.bohnman.core.cache.CoreCache;
+import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.lang.CoreClasses;
 import com.github.bohnman.core.lang.Null;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
@@ -23,11 +23,11 @@ public class DefaultConversionService implements SquigglyConversionService {
     private static final ConverterRecord IDENTITY = new ConverterRecord(Object.class, Object.class, Function.identity());
     private static final ConverterRecord NO_MATCH = new ConverterRecord(Object.class, Object.class, Function.identity());
 
-    private final Cache<Key, ConverterRecord> cache;
+    private final CoreCache<Key, ConverterRecord> cache;
     private final Map<Key, ConverterRecord> registeredConverters;
 
     public DefaultConversionService(SquigglyConfig config, List<ConverterRecord> records) {
-        this.cache = CacheBuilder.from(config.getConvertCacheSpec()).build();
+        this.cache = CoreCacheBuilder.from(config.getConvertCacheSpec()).build();
         Map<Key, ConverterRecord> map = new HashMap<>(records.size());
 
         for (ConverterRecord record : records) {

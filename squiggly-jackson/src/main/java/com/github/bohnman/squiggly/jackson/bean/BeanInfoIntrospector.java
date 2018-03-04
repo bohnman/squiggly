@@ -2,8 +2,8 @@ package com.github.bohnman.squiggly.jackson.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import com.github.bohnman.core.cache.Cache;
-import com.github.bohnman.core.cache.CacheBuilder;
+import com.github.bohnman.core.cache.CoreCache;
+import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.lang.CoreFields;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
@@ -37,12 +37,12 @@ public class BeanInfoIntrospector {
     /**
      * Caches bean class to a map of views to property views.
      */
-    private final Cache<Class, BeanInfo> cache;
+    private final CoreCache<Class, BeanInfo> cache;
     private final SquigglyConfig config;
 
     public BeanInfoIntrospector(SquigglyConfig config, SquigglyMetrics metrics) {
         this.config = notNull(config);
-        cache = CacheBuilder.from(config.getPropertyDescriptorCacheSpec()).build();
+        cache = CoreCacheBuilder.from(config.getPropertyDescriptorCacheSpec()).build();
         metrics.add(new CoreCacheSquigglyMetricsSource("squiggly.property.descriptorCache.", cache));
     }
 

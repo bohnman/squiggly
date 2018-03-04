@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.core.config;
 
-import com.github.bohnman.core.cache.CacheBuilderSpec;
+import com.github.bohnman.core.cache.CoreCacheBuilderSpec;
 import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreObjects;
@@ -32,14 +32,14 @@ public class SquigglyConfig {
 
     private final boolean filterImplicitlyIncludeBaseFields;
     private final boolean filterImplicitlyIncludeBaseFieldsInView;
-    private final CacheBuilderSpec filterPathCacheSpec;
+    private final CoreCacheBuilderSpec filterPathCacheSpec;
     private final boolean filterPropagateViewToNestedFilters;
 
-    private final CacheBuilderSpec parserNodeCacheSpec;
+    private final CoreCacheBuilderSpec parserNodeCacheSpec;
 
     private final boolean propertyAddNonAnnotatedFieldsToBaseView;
-    private final CacheBuilderSpec propertyDescriptorCacheSpec;
-    private final CacheBuilderSpec convertCacheSpec;
+    private final CoreCacheBuilderSpec propertyDescriptorCacheSpec;
+    private final CoreCacheBuilderSpec convertCacheSpec;
     private final CompositeConfigSource source;
     private final String filterRequestParam;
 
@@ -87,7 +87,7 @@ public class SquigglyConfig {
     }
 
     @Nullable
-    public String getString(String key, @Nullable  String defaultValue) {
+    public String getString(String key, @Nullable String defaultValue) {
 
         if (key == null) {
             return defaultValue;
@@ -124,7 +124,7 @@ public class SquigglyConfig {
     }
 
     @Nullable
-    public Integer getInt(String key, @Nullable  Integer defaultValue) {
+    public Integer getInt(String key, @Nullable Integer defaultValue) {
         String value = propsMap.get(key);
 
         if (value == null) {
@@ -186,17 +186,14 @@ public class SquigglyConfig {
     }
 
 
-
-
-
-    private CacheBuilderSpec getCacheSpec(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
+    private CoreCacheBuilderSpec getCacheSpec(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
         String value = getString(source, props, locations, key);
 
         if (value == null) {
             value = "";
         }
 
-        return CacheBuilderSpec.parse(value);
+        return CoreCacheBuilderSpec.parse(value);
     }
 
     private boolean getBool(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
@@ -226,7 +223,7 @@ public class SquigglyConfig {
      *
      * @return convert cache specification
      */
-    public CacheBuilderSpec getConvertCacheSpec() {
+    public CoreCacheBuilderSpec getConvertCacheSpec() {
         return convertCacheSpec;
     }
 
@@ -259,11 +256,11 @@ public class SquigglyConfig {
     }
 
     /**
-     * Get the {@link CacheBuilderSpec} of the path cache in the squiggly filter.
+     * Get the {@link CoreCacheBuilderSpec} of the path cache in the squiggly filter.
      *
      * @return spec
      */
-    public CacheBuilderSpec getFilterPathCacheSpec() {
+    public CoreCacheBuilderSpec getFilterPathCacheSpec() {
         return filterPathCacheSpec;
     }
 
@@ -280,12 +277,12 @@ public class SquigglyConfig {
     }
 
     /**
-     * Get the {@link CacheBuilderSpec} of the node cache in the squiggly parser.
+     * Get the {@link CoreCacheBuilderSpec} of the node cache in the squiggly parser.
      *
      * @return spec
      * @see com.github.bohnman.squiggly.core.parser.SquigglyParser
      */
-    public CacheBuilderSpec getParserNodeCacheSpec() {
+    public CoreCacheBuilderSpec getParserNodeCacheSpec() {
         return parserNodeCacheSpec;
     }
 
@@ -299,11 +296,11 @@ public class SquigglyConfig {
     }
 
     /**
-     * Get the {@link CacheBuilderSpec} of the descriptor cache in the property view introspector.
+     * Get the {@link CoreCacheBuilderSpec} of the descriptor cache in the property view introspector.
      *
      * @return spec
      */
-    public CacheBuilderSpec getPropertyDescriptorCacheSpec() {
+    public CoreCacheBuilderSpec getPropertyDescriptorCacheSpec() {
         return propertyDescriptorCacheSpec;
     }
 
