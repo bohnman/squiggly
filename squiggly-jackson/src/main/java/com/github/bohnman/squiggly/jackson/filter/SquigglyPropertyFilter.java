@@ -1,6 +1,8 @@
 package com.github.bohnman.squiggly.jackson.filter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonStreamContext;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
@@ -8,14 +10,23 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.std.MapProperty;
 import com.github.bohnman.core.json.jackson.CoreObjectMappers;
+import com.github.bohnman.core.tuple.CorePair;
+import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
+import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.jackson.Squiggly;
+import com.github.bohnman.squiggly.jackson.json.JacksonJsonNode;
+import com.github.bohnman.squiggly.jackson.json.node.CoreJsonNode;
+import com.github.bohnman.squiggly.jackson.json.path.CoreJsonPath;
+import com.github.bohnman.squiggly.jackson.json.path.CoreJsonPathElement;
 import com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,6 +70,7 @@ import static com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher.NEVE
  *    hardware
  * </pre>
  */
+@SuppressWarnings("unchecked")
 @ThreadSafe
 public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
@@ -94,7 +106,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     @Override
     public void serializeAsField(final Object pojo, final JsonGenerator jgen, final SerializerProvider provider,
                                  final PropertyWriter writer) throws Exception {
-        SquigglyNode match = nodeMatcher.match(writer, jgen);
+        SquigglyNode match = match(writer, jgen);
 
         if (match != null && match != NEVER_MATCH) {
             if (match.getKeyFunctions().isEmpty() && match.getValueFunctions().isEmpty()) {
@@ -104,7 +116,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
                 String name = "" + functionInvoker.invoke(writer.getName(), match.getKeyFunctions());
                 Object value = functionInvoker.invoke(beanPropertyWriter.get(pojo), match.getValueFunctions());
                 squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
-            } else if (writer instanceof MapProperty){
+            } else if (writer instanceof MapProperty) {
                 MapProperty mapProperty = (MapProperty) writer;
                 String name = "" + functionInvoker.invoke(writer.getName(), match.getKeyFunctions());
                 Object value = functionInvoker.invoke(pojo, match.getValueFunctions());
@@ -117,13 +129,66 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
     }
 
-    public static void main(String[] args) {
-        ObjectMapper mapper = Squiggly.builder("nickNames={foo:'bar'}")
-                .variable("foo", "name")
-                .build()
-                .apply(new ObjectMapper());
+    private SquigglyNode match(final PropertyWriter writer, final JsonGenerator jgen) {
+        JsonStreamContext streamContext = getStreamContext(jgen);
 
-        System.out.println("\n\n\n\n" + CoreObjectMappers.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
+        if (streamContext == null) {
+            return SquigglyNodeMatcher.ALWAYS_MATCH;
+        }
+
+        if (!squiggly.getContextProvider().isFilteringEnabled()) {
+            return SquigglyNodeMatcher.ALWAYS_MATCH;
+        }
+
+        CoreJsonPath path = getPath(writer, streamContext);
+        SquigglyContext context = squiggly.getContextProvider().getContext(path.getFirst().getBeanClass(), squiggly);
+
+        return nodeMatcher.match(path, context);
+    }
+
+    private CoreJsonPath getPath(PropertyWriter writer, JsonStreamContext sc) {
+        LinkedList<CoreJsonPathElement> elements = new LinkedList<>();
+
+        if (sc != null) {
+            elements.add(new CoreJsonPathElement(writer.getName(), sc.getCurrentValue()));
+            sc = sc.getParent();
+        }
+
+        while (sc != null) {
+            if (sc.getCurrentName() != null && sc.getCurrentValue() != null) {
+                elements.addFirst(new CoreJsonPathElement(sc.getCurrentName(), sc.getCurrentValue()));
+            }
+            sc = sc.getParent();
+        }
+
+        return new CoreJsonPath(elements);
+    }
+
+    private JsonStreamContext getStreamContext(JsonGenerator jgen) {
+        return jgen.getOutputContext();
+    }
+
+    public static void main(String[] args) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(CoreObjectMappers.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
+        CoreJsonNode<JsonNode> coreJsonNode = new JacksonJsonNode(jsonNode);
+
+        Squiggly squiggly = Squiggly.builder().build();
+        SquigglyNodeMatcher matcher = new SquigglyNodeMatcher(squiggly);
+        SquigglyFunctionInvoker functionInvoker = new SquigglyFunctionInvoker(squiggly.getConversionService(), squiggly.getFunctionRepository(), squiggly.getVariableResolver());
+        SquigglyNodeFilter filter = new SquigglyNodeFilter(squiggly.getParser(), matcher, functionInvoker);
+
+        coreJsonNode = filter.apply(coreJsonNode, "nickNames[name.reverse()]");
+
+        System.out.println(new ObjectMapper().writeValueAsString(coreJsonNode.getRawNode()));
+
+
+//        ObjectMapper mapper = Squiggly.builder("nickNames={foo:'bar'}")
+//                .variable("foo", "name")
+//                .build()
+//                .apply(new ObjectMapper());
+//
+//        System.out.println("\n\n\n\n" + CoreObjectMappers.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
     }
 
     public static class NickName implements Comparable<NickName> {

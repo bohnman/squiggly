@@ -110,7 +110,7 @@ public class BeanInfoIntrospector {
     }
 
     @Nullable
-    private static String getPropertyName(String propertyName, Annotation[] annotations) {
+    protected String getPropertyName(String propertyName, Annotation[] annotations) {
         if (propertyName != null) {
             return propertyName;
         }
