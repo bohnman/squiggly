@@ -164,7 +164,7 @@ public class StringFunctions {
         return CoreStrings.trim(value);
     }
 
-    @SquigglyMethod(aliases = { "uppercase" })
+    @SquigglyMethod(aliases = {"uppercase"})
     public static String upper(String value) {
         return CoreStrings.upper(value);
     }

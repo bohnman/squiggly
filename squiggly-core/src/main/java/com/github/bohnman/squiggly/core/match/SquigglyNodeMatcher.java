@@ -1,9 +1,12 @@
-package com.github.bohnman.squiggly.jackson.match;
+package com.github.bohnman.squiggly.core.match;
 
 import com.github.bohnman.core.cache.CoreCache;
 import com.github.bohnman.core.cache.CoreCacheBuilder;
+import com.github.bohnman.core.json.path.CoreJsonPath;
+import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
+import com.github.bohnman.squiggly.core.bean.BeanInfo;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.name.AnyDeepName;
@@ -11,10 +14,6 @@ import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.parser.ParseContext;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.core.view.PropertyView;
-import com.github.bohnman.squiggly.jackson.Squiggly;
-import com.github.bohnman.squiggly.jackson.bean.BeanInfo;
-import com.github.bohnman.squiggly.jackson.json.path.CoreJsonPath;
-import com.github.bohnman.squiggly.jackson.json.path.CoreJsonPathElement;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -139,8 +138,7 @@ public class SquigglyNodeMatcher {
 
 
     private boolean isJsonUnwrapped(CoreJsonPathElement element) {
-        // TODO: fixme
-        BeanInfo info = ((Squiggly) squiggly).getBeanInfoIntrospector().introspect(element.getBeanClass());
+        BeanInfo info = squiggly.getBeanInfoIntrospector().introspect(element.getBeanClass());
         return info.isUnwrapped(element.getName());
     }
 
@@ -227,7 +225,6 @@ public class SquigglyNodeMatcher {
             return Collections.emptySet();
         }
 
-        // TODO: fixme
-        return ((Squiggly) squiggly).getBeanInfoIntrospector().introspect(beanClass).getPropertyNamesForView(viewName);
+        return squiggly.getBeanInfoIntrospector().introspect(beanClass).getPropertyNamesForView(viewName);
     }
 }

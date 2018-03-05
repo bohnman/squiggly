@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.jackson.bean;
+package com.github.bohnman.squiggly.core.bean;
 
 import java.util.Collections;
 import java.util.Map;

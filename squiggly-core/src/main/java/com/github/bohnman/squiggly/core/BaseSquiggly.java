@@ -1,8 +1,11 @@
 package com.github.bohnman.squiggly.core;
 
 import com.github.bohnman.core.collect.CoreStreams;
+import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
+import com.github.bohnman.squiggly.core.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
+import com.github.bohnman.squiggly.core.config.SystemFunctionName;
 import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.core.convert.ConverterRecord;
@@ -11,16 +14,18 @@ import com.github.bohnman.squiggly.core.convert.DefaultConverters;
 import com.github.bohnman.squiggly.core.convert.ListConverterRegistry;
 import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.core.convert.SquigglyConverterRegistry;
+import com.github.bohnman.squiggly.core.filter.SquigglyNodeFilter;
 import com.github.bohnman.squiggly.core.filter.repository.CompositeFilterRepository;
 import com.github.bohnman.squiggly.core.filter.repository.MapFilterRepository;
 import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterRepository;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
 import com.github.bohnman.squiggly.core.function.functions.DefaultFunctions;
-import com.github.bohnman.squiggly.core.config.SystemFunctionName;
 import com.github.bohnman.squiggly.core.function.repository.CompositeFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.MapFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
+import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.core.parser.SquigglyParser;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
@@ -42,16 +47,25 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 public abstract class BaseSquiggly {
 
 
+    private final BeanInfoIntrospector beanInfoIntrospector;
     private final SquigglyConfig config;
     private final SquigglyConversionService conversionService;
-    private final SquigglyMetrics metrics;
     private final SquigglyContextProvider contextProvider;
     private final SquigglyFilterRepository filterRepository;
+    private final SquigglyFunctionInvoker functionInvoker;
     private final SquigglyFunctionRepository functionRepository;
+    private final SquigglyMetrics metrics;
+    private final SquigglyNodeMatcher nodeMatcher;
+    private final SquigglyNodeFilter nodeFilter;
     private final SquigglyParser parser;
     private final SquigglyVariableResolver variableResolver;
 
     protected BaseSquiggly(BaseSquiggly.BaseBuilder builder) {
+        this(builder, new BeanInfoIntrospector(builder.getBuiltConfig(), builder.getBuiltMetrics()));
+    }
+
+    protected BaseSquiggly(BaseSquiggly.BaseBuilder builder, BeanInfoIntrospector beanInfoIntrospector) {
+        this.beanInfoIntrospector = notNull(beanInfoIntrospector);
         this.config = notNull(builder.builtConfig);
         this.conversionService = notNull(builder.builtConversionService);
         this.contextProvider = notNull(builder.builtContextProvider);
@@ -60,8 +74,25 @@ public abstract class BaseSquiggly {
         this.metrics = notNull(builder.builtMetrics);
         this.parser = notNull(builder.builtParser);
         this.variableResolver = notNull(builder.builtVariableResolver);
+
+        this.functionInvoker = new SquigglyFunctionInvoker(this.conversionService, this.functionRepository, this.variableResolver);
+        this.nodeMatcher = new SquigglyNodeMatcher(this);
+        this.nodeFilter = new SquigglyNodeFilter(this.parser, this.nodeMatcher, this.functionInvoker);
     }
 
+
+    public <T> CoreJsonNode<T> apply(CoreJsonNode<T> node, String... filters) {
+        return nodeFilter.apply(node, filters);
+    }
+
+    /**
+     * Gets the bean info introspector
+     *
+     * @return bean info introspector
+     */
+    public BeanInfoIntrospector getBeanInfoIntrospector() {
+        return beanInfoIntrospector;
+    }
 
     /**
      * Get the configuration information.
@@ -100,6 +131,15 @@ public abstract class BaseSquiggly {
     }
 
     /**
+     * Get the function invoker.
+     *
+     * @return function invoker
+     */
+    public SquigglyFunctionInvoker getFunctionInvoker() {
+        return functionInvoker;
+    }
+
+    /**
      * Get function repository.
      *
      * @return repo
@@ -108,6 +148,7 @@ public abstract class BaseSquiggly {
         return functionRepository;
     }
 
+
     /**
      * Get the metrics.
      *
@@ -115,6 +156,25 @@ public abstract class BaseSquiggly {
      */
     public SquigglyMetrics getMetrics() {
         return metrics;
+    }
+
+
+    /**
+     * Get the node matcher.
+     *
+     * @return node matcher
+     */
+    public SquigglyNodeMatcher getNodeMatcher() {
+        return nodeMatcher;
+    }
+
+    /**
+     * Get the node filder.
+     *
+     * @return node filter
+     */
+    public SquigglyNodeFilter getNodeFilter() {
+        return nodeFilter;
     }
 
     /**
@@ -141,7 +201,6 @@ public abstract class BaseSquiggly {
      * @param <B> the builder type
      * @param <S> the squiggly type
      */
-
     @SuppressWarnings("TypeParameterHidesVisibleType")
     public abstract static class BaseBuilder<B extends BaseBuilder<B, S>, S extends BaseSquiggly> {
 

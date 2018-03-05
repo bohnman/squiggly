@@ -1,11 +1,8 @@
-package com.github.bohnman.squiggly.jackson.bean;
+package com.github.bohnman.squiggly.core.bean;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.github.bohnman.core.cache.CoreCache;
 import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.lang.CoreFields;
-import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
@@ -18,7 +15,6 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -111,55 +107,10 @@ public class BeanInfoIntrospector {
 
     @Nullable
     protected String getPropertyName(String propertyName, Annotation[] annotations) {
-        if (propertyName != null) {
-            return propertyName;
-        }
-
-        for (Annotation ann : annotations) {
-            if (ann instanceof JsonProperty) {
-                propertyName = getPropertyName((JsonProperty) ann);
-
-                if (propertyName != null) {
-                    return propertyName;
-                }
-
-            }
-
-            for (Annotation classAnn : ann.annotationType().getAnnotations()) {
-                if (classAnn instanceof JsonProperty) {
-                    propertyName = getPropertyName((JsonProperty) classAnn);
-
-                    if (propertyName != null) {
-                        return propertyName;
-                    }
-                }
-            }
-        }
-
-        return null;
+        return propertyName;
     }
 
-    private static String getPropertyName(JsonProperty ann) {
-        return CoreStrings.defaultIfEmpty(ann.value(), null);
-    }
-
-    private static boolean isUnwrapped(PropertyDescriptor propertyDescriptor, Field field) {
-        if (field != null && field.isAnnotationPresent(JsonUnwrapped.class)) {
-            return true;
-        }
-
-        Method readMethod = propertyDescriptor.getReadMethod();
-
-        if (readMethod != null && readMethod.isAnnotationPresent(JsonUnwrapped.class)) {
-            return true;
-        }
-
-        Method writeMethod = propertyDescriptor.getWriteMethod();
-
-        if (writeMethod != null && writeMethod.isAnnotationPresent(JsonUnwrapped.class)) {
-            return true;
-        }
-
+    protected boolean isUnwrapped(PropertyDescriptor propertyDescriptor, Field field) {
         return false;
     }
 

@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.POJONode;
+import com.github.bohnman.core.json.node.BaseCoreJsonNode;
+import com.github.bohnman.core.json.node.CoreJsonNode;
+import com.github.bohnman.core.json.node.CoreJsonNodeType;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.array.CoreArrayWrapper;
 import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.jackson.json.node.BaseCoreJsonNode;
-import com.github.bohnman.squiggly.jackson.json.node.CoreJsonNode;
-import com.github.bohnman.squiggly.jackson.json.node.CoreJsonNodeType;
 
 import java.io.IOException;
 import java.math.BigDecimal;

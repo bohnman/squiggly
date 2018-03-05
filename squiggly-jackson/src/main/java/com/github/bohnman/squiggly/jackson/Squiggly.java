@@ -1,14 +1,16 @@
 package com.github.bohnman.squiggly.jackson;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
-import com.github.bohnman.squiggly.jackson.bean.BeanInfoIntrospector;
+import com.github.bohnman.squiggly.jackson.bean.JacksonBeanInfoIntrospector;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilterMixin;
+import com.github.bohnman.squiggly.jackson.json.JacksonJsonNode;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
 
 import javax.annotation.Nullable;
@@ -22,26 +24,18 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 @ThreadSafe
 public class Squiggly extends BaseSquiggly {
 
-    private final BeanInfoIntrospector beanInfoIntrospector;
     private final SquigglyPropertyFilter filter;
     private final SquigglyJacksonSerializer serializer;
 
     private Squiggly(Builder builder) {
-        super(builder);
-        this.beanInfoIntrospector = new BeanInfoIntrospector(builder.getBuiltConfig(), builder.getBuiltMetrics());
+        super(builder, new JacksonBeanInfoIntrospector(builder.getBuiltConfig(), builder.getBuiltMetrics()));
         this.filter = new SquigglyPropertyFilter(this);
         this.serializer = notNull(builder.builtSerializer);
     }
 
-    /**
-     * Gets bean info introspector.
-     *
-     * @return introspector
-     */
-    public BeanInfoIntrospector getBeanInfoIntrospector() {
-        return beanInfoIntrospector;
+    public JsonNode apply(JsonNode node, String... filters) {
+        return apply(new JacksonJsonNode(node), filters).getRawNode();
     }
-
 
     /**
      * Apply squiggly to the provided object mapper.
@@ -137,6 +131,11 @@ public class Squiggly extends BaseSquiggly {
      */
     public static Builder builder(SquigglyContextProvider contextProvider) {
         return builder().context(contextProvider);
+    }
+
+
+    public static Squiggly init() {
+        return builder().build();
     }
 
 

@@ -1,13 +1,11 @@
-package com.github.bohnman.squiggly.jackson.filter;
+package com.github.bohnman.squiggly.core.filter;
 
+import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
+import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.core.parser.SquigglyParser;
-import com.github.bohnman.squiggly.jackson.json.node.BaseCoreJsonNodeVisitor;
-import com.github.bohnman.squiggly.jackson.json.node.CoreJsonNode;
-import com.github.bohnman.squiggly.jackson.json.node.CoreJsonNodeVisitorContext;
-import com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher;
 
 import java.util.List;
 import java.util.Objects;
@@ -42,30 +40,26 @@ public class SquigglyNodeFilter {
     }
 
     private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> rootJsonNode, String filter, SquigglyNode squigglyNode) {
-        return new BaseCoreJsonNodeVisitor<T>() {
-            @Override
-            protected CoreJsonNode<T> visitAtomNode(CoreJsonNodeVisitorContext context, CoreJsonNode<T> jsonNode) {
-                if (context.getPath().isEmpty()) {
-                    return jsonNode;
-                }
-
-                SquigglyNode match = nodeMatcher.match(context.getPath(), filter, squigglyNode);
-
-                if (match == null || match == SquigglyNodeMatcher.NEVER_MATCH) {
-                    return null;
-                }
-
-                context.setKey("" + functionInvoker.invoke(context.getKey(), match.getKeyFunctions()));
-                Object origValue = jsonNode.getValue();
-                Object newValue = functionInvoker.invoke(origValue, match.getValueFunctions());
-
-                if (Objects.equals(origValue, newValue)) {
-                    return jsonNode;
-                }
-
-                return jsonNode.create(newValue);
+        return rootJsonNode.transform((context, jsonNode) -> {
+            if (context.getPath().isEmpty()) {
+                return jsonNode;
             }
-        }.visit(rootJsonNode);
-    }
 
+            SquigglyNode match = nodeMatcher.match(context.getPath(), filter, squigglyNode);
+
+            if (match == null || match == SquigglyNodeMatcher.NEVER_MATCH) {
+                return null;
+            }
+
+            context.setKey("" + functionInvoker.invoke(context.getKey(), match.getKeyFunctions()));
+            Object origValue = jsonNode.getValue();
+            Object newValue = functionInvoker.invoke(origValue, match.getValueFunctions());
+
+            if (Objects.equals(origValue, newValue)) {
+                return jsonNode;
+            }
+
+            return jsonNode.create(newValue);
+        });
+    }
 }

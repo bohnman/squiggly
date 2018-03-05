@@ -10,17 +10,13 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.std.MapProperty;
 import com.github.bohnman.core.json.jackson.CoreObjectMappers;
-import com.github.bohnman.core.tuple.CorePair;
+import com.github.bohnman.core.json.path.CoreJsonPath;
+import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
-import com.github.bohnman.squiggly.core.name.AnyDeepName;
+import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.jackson.Squiggly;
-import com.github.bohnman.squiggly.jackson.json.JacksonJsonNode;
-import com.github.bohnman.squiggly.jackson.json.node.CoreJsonNode;
-import com.github.bohnman.squiggly.jackson.json.path.CoreJsonPath;
-import com.github.bohnman.squiggly.jackson.json.path.CoreJsonPathElement;
-import com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -31,7 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static com.github.bohnman.squiggly.jackson.match.SquigglyNodeMatcher.NEVER_MATCH;
+import static com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher.NEVER_MATCH;
 
 
 /**
@@ -77,8 +73,6 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     public static final String FILTER_ID = "squigglyFilter";
 
     private final Squiggly squiggly;
-    private final SquigglyFunctionInvoker functionInvoker;
-    private final SquigglyNodeMatcher nodeMatcher;
 
     /**
      * Constructor.
@@ -87,8 +81,6 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
      */
     public SquigglyPropertyFilter(Squiggly squiggly) {
         this.squiggly = notNull(squiggly);
-        this.nodeMatcher = new SquigglyNodeMatcher(squiggly);
-        this.functionInvoker = new SquigglyFunctionInvoker(squiggly.getConversionService(), squiggly.getFunctionRepository(), squiggly.getVariableResolver());
     }
 
     @Override
@@ -107,6 +99,8 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     public void serializeAsField(final Object pojo, final JsonGenerator jgen, final SerializerProvider provider,
                                  final PropertyWriter writer) throws Exception {
         SquigglyNode match = match(writer, jgen);
+
+        SquigglyFunctionInvoker functionInvoker = squiggly.getFunctionInvoker();
 
         if (match != null && match != NEVER_MATCH) {
             if (match.getKeyFunctions().isEmpty() && match.getValueFunctions().isEmpty()) {
@@ -143,7 +137,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         CoreJsonPath path = getPath(writer, streamContext);
         SquigglyContext context = squiggly.getContextProvider().getContext(path.getFirst().getBeanClass(), squiggly);
 
-        return nodeMatcher.match(path, context);
+        return squiggly.getNodeMatcher().match(path, context);
     }
 
     private CoreJsonPath getPath(PropertyWriter writer, JsonStreamContext sc) {
@@ -171,16 +165,9 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     public static void main(String[] args) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(CoreObjectMappers.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
-        CoreJsonNode<JsonNode> coreJsonNode = new JacksonJsonNode(jsonNode);
-
-        Squiggly squiggly = Squiggly.builder().build();
-        SquigglyNodeMatcher matcher = new SquigglyNodeMatcher(squiggly);
-        SquigglyFunctionInvoker functionInvoker = new SquigglyFunctionInvoker(squiggly.getConversionService(), squiggly.getFunctionRepository(), squiggly.getVariableResolver());
-        SquigglyNodeFilter filter = new SquigglyNodeFilter(squiggly.getParser(), matcher, functionInvoker);
-
-        coreJsonNode = filter.apply(coreJsonNode, "nickNames[name.reverse()]");
-
-        System.out.println(new ObjectMapper().writeValueAsString(coreJsonNode.getRawNode()));
+        Squiggly squiggly = Squiggly.init();
+        jsonNode = squiggly.apply(jsonNode, "nickNames[name.reverse()]");
+        System.out.println(mapper.writeValueAsString(jsonNode));
 
 
 //        ObjectMapper mapper = Squiggly.builder("nickNames={foo:'bar'}")
