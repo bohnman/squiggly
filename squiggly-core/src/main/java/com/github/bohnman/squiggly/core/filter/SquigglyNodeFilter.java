@@ -2,24 +2,21 @@ package com.github.bohnman.squiggly.core.filter;
 
 import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
-import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
+import com.github.bohnman.squiggly.core.BaseSquiggly;
+import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
-import com.github.bohnman.squiggly.core.parser.SquigglyParser;
 
 import java.util.List;
 import java.util.Objects;
 
+@SuppressWarnings("unchecked")
 public class SquigglyNodeFilter {
 
-    private final SquigglyFunctionInvoker functionInvoker;
-    private final SquigglyNodeMatcher nodeMatcher;
-    private final SquigglyParser parser;
+    private final BaseSquiggly squiggly;
 
-    public SquigglyNodeFilter(SquigglyParser parser, SquigglyNodeMatcher nodeMatcher, SquigglyFunctionInvoker functionInvoker) {
-        this.parser = CoreAssert.notNull(parser);
-        this.functionInvoker = CoreAssert.notNull(functionInvoker);
-        this.nodeMatcher = CoreAssert.notNull(nodeMatcher);
+    public SquigglyNodeFilter(BaseSquiggly squiggly) {
+        this.squiggly = CoreAssert.notNull(squiggly);
     }
 
 
@@ -28,32 +25,44 @@ public class SquigglyNodeFilter {
             node = applyFilter(node, filter);
         }
 
+        if (squiggly.getConfig().isUseContextInNodeFilter() && squiggly.getContextProvider().isFilteringEnabled()) {
+            Object value = node.getValue();
+            Class<?> beanClass = value == null ? Object.class : value.getClass();
+            SquigglyContext context = squiggly.getContextProvider().getContext(beanClass, squiggly);
+            node = applyFilter(node, context.getFilter(), context.getNode());
+        }
+
         return node;
     }
 
     private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> node, String filter) {
-        List<SquigglyNode> squigglyNodes = parser.parseNodeFilter(filter);
+        List<SquigglyNode> squigglyNodes = squiggly.getParser().parseNodeFilter(filter);
         for (SquigglyNode squigglyNode : squigglyNodes) {
             node = applyFilter(node, filter, squigglyNode);
         }
+
         return node;
     }
 
     private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> rootJsonNode, String filter, SquigglyNode squigglyNode) {
+        if (squigglyNode == null) {
+            return rootJsonNode;
+        }
+
         return rootJsonNode.transform((context, jsonNode) -> {
             if (context.getPath().isEmpty()) {
                 return jsonNode;
             }
 
-            SquigglyNode match = nodeMatcher.match(context.getPath(), filter, squigglyNode);
+            SquigglyNode match = squiggly.getNodeMatcher().match(context.getPath(), filter, squigglyNode);
 
             if (match == null || match == SquigglyNodeMatcher.NEVER_MATCH) {
                 return null;
             }
 
-            context.setKey("" + functionInvoker.invoke(context.getKey(), match.getKeyFunctions()));
+            context.setKey("" + squiggly.getFunctionInvoker().invoke(context.getKey(), match.getKeyFunctions()));
             Object origValue = jsonNode.getValue();
-            Object newValue = functionInvoker.invoke(origValue, match.getValueFunctions());
+            Object newValue = squiggly.getFunctionInvoker().invoke(origValue, match.getValueFunctions());
 
             if (Objects.equals(origValue, newValue)) {
                 return jsonNode;

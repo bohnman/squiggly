@@ -34,9 +34,8 @@ public class SquigglyConfig {
     private final boolean filterImplicitlyIncludeBaseFieldsInView;
     private final CoreCacheBuilderSpec filterPathCacheSpec;
     private final boolean filterPropagateViewToNestedFilters;
-
+    private final boolean useContextInNodeFilter;
     private final CoreCacheBuilderSpec parserNodeCacheSpec;
-
     private final boolean propertyAddNonAnnotatedFieldsToBaseView;
     private final CoreCacheBuilderSpec propertyDescriptorCacheSpec;
     private final CoreCacheBuilderSpec convertCacheSpec;
@@ -76,6 +75,7 @@ public class SquigglyConfig {
         propertyAddNonAnnotatedFieldsToBaseView = getBool(source, propsMap, locationMap, "squiggly.property.addNonAnnotatedFieldsToBaseView");
         propertyDescriptorCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.property.descriptorCache.spec");
         filterRequestParam = getString(source, propsMap, locationMap, "squiggly.filter.request.param");
+        useContextInNodeFilter = getBool(source, propsMap, locationMap, "squiggly.filter.node.useContext");
 
         this.propsMap = Collections.unmodifiableSortedMap(propsMap);
         this.locationMap = Collections.unmodifiableSortedMap(locationMap);
@@ -302,6 +302,14 @@ public class SquigglyConfig {
      */
     public CoreCacheBuilderSpec getPropertyDescriptorCacheSpec() {
         return propertyDescriptorCacheSpec;
+    }
+
+    /**
+     * Determins whether to use the SquigglyContext in the node filter as last filter.
+     * @return true if use, false if not
+     */
+    public boolean isUseContextInNodeFilter() {
+        return useContextInNodeFilter;
     }
 
     /**
