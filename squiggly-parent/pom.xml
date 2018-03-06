@@ -137,7 +137,31 @@
 
             <dependency>
                 <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-cli</artifactId>
+                <version>${squiggly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
                 <artifactId>squiggly-core</artifactId>
+                <version>${squiggly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-gson</artifactId>
+                <version>${squiggly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-kotlin-jackson</artifactId>
+                <version>${squiggly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-spring-boot-starter-jackson</artifactId>
                 <version>${squiggly.version}</version>
             </dependency>
 
