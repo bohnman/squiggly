@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -55,11 +56,39 @@ public class SquigglyParser {
     public static final String OP_DOLLAR = "$";
 
     // Caches parsed filter expressions
-    private final CoreCache<String, SquigglyNode> cache;
+    private final CoreCache<String, List<SquigglyNode>> cache;
 
     public SquigglyParser(SquigglyConfig config, SquigglyMetrics metrics) {
         cache = CoreCacheBuilder.from(config.getParserNodeCacheSpec()).build();
         metrics.add(new CoreCacheSquigglyMetricsSource("squiggly.parser.nodeCache.", cache));
+    }
+
+    /**
+     * Parse node filter expression.
+     *
+     * @param filter filter
+     * @return list of squiggly nodes
+     */
+    public List<SquigglyNode> parseNodeFilter(String filter) {
+        filter = CoreStrings.trim(filter);
+
+        if (CoreStrings.isEmpty(filter)) {
+            return Collections.emptyList();
+        }
+
+        List<SquigglyNode> cachedNodes = cache.get(filter);
+
+        if (cachedNodes != null) {
+            return cachedNodes;
+        }
+
+        SquigglyExpressionLexer lexer = ThrowingErrorListener.overwrite(new SquigglyExpressionLexer(CharStreams.fromString(filter)));
+        SquigglyExpressionParser parser = ThrowingErrorListener.overwrite(new SquigglyExpressionParser(new CommonTokenStream(lexer)));
+        NodeFilterVisitor visitor = new NodeFilterVisitor();
+        List<SquigglyNode> nodes = visitor.visit(parser.nodeFilter());
+
+        cache.put(filter, nodes);
+        return nodes;
     }
 
     /**
@@ -76,12 +105,11 @@ public class SquigglyParser {
         }
 
         // get it from the cache if we can
-        SquigglyNode cachedNode = cache.get(filter);
+        List<SquigglyNode> cachedNodes = cache.get(filter);
 
-        if (cachedNode != null) {
-            return cachedNode;
+        if (cachedNodes != null) {
+            return cachedNodes.isEmpty() ? SquigglyNode.EMPTY : cachedNodes.get(0);
         }
-
 
         SquigglyExpressionLexer lexer = ThrowingErrorListener.overwrite(new SquigglyExpressionLexer(CharStreams.fromString(filter)));
         SquigglyExpressionParser parser = ThrowingErrorListener.overwrite(new SquigglyExpressionParser(new CommonTokenStream(lexer)));
@@ -90,16 +118,46 @@ public class SquigglyParser {
         SquigglyNode node = visitor.visit(parser.propertyFilter());
 
         if (node != null) {
-            cache.put(filter, node);
+            cache.put(filter, Collections.singletonList(node));
         }
 
         return node;
     }
 
+    private class NodeFilterVisitor extends SquigglyExpressionBaseVisitor<List<SquigglyNode>> {
+
+        private final PropertyFilterVisitor visitor = new PropertyFilterVisitor();
+
+        @Override
+        public List<SquigglyNode> visitNodeFilter(SquigglyExpressionParser.NodeFilterContext ctx) {
+            return ctx.nodeExpressionList()
+                    .stream()
+                    .map(visitor::visitNodeExpressionList)
+                    .filter(Objects::nonNull)
+                    .collect(toList());
+        }
+    }
+
     private class PropertyFilterVisitor extends SquigglyExpressionBaseVisitor<SquigglyNode> {
+
+        @Override
+        public SquigglyNode visitNodeExpressionList(SquigglyExpressionParser.NodeExpressionListContext ctx) {
+            MutableNode root = new MutableNode(parseContext(ctx), new ExactName(SquigglyNode.ROOT)).dotPathed(true);
+
+            if (ctx.expressionList() != null) {
+                handleExpressionList(ctx.expressionList(), root);
+            } else if (ctx.selfReferencingExpression() != null) {
+                // TODO: finish
+                SquigglyExpressionParser.SelfReferencingExpressionContext expressionContext = ctx.selfReferencingExpression();
+            }
+
+            MutableNode analyzedRoot = analyze(root);
+            return analyzedRoot.toSquigglyNode();
+        }
+
         @Override
         public SquigglyNode visitPropertyFilter(SquigglyExpressionParser.PropertyFilterContext ctx) {
-            MutableNode root = new MutableNode(parseContext(ctx), new ExactName("root")).dotPathed(true);
+            MutableNode root = new MutableNode(parseContext(ctx), new ExactName(SquigglyNode.ROOT)).dotPathed(true);
             handleExpressionList(ctx.expressionList(), root);
             MutableNode analyzedRoot = analyze(root);
             return analyzedRoot.toSquigglyNode();

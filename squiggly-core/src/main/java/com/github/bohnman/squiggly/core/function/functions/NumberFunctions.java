@@ -183,6 +183,7 @@ public class NumberFunctions {
             return null;
         }
     }
+
     public static Long toInt(String value, String pattern) {
         Number number = toNumber(value, pattern);
 

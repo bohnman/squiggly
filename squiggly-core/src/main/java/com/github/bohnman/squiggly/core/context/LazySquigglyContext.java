@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Squiggly context that loads the parsed nodes on demand.
