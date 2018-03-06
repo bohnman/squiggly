@@ -4,11 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Spring Boot Starter Squiggly</name>
+    <name>Squiggly Gson</name>
     <url>https://github.com/bohnman/squiggly-java</url>
-
-    <description>Squiggly Core library</description>
-    <artifactId>squiggly-spring-boot-starter</artifactId>
+    <description>Squiggly for Gson.</description>
+    <artifactId>squiggly-gson</artifactId>
 
     <parent>
         <groupId>com.github.bohnman</groupId>
@@ -18,63 +17,32 @@
     </parent>
 
     <dependencies>
-
         <dependency>
             <groupId>com.github.bohnman</groupId>
-            <artifactId>squiggly-jackson</artifactId>
+            <artifactId>squiggly-core</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot</artifactId>
-            <version>1.5.7.RELEASE</version>
-            <optional>true</optional>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.2</version>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-            <version>1.5.7.RELEASE</version>
-            <optional>true</optional>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-            <version>5.0.4.RELEASE</version>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>5.0.4.RELEASE</version>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webflux</artifactId>
-            <version>5.0.4.RELEASE</version>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <optional>true</optional>
-        </dependency>
-
 
     </dependencies>
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -95,7 +63,7 @@
                     <packages>
                         <package>
                             <pattern>**</pattern>
-                            <template>${project.basedir}/src/main/java/com/github/bohnman/squiggly/spring/boot/starter/package-info.java</template>
+                            <template>${project.basedir}/src/main/java/com/github/bohnman/squiggly/jackson/package-info.java</template>
                         </package>
                     </packages>
                 </configuration>

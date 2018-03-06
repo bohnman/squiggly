@@ -157,17 +157,20 @@ public class JacksonJsonNode extends BaseCoreJsonNode<JsonNode> {
             ObjectNode objectNode = factory.objectNode();
             Map<?, ?> map = (Map) value;
             map.forEach((key, val) -> objectNode.replace(key.toString(), createJsonNode(val, factory)));
+            return objectNode;
         }
 
         if (value instanceof Iterable) {
             ArrayNode arrayNode = factory.arrayNode();
             ((Iterable<?>) value).forEach(el -> arrayNode.add(createJsonNode(el, factory)));
+            return arrayNode;
         }
 
         if (value.getClass().isArray()) {
             ArrayNode arrayNode = factory.arrayNode();
             CoreArrayWrapper wrapper = CoreArrays.wrap(value);
             wrapper.forEach(el -> arrayNode.add(createJsonNode(el, factory)));
+            return arrayNode;
         }
 
         return factory.pojoNode(value);

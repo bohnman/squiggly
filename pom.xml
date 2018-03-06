@@ -52,9 +52,10 @@
         <!--<module>examples/spring-boot-webflux-annotation-example</module>-->
         <!--<module>examples/spring-boot-webflux-functional-example</module>-->
         <module>squiggly-core</module>
+        <module>squiggly-gson</module>
         <module>squiggly-jackson</module>
         <module>squiggly-kotlin-jackson</module>
         <module>squiggly-parent</module>
-        <module>squiggly-spring-boot-starter</module>
+        <module>squiggly-spring-boot-starter-jackson</module>
     </modules>
 </project>
