@@ -1,4 +1,4 @@
-package com.squiggly.gson.json;
+package com.github.bohnman.squiggly.gson.json;
 
 import com.github.bohnman.core.bean.CoreBeans;
 import com.github.bohnman.core.collect.CoreStreams;

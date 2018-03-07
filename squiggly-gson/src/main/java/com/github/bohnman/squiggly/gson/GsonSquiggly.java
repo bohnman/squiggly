@@ -1,11 +1,11 @@
-package com.squiggly.gson;
+package com.github.bohnman.squiggly.gson;
 
 import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.squiggly.gson.json.GsonJsonNode;
+import com.github.bohnman.squiggly.gson.json.GsonJsonNode;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
