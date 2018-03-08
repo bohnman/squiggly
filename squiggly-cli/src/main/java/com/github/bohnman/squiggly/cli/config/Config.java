@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.cli.config;
 
+import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -7,8 +8,11 @@ import com.github.bohnman.core.encoding.CoreCharsets;
 import com.github.bohnman.core.io.CoreIo;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -47,7 +51,11 @@ public class Config {
     @Parameter(names = "--tab", description = "indent output with tab instead of spaces")
     private boolean tab;
 
+    @DynamicParameter(names = "-V", description = "sets a variable (eg. -Vfoo=bar)")
+    private Map<String, String> variables = new HashMap<>();
+
     public Config(String... args) {
+        System.out.println("ARGS: " + Arrays.toString(args));
         commander = JCommander.newBuilder()
                 .addObject(this)
                 .build();
@@ -89,6 +97,8 @@ public class Config {
         if (indent < 0 || indent > MAX_INDENT) {
             throw new ParameterException(String.format("indent must be >= 0 and <= %s", MAX_INDENT));
         }
+
+        System.out.println(this);
     }
 
     private String readFilter(String path) {
@@ -136,6 +146,10 @@ public class Config {
         return tab;
     }
 
+    public Map<String, String> getVariables() {
+        return variables;
+    }
+
     public void printUsage() {
         commander.usage();
     }
@@ -144,5 +158,22 @@ public class Config {
         System.out.println(Pattern.compile("^\\s+#.*$", Pattern.MULTILINE)
                 .matcher(" # foo \n bar")
                 .replaceAll(""));
+    }
+
+    @Override
+    public String toString() {
+        return "Config{" +
+                "compact=" + compact +
+                ", files=" + files +
+                ", filter='" + filter + '\'' +
+                ", filterFile=" + filterFile +
+                ", help=" + help +
+                ", indent=" + indent +
+                ", nullInput=" + nullInput +
+                ", rawOutput=" + rawOutput +
+                ", sortKeys=" + sortKeys +
+                ", tab=" + tab +
+                ", variables=" + variables +
+                '}';
     }
 }

@@ -174,6 +174,7 @@ functionName
 //region Function Arguments
 arg
     : argChain
+    | Null
     | lambda
     | (NotName | Not) arg
     | arg (WildcardShallow | MultiplyName | SlashForward | DivideName | Modulus | ModulusName) arg
@@ -363,6 +364,7 @@ And: '&&';
 AngleLeft: '<';
 AngleRight: '>';
 At: '@';
+Backtick: '`';
 BracketLeft: '[';
 BracketLeftSafe: '?[';
 BracketRight: ']';
@@ -382,6 +384,7 @@ Match: '=~';
 MatchNot: '!~';
 Modulus: '%';
 Not: '!';
+Null: 'null';
 ParenLeft: '(';
 ParenRight: ')';
 Pipe: '|';
@@ -423,6 +426,7 @@ RegexLiteral
 StringLiteral
     : QuoteDouble DoubleQuotedStringCharacters* QuoteDouble
     | QuoteSingle SingleQuotedStringCharacters* QuoteSingle
+    | Backtick BacktickQuotedStringCharacters* Backtick
     ;
 
 
@@ -492,6 +496,11 @@ fragment RegexFlag
 
 
 //region Strings
+fragment BacktickQuotedStringCharacters
+    :    ~[`\\]
+    |    StringEscape
+    ;
+
 fragment DoubleQuotedStringCharacters
     :    ~["\\]
     |    StringEscape

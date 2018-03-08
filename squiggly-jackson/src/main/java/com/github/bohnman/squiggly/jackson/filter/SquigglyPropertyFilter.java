@@ -166,7 +166,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(CoreObjectMappers.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
         Squiggly squiggly = Squiggly.init();
-        jsonNode = squiggly.apply(jsonNode, "nickNames[name.reverse()]");
+        jsonNode = squiggly.apply(jsonNode, "nickNames[name=null]");
         System.out.println(mapper.writeValueAsString(jsonNode));
 
 

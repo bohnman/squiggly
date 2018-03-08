@@ -17,7 +17,7 @@ public class ArgumentNode {
         isTrue(index >= 0, "index must be >= 0");
         this.index = index;
 
-        this.value = notNull(value);
+        this.value = value;
         this.type = notNull(type);
     }
 

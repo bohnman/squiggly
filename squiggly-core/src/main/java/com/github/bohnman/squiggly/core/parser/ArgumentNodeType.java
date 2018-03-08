@@ -10,6 +10,7 @@ public enum ArgumentNodeType {
     INTEGER,
     LAMBDA,
     OBJECT_DECLARATION,
+    NULL,
     REGEX,
     STRING,
     VARIABLE

@@ -537,6 +537,10 @@ public class SquigglyParser {
             Object value;
             ArgumentNodeType type;
 
+            if (arg.Null() != null) {
+                return buildNull(arg);
+            }
+
             if (arg.argChain() != null) {
                 return buildArgChain(arg.argChain());
             }
@@ -551,6 +555,10 @@ public class SquigglyParser {
 
 
             throw new IllegalStateException(format("%s: Unknown arg type [%s]", parseContext(arg), arg.getText()));
+        }
+
+        private ArgumentNode.Builder buildNull(SquigglyExpressionParser.ArgContext arg) {
+            return baseArg(arg, ArgumentNodeType.NULL).value(null);
         }
 
         private ArgumentNode.Builder buildLambda(SquigglyExpressionParser.LambdaContext lambda) {
@@ -936,9 +944,9 @@ public class SquigglyParser {
 
             if (text.startsWith("'") && text.endsWith("'")) {
                 text = CoreStrings.unescapeEcmaScript(text.substring(1, text.length() - 1));
-            }
-
-            if (text.startsWith("\"") && text.endsWith("\"")) {
+            } else if (text.startsWith("\"") && text.endsWith("\"")) {
+                text = CoreStrings.unescapeEcmaScript(text.substring(1, text.length() - 1));
+            } else if (text.startsWith("`") && text.endsWith("`")) {
                 text = CoreStrings.unescapeEcmaScript(text.substring(1, text.length() - 1));
             }
 

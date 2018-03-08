@@ -31,7 +31,7 @@ public class Runner implements Runnable {
     public Runner(String... args) {
         this.config = new Config(args);
         this.mapper = buildObjectMapper();
-        this.squiggly = Squiggly.builder().build();
+        this.squiggly = buildSquiggly();
     }
 
     private ObjectMapper buildObjectMapper() {
@@ -46,6 +46,12 @@ public class Runner implements Runnable {
         }
 
         return mapper;
+    }
+
+    private Squiggly buildSquiggly() {
+        Squiggly.Builder builder = Squiggly.builder();
+        config.getVariables().forEach(builder::variable);
+        return builder.build();
     }
 
     @Override
