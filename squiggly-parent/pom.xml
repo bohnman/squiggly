@@ -33,6 +33,8 @@
         <package-info-maven-plugin.version>1.0.1</package-info-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
         <squiggly.version>2.0.0-SNAPSHOT</squiggly.version>
+        <maven-shade-plugin.version>3.1.0</maven-shade-plugin.version>
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>
 
     <licenses>
@@ -137,7 +139,31 @@
 
             <dependency>
                 <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-cli</artifactId>
+                <version>${squiggly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
                 <artifactId>squiggly-core</artifactId>
+                <version>${squiggly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-gson</artifactId>
+                <version>${squiggly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-kotlin-jackson</artifactId>
+                <version>${squiggly.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.bohnman</groupId>
+                <artifactId>squiggly-spring-boot-starter-jackson</artifactId>
                 <version>${squiggly.version}</version>
             </dependency>
 
@@ -205,6 +231,16 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>${exec-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${maven-shade-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

@@ -63,7 +63,7 @@
                     <packages>
                         <package>
                             <pattern>**</pattern>
-                            <template>${project.basedir}/src/main/java/com/github/bohnman/squiggly/jackson/package-info.java</template>
+                            <template>${project.basedir}/src/main/java/com/github/bohnman/squiggly/gson/package-info.java</template>
                         </package>
                     </packages>
                 </configuration>
