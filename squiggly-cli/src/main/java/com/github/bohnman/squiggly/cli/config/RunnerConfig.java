@@ -6,19 +6,25 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.github.bohnman.core.encoding.CoreCharsets;
 import com.github.bohnman.core.io.CoreIo;
+import com.github.bohnman.squiggly.core.config.source.PropertiesConfigSource;
+import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
 
 import java.io.File;
-import java.util.Arrays;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("FieldCanBeLocal")
-public class Config {
+public class RunnerConfig {
 
     private static final int MAX_INDENT = 10;
+
+    private String baseSquigglyPath = System.getProperty("user.home") + File.separatorChar + ".squiggly";
 
     private final JCommander commander;
 
@@ -28,9 +34,10 @@ public class Config {
     @Parameter(names = {"-M", "--monochrome-output"}, description = "Force monochrome output")
     private boolean monochromeOutput;
 
-
     @Parameter(names = {"-c", "--compact"}, description = "compact instead of pretty output")
     private boolean compact = false;
+
+    private SquigglyConfigSource configSource;
 
     @Parameter(description = "<squiggly-filter> [file...]")
     private List<String> files;
@@ -58,11 +65,16 @@ public class Config {
     @Parameter(names = "--tab", description = "indent output with tab instead of spaces")
     private boolean tab;
 
-    @DynamicParameter(names = "-V", description = "sets a variable (eg. -Vfoo=bar)")
-    private Map<String, String> variables = new HashMap<>();
+    @Parameter(names = "--tty-in", description = "indicates input is not being piped", hidden = true)
+    private boolean ttyIn;
 
-    public Config(String... args) {
-        System.out.println("ARGS: " + Arrays.toString(args));
+    @Parameter(names = "--tty-out", description = "indicates output is not being piped", hidden = true)
+    private boolean ttyOut;
+
+    @DynamicParameter(names = "-V", description = "sets a variable (eg. -Vfoo=bar)")
+    private Map<String, Object> variables = new HashMap<>();
+
+    public RunnerConfig(String... args) {
         commander = JCommander.newBuilder()
                 .addObject(this)
                 .build();
@@ -85,6 +97,16 @@ public class Config {
     }
 
     private void init() {
+        initFilterAndFiles();
+        initIndent();
+        initProperties();
+        initVariables();
+
+
+        System.out.println(this);
+    }
+
+    private void initFilterAndFiles() {
         if (files == null) {
             files = Collections.emptyList();
         }
@@ -97,6 +119,45 @@ public class Config {
             filter = readFilter(filterFile.getAbsolutePath());
         }
 
+        if (files.isEmpty() && isForceFiles()) {
+            throw new ParameterException("At least 1 file must be specified.");
+        }
+    }
+
+    private void initProperties() {
+        Properties properties = new Properties();
+
+        File propsFile = new File(baseSquigglyPath + File.separatorChar + "config");
+
+        if (propsFile.exists()) {
+            try {
+                properties.load(new FileInputStream(propsFile));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        configSource = new PropertiesConfigSource(propsFile.getAbsolutePath(), properties);
+
+    }
+
+    private void initVariables() {
+        Properties properties = new Properties();
+
+        File propsFile = new File(baseSquigglyPath + File.separatorChar + "variables");
+
+        if (propsFile.exists()) {
+            try {
+                properties.load(new FileInputStream(propsFile));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        properties.forEach((key, value) -> variables.putIfAbsent(key.toString(), value));
+    }
+
+    private void initIndent() {
         if (indent == null) {
             indent = tab ? 1 : 2;
         }
@@ -104,8 +165,6 @@ public class Config {
         if (indent < 0 || indent > MAX_INDENT) {
             throw new ParameterException(String.format("indent must be >= 0 and <= %s", MAX_INDENT));
         }
-
-        System.out.println(this);
     }
 
     private String readFilter(String path) {
@@ -117,12 +176,20 @@ public class Config {
 
     }
 
+    private boolean isForceFiles() {
+        if (ttyIn && ttyOut) {
+            return true;
+        }
+
+        return false;
+    }
+
     public boolean isColoredOutput() {
         if (monochromeOutput) {
             return false;
         }
 
-        if (coloredOutput) {
+        if (coloredOutput || ttyOut) {
             return true;
         }
 
@@ -153,6 +220,11 @@ public class Config {
         return nullInput;
     }
 
+
+    public SquigglyConfigSource getConfigSource() {
+        return configSource;
+    }
+
     public boolean isRawOutput() {
         return rawOutput;
     }
@@ -165,7 +237,7 @@ public class Config {
         return tab;
     }
 
-    public Map<String, String> getVariables() {
+    public Map<String, Object> getVariables() {
         return variables;
     }
 
@@ -181,8 +253,12 @@ public class Config {
 
     @Override
     public String toString() {
-        return "Config{" +
-                "compact=" + compact +
+        return "RunnerConfig{" +
+                "baseSquigglyPath='" + baseSquigglyPath + '\'' +
+                ", coloredOutput=" + coloredOutput +
+                ", monochromeOutput=" + monochromeOutput +
+                ", compact=" + compact +
+                ", configSource=" + configSource +
                 ", files=" + files +
                 ", filter='" + filter + '\'' +
                 ", filterFile=" + filterFile +
@@ -192,6 +268,8 @@ public class Config {
                 ", rawOutput=" + rawOutput +
                 ", sortKeys=" + sortKeys +
                 ", tab=" + tab +
+                ", ttyIn=" + ttyIn +
+                ", ttyOut=" + ttyOut +
                 ", variables=" + variables +
                 '}';
     }

@@ -9,10 +9,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.bohnman.core.io.OutputStreamWrapper;
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.squiggly.cli.config.Config;
+import com.github.bohnman.squiggly.cli.config.RunnerConfig;
 import com.github.bohnman.squiggly.cli.printer.SyntaxHighlighter;
 import com.github.bohnman.squiggly.cli.printer.SyntaxHighlightingJsonGenerator;
 import com.github.bohnman.squiggly.cli.printer.SyntaxHighlightingPrettyPrinter;
+import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 
 import java.io.BufferedReader;
@@ -28,13 +29,13 @@ import java.io.UncheckedIOException;
 public class Runner implements Runnable {
 
     private final ObjectMapper mapper;
-    private final Config config;
+    private final RunnerConfig config;
     private final Squiggly squiggly;
     private final SyntaxHighlighter syntaxHighlighter;
 
 
     public Runner(String... args) {
-        this.config = new Config(args);
+        this.config = new RunnerConfig(args);
         this.mapper = buildObjectMapper();
         this.squiggly = buildSquiggly();
         this.syntaxHighlighter = config.isColoredOutput() ? new SyntaxHighlighter() : null;
@@ -63,6 +64,8 @@ public class Runner implements Runnable {
     private Squiggly buildSquiggly() {
         Squiggly.Builder builder = Squiggly.builder();
         config.getVariables().forEach(builder::variable);
+        builder.config(new SquigglyConfig(config.getConfigSource()));
+
         return builder.build();
     }
 

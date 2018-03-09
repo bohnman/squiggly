@@ -21,6 +21,7 @@ import com.github.bohnman.squiggly.jackson.Squiggly;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -162,11 +163,15 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         return jgen.getOutputContext();
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ParseException {
+//        DecimalFormat format = new DecimalFormat();
+//        Number parse = format.parse("2.2");
+//        System.out.println(parse);
+
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(CoreObjectMappers.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
         Squiggly squiggly = Squiggly.init();
-        jsonNode = squiggly.apply(jsonNode, "nickNames[name='foo' + 2]");
+        jsonNode = squiggly.apply(jsonNode, "nickNames[name=1+3]");
         System.out.println(mapper.writeValueAsString(jsonNode));
 
 
