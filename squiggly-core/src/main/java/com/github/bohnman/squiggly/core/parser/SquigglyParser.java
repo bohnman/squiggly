@@ -793,7 +793,7 @@ public class SquigglyParser {
         }
 
         private ArgumentNode.Builder buildFloat(ParserRuleContext context) {
-            return baseArg(context, ArgumentNodeType.FLOAT).value(Float.parseFloat(context.getText()));
+            return baseArg(context, ArgumentNodeType.FLOAT).value(Double.parseDouble(context.getText()));
         }
 
         private ArgumentNode.Builder buildArgChain(SquigglyExpressionParser.ArgChainContext context) {
