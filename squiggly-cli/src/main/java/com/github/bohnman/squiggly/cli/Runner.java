@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.cli;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
@@ -9,6 +10,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.bohnman.core.io.OutputStreamWrapper;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.cli.config.Config;
+import com.github.bohnman.squiggly.cli.printer.SyntaxHighlighter;
+import com.github.bohnman.squiggly.cli.printer.SyntaxHighlightingJsonGenerator;
+import com.github.bohnman.squiggly.cli.printer.SyntaxHighlightingPrettyPrinter;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 
 import java.io.BufferedReader;
@@ -26,12 +30,14 @@ public class Runner implements Runnable {
     private final ObjectMapper mapper;
     private final Config config;
     private final Squiggly squiggly;
+    private final SyntaxHighlighter syntaxHighlighter;
 
 
     public Runner(String... args) {
         this.config = new Config(args);
         this.mapper = buildObjectMapper();
         this.squiggly = buildSquiggly();
+        this.syntaxHighlighter = config.isColoredOutput() ? new SyntaxHighlighter() : null;
     }
 
     private ObjectMapper buildObjectMapper() {
@@ -44,6 +50,12 @@ public class Runner implements Runnable {
         if (config.isSortKeys()) {
             mapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
         }
+
+        char indentCh = config.isTab() ? '\t' : ' ';
+        String indent = CoreStrings.repeat(indentCh, config.getIndent());
+        DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter(indent, DefaultIndenter.SYS_LF);
+        DefaultPrettyPrinter printer = syntaxHighlighter == null ? new DefaultPrettyPrinter() : new SyntaxHighlightingPrettyPrinter(syntaxHighlighter);
+        mapper.setDefaultPrettyPrinter(printer);
 
         return mapper;
     }
@@ -108,13 +120,19 @@ public class Runner implements Runnable {
     }
 
     private void write(JsonNode tree, PrintStream out) throws IOException {
-        char indentCh = config.isTab() ? '\t' : ' ';
-        String indent = CoreStrings.repeat(indentCh, config.getIndent());
-        DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter(indent, DefaultIndenter.SYS_LF);
-        DefaultPrettyPrinter printer = new DefaultPrettyPrinter();
-        printer.indentObjectsWith(indenter);
-        printer.indentArraysWith(indenter);
-        mapper.writer(printer).writeValue(new PreventCloseOutputStream(out), tree);
+        JsonGenerator jgen = createGenerator(out);
+        jgen.setPrettyPrinter(mapper.getSerializationConfig().getDefaultPrettyPrinter());
+        mapper.writeValue(jgen, tree);
+    }
+
+    private JsonGenerator createGenerator(PrintStream out) throws IOException {
+        JsonGenerator jgen = mapper.getFactory().createGenerator(new PreventCloseOutputStream(out));
+
+        if (syntaxHighlighter == null) {
+            return jgen;
+        }
+
+        return new SyntaxHighlightingJsonGenerator(jgen, syntaxHighlighter);
     }
 
     private Reader readerFor(InputStream in) {

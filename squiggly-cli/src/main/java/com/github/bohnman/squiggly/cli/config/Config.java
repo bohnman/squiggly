@@ -22,6 +22,13 @@ public class Config {
 
     private final JCommander commander;
 
+    @Parameter(names = {"-C", "--color-output"}, description = "Force colored output")
+    private boolean coloredOutput;
+
+    @Parameter(names = {"-M", "--monochrome-output"}, description = "Force monochrome output")
+    private boolean monochromeOutput;
+
+
     @Parameter(names = {"-c", "--compact"}, description = "compact instead of pretty output")
     private boolean compact = false;
 
@@ -108,6 +115,18 @@ public class Config {
                 .replaceAll("")
                 .trim();
 
+    }
+
+    public boolean isColoredOutput() {
+        if (monochromeOutput) {
+            return false;
+        }
+
+        if (coloredOutput) {
+            return true;
+        }
+
+        return System.console() != null;
     }
 
     public List<String> getFiles() {
