@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.IllegalFormatException;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class StringFunctions {
@@ -18,10 +19,23 @@ public class StringFunctions {
     private StringFunctions() {
     }
 
+    public static String add(String value1, Object value2) {
+        return Objects.toString(value1, "") + Objects.toString(value2, "");
+    }
+
+    public static String add(Object value1, String value2) {
+        return Objects.toString(value1, "") + Objects.toString(value2, "");
+    }
+
+    public static String add(Object value1, Object value2) {
+        return Objects.toString(value1, "") + Objects.toString(value2, "");
+    }
+
     @SquigglyMethod(aliases = "capitalise")
     public static String capitalize(String value) {
         return CoreStrings.capitalize(value);
     }
+
 
     public static boolean endsWith(String value, String search) {
         if (value == null || search == null) {
