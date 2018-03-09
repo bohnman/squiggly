@@ -4,6 +4,8 @@ import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreClasses;
 import com.github.bohnman.squiggly.core.convert.joda.JodaConverters;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,6 +34,8 @@ public class DefaultConverters {
         repo.add(Byte.class, Long.class, Byte::longValue);
         repo.add(Byte.class, Float.class, Byte::floatValue);
         repo.add(Byte.class, Double.class, Byte::doubleValue);
+        repo.add(Byte.class, BigInteger.class, (Function<Byte, BigInteger>) BigInteger::valueOf);
+        repo.add(Byte.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Integer
         repo.add(Integer.class, Byte.class, Integer::byteValue);
@@ -39,6 +43,8 @@ public class DefaultConverters {
         repo.add(Integer.class, Long.class, Integer::longValue);
         repo.add(Integer.class, Float.class, Integer::floatValue);
         repo.add(Integer.class, Double.class, Integer::doubleValue);
+        repo.add(Integer.class, BigInteger.class, (Function<Integer, BigInteger>) BigInteger::valueOf);
+        repo.add(Integer.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Short
         repo.add(Short.class, Byte.class, Short::byteValue);
@@ -46,6 +52,8 @@ public class DefaultConverters {
         repo.add(Short.class, Long.class, Short::longValue);
         repo.add(Short.class, Float.class, Short::floatValue);
         repo.add(Short.class, Double.class, Short::doubleValue);
+        repo.add(Short.class, BigInteger.class, (Function<Short, BigInteger>) BigInteger::valueOf);
+        repo.add(Short.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Long
         repo.add(Long.class, Byte.class, Long::byteValue);
@@ -53,6 +61,8 @@ public class DefaultConverters {
         repo.add(Long.class, Short.class, Long::shortValue);
         repo.add(Long.class, Float.class, Long::floatValue);
         repo.add(Long.class, Double.class, Long::doubleValue);
+        repo.add(Long.class, BigInteger.class, BigInteger::valueOf);
+        repo.add(Long.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Float
         repo.add(Float.class, Byte.class, Float::byteValue);
@@ -60,6 +70,8 @@ public class DefaultConverters {
         repo.add(Float.class, Long.class, Float::longValue);
         repo.add(Float.class, Short.class, Float::shortValue);
         repo.add(Float.class, Double.class, Float::doubleValue);
+        repo.add(Float.class, BigInteger.class, f -> BigInteger.valueOf(f.longValue()));
+        repo.add(Float.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Double
         repo.add(Double.class, Byte.class, Double::byteValue);
@@ -67,7 +79,26 @@ public class DefaultConverters {
         repo.add(Double.class, Long.class, Double::longValue);
         repo.add(Double.class, Float.class, Double::floatValue);
         repo.add(Double.class, Short.class, Double::shortValue);
+        repo.add(Double.class, BigInteger.class, d -> BigInteger.valueOf(d.longValue()));
+        repo.add(Double.class, BigDecimal.class, BigDecimal::valueOf);
 
+        // Big Integer
+        repo.add(BigInteger.class, Byte.class, Number::byteValue);
+        repo.add(BigInteger.class, Integer.class, Number::intValue);
+        repo.add(BigInteger.class, Long.class, Number::longValue);
+        repo.add(BigInteger.class, Float.class, Number::floatValue);
+        repo.add(BigInteger.class, Short.class, Number::shortValue);
+        repo.add(BigInteger.class, Double.class, Number::doubleValue);
+        repo.add(BigInteger.class, BigDecimal.class, BigDecimal::new);
+
+        // Big Decimal
+        repo.add(BigDecimal.class, Byte.class, Number::byteValue);
+        repo.add(BigDecimal.class, Integer.class, Number::intValue);
+        repo.add(BigDecimal.class, Long.class, Number::longValue);
+        repo.add(BigDecimal.class, Float.class, Number::floatValue);
+        repo.add(BigDecimal.class, Short.class, Number::shortValue);
+        repo.add(BigDecimal.class, Double.class, Number::doubleValue);
+        repo.add(BigDecimal.class, BigInteger.class, BigDecimal::toBigInteger);
 
         // String
         repo.add(String.class, Boolean.class, Boolean::valueOf);
@@ -77,6 +108,8 @@ public class DefaultConverters {
         repo.add(String.class, Short.class, Short::parseShort);
         repo.add(String.class, Float.class, Float::parseFloat);
         repo.add(String.class, Double.class, Double::parseDouble);
+        repo.add(String.class, BigInteger.class, BigInteger::new);
+        repo.add(String.class, BigDecimal.class, BigDecimal::new);
 
         // TimeZone
         repo.add(String.class, TimeZone.class, CoreConversions::toTimeZone);
