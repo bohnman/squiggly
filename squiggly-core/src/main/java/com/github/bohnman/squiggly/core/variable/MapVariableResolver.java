@@ -18,13 +18,7 @@ public class MapVariableResolver implements SquigglyVariableResolver {
 
     @Nullable
     @Override
-    public Object resolveVariable(String name, @Nullable Object defaultValue) {
-        Object value = variables.get(name);
-
-        if (value == null) {
-            value = defaultValue;
-        }
-
-        return value;
+    public Object resolveVariable(String name) {
+        return variables.get(name);
     }
 }

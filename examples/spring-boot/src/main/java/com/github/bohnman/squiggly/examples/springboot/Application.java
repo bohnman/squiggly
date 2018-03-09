@@ -4,11 +4,14 @@ package com.github.bohnman.squiggly.examples.springboot;
 import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
 import com.github.bohnman.squiggly.core.filter.SquilggyFilterCustomizers;
 import com.github.bohnman.squiggly.examples.springboot.web.ListResponse;
+import com.github.bohnman.squiggly.spring.boot.starter.config.SquigglyWebFluxAutoConfiguration;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
+//@EnableAutoConfiguration(exclude = SquigglyWebFluxAutoConfiguration.class)
 public class Application {
 
     @Bean

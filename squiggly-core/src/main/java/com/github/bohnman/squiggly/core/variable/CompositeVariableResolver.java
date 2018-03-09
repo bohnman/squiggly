@@ -19,9 +19,8 @@ public class CompositeVariableResolver implements SquigglyVariableResolver {
 
     @Nullable
     @Override
-    public Object resolveVariable(String name, @Nullable Object defaultValue) {
+    public Object resolveVariable(String name) {
         Object value = null;
-
 
         for (SquigglyVariableResolver resolver : resolvers) {
             value = resolver.resolveVariable(name);
@@ -29,10 +28,6 @@ public class CompositeVariableResolver implements SquigglyVariableResolver {
             if (value != null) {
                 break;
             }
-        }
-
-        if (value == null) {
-            value = defaultValue;
         }
 
         return value;

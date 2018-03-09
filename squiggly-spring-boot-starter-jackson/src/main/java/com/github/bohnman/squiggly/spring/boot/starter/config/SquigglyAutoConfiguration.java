@@ -10,6 +10,7 @@ import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
 import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterRepository;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
+import com.github.bohnman.squiggly.core.variable.ThreadLocalVariableResolver;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.jackson.config.SquigglyCustomizer;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
@@ -72,7 +73,9 @@ public class SquigglyAutoConfiguration {
             builder.functionRepository(functionRepository);
         }
 
-        if (variableResolver != null) {
+        if (variableResolver == null) {
+            builder.variableResolver(new ThreadLocalVariableResolver());
+        } else {
             builder.variableResolver(variableResolver);
         }
 

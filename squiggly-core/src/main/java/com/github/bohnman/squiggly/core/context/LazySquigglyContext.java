@@ -58,21 +58,22 @@ public class LazySquigglyContext implements SquigglyContext {
             }
 
             node = node.withName(new ExactName(value));
-            List<SquigglyNode> newChildren = null;
+        }
 
-            for (int i = 0; i < node.getChildren().size(); i++) {
-                SquigglyNode child = node.getChildren().get(i);
-                SquigglyNode normalizedChild = normalize(child);
+        List<SquigglyNode> newChildren = null;
 
-                if (child != normalizedChild) {
-                    if (newChildren == null) new ArrayList<>(node.getChildren());
-                    newChildren.set(i, normalizedChild);
-                }
+        for (int i = 0; i < node.getChildren().size(); i++) {
+            SquigglyNode child = node.getChildren().get(i);
+            SquigglyNode normalizedChild = normalize(child);
+
+            if (child != normalizedChild) {
+                if (newChildren == null) newChildren = new ArrayList<>(node.getChildren());
+                newChildren.set(i, normalizedChild);
             }
+        }
 
-            if (newChildren != null) {
-                node = node.withChildren(newChildren);
-            }
+        if (newChildren != null) {
+            node = node.withChildren(newChildren);
         }
 
         return node;

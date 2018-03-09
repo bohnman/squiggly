@@ -5,12 +5,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SequenceWriter;
-import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.core.context.provider.ThreadLocalSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
 import com.github.bohnman.squiggly.core.filter.SquigglyFilterHolder;
+import com.github.bohnman.squiggly.core.variable.SquigglyVariablesHolder;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -29,7 +29,6 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.util.MimeType;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.config.WebFluxConfigurationSupport;
-import org.springframework.web.server.WebFilter;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -45,28 +44,11 @@ import java.util.Map;
 @AutoConfigureAfter(JacksonAutoConfiguration.class)
 public class SquigglyWebFluxAutoConfiguration {
 
-    public static final String FILTER_HINT = SquigglyWebFluxAutoConfiguration.class.getName() + ".filter";
+    private static final String FILTER_HINT = SquigglyWebFluxAutoConfiguration.class.getName() + ".filter";
+    private static final String VARIABLES_HINT = SquigglyWebFluxAutoConfiguration.class.getName() + ".variables";
 
     @Autowired(required = false)
     SquigglyFilterCustomizer filterCustomizer;
-
-    @Bean
-    public WebFilter squigglyWebFilter(SquigglyConfig config) {
-        return (exchange, chain) -> {
-            String filter = exchange.getRequest().getQueryParams().getFirst(config.getFilterRequestParam());
-
-            if (CoreStrings.isNotEmpty(filter)) {
-                exchange = exchange.mutate().request(exchange.getRequest()
-                        .mutate()
-                        .header(FILTER_HINT, filter)
-                        .build())
-                        .build();
-            }
-
-            return chain.filter(exchange);
-        };
-    }
-
 
     @Bean
     @ConditionalOnMissingBean
@@ -99,26 +81,36 @@ public class SquigglyWebFluxAutoConfiguration {
         @Autowired
         private ObjectMapper objectMapper;
 
+        @Autowired
+        private SquigglyConfig config;
+
 
         @Override
         @Bean
         public ServerCodecConfigurer serverCodecConfigurer() {
             ServerCodecConfigurer configurer = super.serverCodecConfigurer();
-            configurer.defaultCodecs().jackson2JsonEncoder(new JsonEncoder(objectMapper));
+            configurer.defaultCodecs().jackson2JsonEncoder(new JsonEncoder(objectMapper, config));
             return configurer;
         }
     }
 
+    @SuppressWarnings("unchecked")
     private static class JsonEncoder extends Jackson2JsonEncoder {
 
-        public JsonEncoder(ObjectMapper mapper, MimeType... mimeTypes) {
-            super(mapper, mimeTypes);
+        private final SquigglyConfig config;
+
+        public JsonEncoder(ObjectMapper mapper, SquigglyConfig config) {
+            super(mapper);
+            this.config = config;
         }
 
         @Override
         public Map<String, Object> getEncodeHints(ResolvableType actualType, ResolvableType elementType, MediaType mediaType, ServerHttpRequest request, ServerHttpResponse response) {
+            Map<String, String> queryParams = request.getQueryParams().toSingleValueMap();
+
             Map<String, Object> hints = new HashMap<>(super.getEncodeHints(actualType, elementType, mediaType, request, response));
-            hints.put(FILTER_HINT, request.getHeaders().getFirst(FILTER_HINT));
+            hints.put(FILTER_HINT, queryParams.get(config.getFilterRequestParam()));
+            hints.put(VARIABLES_HINT, queryParams);
             return hints;
         }
 
@@ -131,167 +123,180 @@ public class SquigglyWebFluxAutoConfiguration {
             }
 
 
-            return new ObjectWriterWrapper(writer, filter);
+            return new ObjectWriterWrapper(writer, filter, (Map<String, Object>) hints.get(VARIABLES_HINT));
         }
     }
 
     private static class ObjectWriterWrapper extends ObjectWriter {
 
         private final String filter;
+        private final Map<String, Object> variables;
 
-        public ObjectWriterWrapper(ObjectWriter base, String filter) {
+        public ObjectWriterWrapper(ObjectWriter base, String filter, Map<String, Object> variables) {
             super(base, base.getConfig());
             this.filter = filter;
+            this.variables = variables;
         }
 
         @Override
         public void writeValue(JsonGenerator gen, Object value) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 super.writeValue(gen, value);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public ObjectWriter withView(Class<?> view) {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.withView(view);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public SequenceWriter writeValues(File out) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.writeValues(out);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public SequenceWriter writeValues(JsonGenerator gen) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.writeValues(gen);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public SequenceWriter writeValues(Writer out) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.writeValues(out);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public SequenceWriter writeValues(OutputStream out) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.writeValues(out);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public SequenceWriter writeValuesAsArray(File out) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.writeValuesAsArray(out);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public SequenceWriter writeValuesAsArray(JsonGenerator gen) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.writeValuesAsArray(gen);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public SequenceWriter writeValuesAsArray(Writer out) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.writeValuesAsArray(out);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public SequenceWriter writeValuesAsArray(OutputStream out) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.writeValuesAsArray(out);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public void writeValue(File resultFile, Object value) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 super.writeValue(resultFile, value);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public void writeValue(OutputStream out, Object value) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 super.writeValue(out, value);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public void writeValue(Writer w, Object value) throws IOException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 super.writeValue(w, value);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public String writeValueAsString(Object value) throws JsonProcessingException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.writeValueAsString(value);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
 
         @Override
         public byte[] writeValueAsBytes(Object value) throws JsonProcessingException {
             try {
-                SquigglyFilterHolder.set(filter);
+                setThreadLocals();
                 return super.writeValueAsBytes(value);
             } finally {
-                SquigglyFilterHolder.remove();
+                removeThreadLocals();
             }
         }
+
+        private void setThreadLocals() {
+            SquigglyFilterHolder.set(filter);
+            SquigglyVariablesHolder.set(variables);
+        }
+
+        private void removeThreadLocals() {
+            SquigglyFilterHolder.remove();
+            SquigglyVariablesHolder.remove();
+        }
+
     }
 }

@@ -5,10 +5,16 @@ import javax.annotation.Nullable;
 public interface SquigglyVariableResolver {
 
     @Nullable
-    default Object resolveVariable(String name) {
-        return resolveVariable(name, null);
-    }
+    Object resolveVariable(String name);
 
     @Nullable
-    Object resolveVariable(String name, @Nullable Object defaultValue);
+   default Object resolveVariable(String name, @Nullable Object defaultValue) {
+        Object value = resolveVariable(name);
+
+        if (value == null) {
+            value = defaultValue;
+        }
+
+        return value;
+    }
 }
