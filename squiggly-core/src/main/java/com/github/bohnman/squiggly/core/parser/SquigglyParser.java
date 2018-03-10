@@ -1024,6 +1024,15 @@ public class SquigglyParser {
                         case "i":
                             flagMask |= Pattern.CASE_INSENSITIVE;
                             break;
+                        case "m":
+                            flagMask |= Pattern.MULTILINE;
+                            break;
+                        case "s":
+                            flagMask |= Pattern.UNIX_LINES;
+                            break;
+                        case "x":
+                            flagMask |= Pattern.COMMENTS;
+                            break;
                         default:
                             throw new SquigglyParseException(parseContext(ctx), "Unrecognized flag %s for patterh %s", flag, pattern);
                     }
