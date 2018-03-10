@@ -6,6 +6,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.github.bohnman.core.encoding.CoreCharsets;
 import com.github.bohnman.core.io.CoreIo;
+import com.github.bohnman.core.vcs.GitInfo;
 import com.github.bohnman.squiggly.core.config.source.PropertiesConfigSource;
 import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
 
@@ -83,6 +84,9 @@ public class RunnerConfig {
     @DynamicParameter(names = "-V", description = "sets a variable (eg. -Vfoo=bar)")
     private Map<String, Object> variables = new HashMap<>();
 
+    @Parameter(names = "--version", description = "print version")
+    private boolean version;
+
     public RunnerConfig(String... args) {
         commander = JCommander.newBuilder()
                 .addObject(this)
@@ -96,23 +100,33 @@ public class RunnerConfig {
         } catch (ParameterException e) {
             System.err.println("Error: " + e.getMessage());
             printUsage();
-            System.exit(0);
+            System.exit(1);
         }
 
+
+    }
+
+    private void init() {
         if (help) {
             printUsage();
             System.exit(0);
         }
-    }
 
-    private void init() {
+        if (version) {
+            GitInfo info = GitInfo.forClasspathResource("squiggly/cli/git.properties");
+            System.out.println("Version      : " + info.getVersionText());
+            System.out.println("Build Author : " + info.getBuildAuthor());
+            System.out.println("Build Date   : " + info.getBuildDateTime());
+            System.out.println("Commit Id    : " + info.getAbbreviatedCommitId());
+            System.exit(0);
+        }
+
         initFilterAndFiles();
         initIndent();
         initProperties();
         initVariables();
 
-
-        System.out.println(this);
+//        System.out.println(this);
     }
 
     private void initFilterAndFiles() {
