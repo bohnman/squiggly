@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.bohnman.core.io.OutputStreamWrapper;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.cli.config.RunnerConfig;
@@ -25,6 +26,8 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Runner implements Runnable {
 
@@ -79,20 +82,29 @@ public class Runner implements Runnable {
     }
 
     private void doRun() throws Throwable {
+        List<JsonNode> nodes = config.isSlurp() ? new ArrayList<>() : null;
+
         if (config.isNullInput()) {
-            handle(mapper.getNodeFactory().nullNode());
+            handle(mapper.getNodeFactory().nullNode(), nodes);
         } else if (config.getFiles().isEmpty()) {
-            read(System.in);
+            read(System.in, nodes);
         } else {
             for (String file : config.getFiles()) {
                 try (FileInputStream in = new FileInputStream(file)) {
-                    read(in);
+                    read(in, nodes);
                 }
             }
         }
+
+        if (nodes != null) {
+            ArrayNode arrayNode = mapper.getNodeFactory().arrayNode();
+            nodes.forEach(arrayNode::add);
+            write(arrayNode);
+        }
     }
 
-    private void read(InputStream in) {
+    private void read(InputStream in, List<JsonNode> nodes) {
+
         try (Reader reader = readerFor(in)) {
             JsonParser parser = mapper.getFactory().createParser(reader);
 
@@ -103,21 +115,30 @@ public class Runner implements Runnable {
                     continue;
                 }
 
-                handle(tree);
+                handle(tree, nodes);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void handle(JsonNode tree) throws IOException {
+    private void handle(JsonNode tree, List<JsonNode> nodes) throws IOException {
         JsonNode result = squiggly.apply(tree, config.getFilter());
+
+        if (nodes == null) {
+            write(result);
+        } else {
+            nodes.add(result);
+        }
+    }
+
+    private void write(JsonNode node) throws IOException {
         PrintStream out = System.out;
 
-        if (result.isTextual() && config.isRawOutput()) {
-            out.println(result.asText());
+        if (node.isTextual() && config.isRawOutput()) {
+            out.println(node.asText());
         } else {
-            write(result, out);
+            write(node, out);
             out.println();
         }
     }

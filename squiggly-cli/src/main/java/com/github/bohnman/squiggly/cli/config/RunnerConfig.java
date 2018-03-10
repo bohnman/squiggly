@@ -59,7 +59,10 @@ public class RunnerConfig {
     @Parameter(names = {"-r", "--raw-output"}, description = "if result is a string, don't print quotes")
     private boolean rawOutput;
 
-    @Parameter(names = {"-s", "--sort-keys"}, description = "sort keys")
+    @Parameter(names = {"-s", "--slurp"}, description = "read all input into an array")
+    private boolean slurp;
+
+    @Parameter(names = {"-S", "--sort-keys"}, description = "sort keys")
     private boolean sortKeys;
 
     @Parameter(names = "--tab", description = "indent output with tab instead of spaces")
@@ -227,6 +230,14 @@ public class RunnerConfig {
 
     public boolean isRawOutput() {
         return rawOutput;
+    }
+
+    public String getBaseSquigglyPath() {
+        return baseSquigglyPath;
+    }
+
+    public boolean isSlurp() {
+        return slurp;
     }
 
     public boolean isSortKeys() {
