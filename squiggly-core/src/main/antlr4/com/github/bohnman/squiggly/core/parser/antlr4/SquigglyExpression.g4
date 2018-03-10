@@ -438,7 +438,8 @@ Identifier
 //region Variables
 Variable
     : Dollar Identifier
-    | Dollar StringLiteral
+    | Dollar SquigglyLeft Identifier SquigglyRight
+    | Dollar SquigglyLeft SquigglyString+ SquigglyRight
     ;
 //endregion
 
@@ -496,6 +497,12 @@ fragment RegexFlag
 
 
 //region Strings
+fragment SquigglyString
+    : (~[{}\\ \t\n\r] | StringEscape)
+    | (~[{}\\ \t\n\r] | StringEscape) (~[{}\\ \t\n\r] | StringEscape)
+    | (~[{}\\ \t\n\r] | StringEscape) (~[{}\\] | StringEscape)+ (~[{}\\ \t\n\r] | StringEscape)
+    ;
+
 fragment BacktickQuotedStringCharacters
     :    ~[`\\]
     |    StringEscape

@@ -27,6 +27,7 @@ import com.github.bohnman.squiggly.core.function.repository.MapFunctionRepositor
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
+import com.github.bohnman.squiggly.core.normalize.SquigglyNodeNormalizer;
 import com.github.bohnman.squiggly.core.parser.SquigglyParser;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
@@ -56,6 +57,7 @@ public abstract class BaseSquiggly {
     private final SquigglyFunctionRepository functionRepository;
     private final SquigglyMetrics metrics;
     private final SquigglyNodeMatcher nodeMatcher;
+    private final SquigglyNodeNormalizer nodeNormalizer;
     private final SquigglyNodeFilter nodeFilter;
     private final SquigglyParser parser;
     private final SquigglyVariableResolver variableResolver;
@@ -77,6 +79,7 @@ public abstract class BaseSquiggly {
 
         this.functionInvoker = new SquigglyFunctionInvoker(this.conversionService, this.functionRepository, this.variableResolver);
         this.nodeMatcher = new SquigglyNodeMatcher(this);
+        this.nodeNormalizer = new SquigglyNodeNormalizer(this);
         this.nodeFilter = new SquigglyNodeFilter(this);
     }
 
@@ -166,6 +169,15 @@ public abstract class BaseSquiggly {
      */
     public SquigglyNodeMatcher getNodeMatcher() {
         return nodeMatcher;
+    }
+
+    /**
+     * Get the node normalizer.
+     *
+     * @return node normalizer
+     */
+    public SquigglyNodeNormalizer getNodeNormalizer() {
+        return nodeNormalizer;
     }
 
     /**

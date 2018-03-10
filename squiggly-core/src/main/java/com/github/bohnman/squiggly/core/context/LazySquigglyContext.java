@@ -42,38 +42,7 @@ public class LazySquigglyContext implements SquigglyContext {
     @Override
     public SquigglyNode getNode() {
         if (node == null) {
-            node = normalize(squiggly.getParser().parsePropertyFilter(filter));
-        }
-
-        return node;
-    }
-
-    private SquigglyNode normalize(SquigglyNode node) {
-        if (node.isVariable()) {
-            SquigglyVariableResolver variableResolver = squiggly.getVariableResolver();
-            String value = Objects.toString(variableResolver.resolveVariable(node.getName()));
-
-            if (value == null) {
-                value = ':' + node.getName();
-            }
-
-            node = node.withName(new ExactName(value));
-        }
-
-        List<SquigglyNode> newChildren = null;
-
-        for (int i = 0; i < node.getChildren().size(); i++) {
-            SquigglyNode child = node.getChildren().get(i);
-            SquigglyNode normalizedChild = normalize(child);
-
-            if (child != normalizedChild) {
-                if (newChildren == null) newChildren = new ArrayList<>(node.getChildren());
-                newChildren.set(i, normalizedChild);
-            }
-        }
-
-        if (newChildren != null) {
-            node = node.withChildren(newChildren);
+            node = squiggly.getNodeNormalizer().normalize(squiggly.getParser().parsePropertyFilter(filter));
         }
 
         return node;

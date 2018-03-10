@@ -958,7 +958,15 @@ public class SquigglyParser {
         }
 
         private String buildVariableValue(SquigglyExpressionParser.VariableContext context) {
-            return unescapeString(context.getText().substring(1));
+            String text = context.getText();
+
+            if (text.charAt(1) == '{') {
+                text = text.substring(2, text.length() - 1);
+            } else {
+                text = text.substring(1);
+            }
+
+            return unescapeString(text);
         }
 
         private SquigglyName createName(SquigglyExpressionParser.FieldContext ctx) {

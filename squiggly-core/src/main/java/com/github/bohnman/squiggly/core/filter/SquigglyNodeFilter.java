@@ -37,8 +37,9 @@ public class SquigglyNodeFilter {
 
     private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> node, String filter) {
         List<SquigglyNode> squigglyNodes = squiggly.getParser().parseNodeFilter(filter);
+
         for (SquigglyNode squigglyNode : squigglyNodes) {
-            node = applyFilter(node, filter, squigglyNode);
+            node = applyFilter(node, filter, squiggly.getNodeNormalizer().normalize(squigglyNode));
         }
 
         return node;

@@ -163,15 +163,15 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         return jgen.getOutputContext();
     }
 
-    public static void main(String[] args) throws IOException, ParseException {
+    public static void main(String[] args) throws IOException {
 //        DecimalFormat format = new DecimalFormat();
 //        Number parse = format.parse("2.2");
 //        System.out.println(parse);
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(CoreObjectMappers.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
-        Squiggly squiggly = Squiggly.init();
-        jsonNode = squiggly.apply(jsonNode, "nickNames[name=1+3]");
+        Squiggly squiggly = Squiggly.builder().variable("name", "name").build();
+        jsonNode = squiggly.apply(jsonNode, "nickNames[$name]");
         System.out.println(mapper.writeValueAsString(jsonNode));
 
 
