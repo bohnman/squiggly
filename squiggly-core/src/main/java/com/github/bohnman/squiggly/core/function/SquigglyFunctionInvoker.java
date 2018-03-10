@@ -18,6 +18,7 @@ import com.github.bohnman.squiggly.core.parser.FunctionNode;
 import com.github.bohnman.squiggly.core.parser.FunctionNodeType;
 import com.github.bohnman.squiggly.core.parser.IntRangeNode;
 import com.github.bohnman.squiggly.core.parser.LambdaNode;
+import com.github.bohnman.squiggly.core.parser.SquigglyParseException;
 import com.github.bohnman.squiggly.core.parser.SquigglyParser;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
@@ -93,18 +94,17 @@ public class SquigglyFunctionInvoker {
         List<SquigglyFunction<Object>> functions = functionRepository.findByName(functionNode.getName());
 
         if (functions.isEmpty()) {
-            throw new IllegalStateException(format("%s: Unrecognized function [%s]", functionNode.getContext(), functionNode.getName()));
+            throw new SquigglyParseException(functionNode.getContext(), "Unrecognized function [%s]", functionNode.getContext(), functionNode.getName());
         }
 
         List<Object> requestedParameters = toParameters(functionNode, input);
         SquigglyFunction<Object> winner = findBestCandidateFunction(functionNode, input, requestedParameters, functions);
 
         if (winner == null) {
-            throw new IllegalStateException(format("%s: Unable to match function [%s] with parameters %s.",
-                    functionNode.getContext(),
+            throw new SquigglyParseException(functionNode.getContext(), "Unable to match function [%s] with parameters %s.",
                     functionNode.getName(),
                     requestedParameters.stream()
-                            .map(p -> String.format("{type=%s, value=%s}", (p == null ? "null" : p.getClass()), p)).collect(Collectors.toList())));
+                            .map(p -> String.format("{type=%s, value=%s}", (p == null ? "null" : p.getClass()), p)).collect(Collectors.toList()));
         }
 
         List<Object> parameters = convert(requestedParameters, winner);

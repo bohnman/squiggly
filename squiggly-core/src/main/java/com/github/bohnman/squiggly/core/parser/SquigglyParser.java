@@ -38,7 +38,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -360,7 +359,7 @@ public class SquigglyParser {
                 return buildStandaloneFieldArg(context.standaloneFieldArg(), opContext);
             }
 
-            throw new IllegalStateException(format("%s: unknown field arg chain link [%s]", parseContext(context), context.getText()));
+            throw new SquigglyParseException(parseContext(context), "unknown field arg chain link [%s]", context.getText());
         }
 
         private FunctionNode buildStandaloneFieldArg(SquigglyExpressionParser.StandaloneFieldArgContext context, SquigglyExpressionParser.AccessOperatorContext opContext) {
@@ -374,7 +373,7 @@ public class SquigglyParser {
                 return buildArrayAccessorFunction(arrayAccessorContext);
             }
 
-            throw new IllegalStateException(format("%s: unknown standalone field arg [%s]", parseContext(context), context.getText()));
+            throw new SquigglyParseException(parseContext(context), "unknown standalone field arg [%s]", context.getText());
         }
 
         private FunctionNode buildArrayAccessorFunction(SquigglyExpressionParser.ArrayAccessorContext arrayAccessor) {
@@ -398,7 +397,7 @@ public class SquigglyParser {
                 return buildPropertyFunction(context.propertyAccessor(), input);
             }
 
-            throw new IllegalStateException(format("%s: unknown arg chain link [%s]", parseContext(context), context.getText()));
+            throw new SquigglyParseException(parseContext(context), "unknown arg chain link [%s]", context.getText());
         }
 
         @SuppressWarnings("SameParameterValue")
@@ -426,7 +425,7 @@ public class SquigglyParser {
                 value = Collections.singletonList(buildArrayAccessorFunction(context.arrayAccessor()));
                 type = ArgumentNodeType.FUNCTION_CHAIN;
             } else {
-                throw new IllegalStateException(format("%s: Cannot find property name [%s]", parseContext(context), context.getText()));
+                throw new SquigglyParseException(parseContext(context), "Cannot find property name [%s]", context.getText());
             }
 
             String op = null;
@@ -555,7 +554,7 @@ public class SquigglyParser {
             }
 
 
-            throw new IllegalStateException(format("%s: Unknown arg type [%s]", parseContext(arg), arg.getText()));
+            throw new SquigglyParseException(parseContext(arg), "Unknown arg type [%s]", arg.getText());
         }
 
         private ArgumentNode.Builder buildNull(SquigglyExpressionParser.ArgContext arg) {
@@ -691,7 +690,7 @@ public class SquigglyParser {
                 return SystemFunctionName.AND.getFunctionName();
             }
 
-            throw new IllegalStateException(format("%s: unknown op [%s]", parseContext(arg), arg.getText()));
+            throw new SquigglyParseException(parseContext(arg), "unknown op [%s]", arg.getText());
         }
 
         private boolean matchOp(TerminalNode token1, TerminalNode token2) {
@@ -724,7 +723,7 @@ public class SquigglyParser {
                 return buildString(context);
             }
 
-            throw new IllegalStateException(format("%s: Unknown literal type [%s]", parseContext(context), context.getText()));
+            throw new SquigglyParseException(parseContext(context), "Unknown literal type [%s]", context.getText());
         }
 
         private ArgumentNode.Builder buildIntRange(SquigglyExpressionParser.IntRangeContext context) {
@@ -738,7 +737,7 @@ public class SquigglyParser {
                 intRangeArgs = context.inclusiveInclusiveIntRange().intRangeArg();
                 exclusiveEnd = false;
             } else {
-                throw new IllegalStateException(format("%s: Unknown int range type [%s]", parseContext(context), context.getText()));
+                throw new SquigglyParseException(parseContext(context), "Unknown int range type [%s]", context.getText());
             }
 
             ArgumentNode.Builder start = null;
@@ -780,7 +779,7 @@ public class SquigglyParser {
             }
 
 
-            throw new IllegalStateException(format("%s: Unknown int range arg type [%s]", parseContext(context), context.getText()));
+            throw new SquigglyParseException(parseContext(context), "Unknown int range arg type [%s]", context.getText());
         }
 
         private ArgumentNode.Builder baseArg(ParserRuleContext context, ArgumentNodeType type) {
@@ -917,11 +916,11 @@ public class SquigglyParser {
                 return buildVariable(context.variable());
             }
 
-            throw new IllegalStateException(format("%s: unknown object arg key [%s]", parseContext(context), context.getText()));
+            throw new SquigglyParseException(parseContext(context), "unknown object arg key [%s]", context.getText());
         }
 
         private ArgumentNode.Builder buildRegex(ParserRuleContext context) {
-            return baseArg(context, ArgumentNodeType.REGEX).value(buildPattern(context.getText()));
+            return baseArg(context, ArgumentNodeType.REGEX).value(buildPattern(context.getText(), context));
         }
 
         private ArgumentNode.Builder buildString(ParserRuleContext context) {
@@ -978,7 +977,7 @@ public class SquigglyParser {
             } else if (ctx.RegexLiteral() != null) {
 
 
-                Pattern pattern = buildPattern(ctx.RegexLiteral().getText());
+                Pattern pattern = buildPattern(ctx.RegexLiteral().getText(), ctx);
 
                 name = new RegexName(pattern.pattern(), pattern);
             } else if (ctx.wildcard() != null) {
@@ -990,13 +989,13 @@ public class SquigglyParser {
             } else if (ctx.variable() != null) {
                 name = new VariableName(buildVariableValue(ctx.variable()));
             } else {
-                throw new IllegalArgumentException("Unhandled field: " + ctx.getText());
+                throw new SquigglyParseException(parseContext(ctx), "unhandled field [%s]", ctx.getText());
             }
 
             return name;
         }
 
-        private Pattern buildPattern(String fullPattern) {
+        private Pattern buildPattern(String fullPattern, ParserRuleContext ctx) {
             String pattern = fullPattern.substring(1);
             int slashIdx = pattern.indexOf('/');
 
@@ -1026,7 +1025,7 @@ public class SquigglyParser {
                             flagMask |= Pattern.CASE_INSENSITIVE;
                             break;
                         default:
-                            throw new IllegalArgumentException("Unrecognized flag " + flag + " for pattern " + pattern);
+                            throw new SquigglyParseException(parseContext(ctx), "Unrecognized flag %s for patterh %s", flag, pattern);
                     }
                 }
             }
@@ -1106,7 +1105,7 @@ public class SquigglyParser {
 
         SquigglyNode toSquigglyNode() {
             if (name == null) {
-                throw new IllegalArgumentException("No Names specified");
+                throw new SquigglyParseException(context, "no names specified.");
             }
 
             List<SquigglyNode> childNodes;
