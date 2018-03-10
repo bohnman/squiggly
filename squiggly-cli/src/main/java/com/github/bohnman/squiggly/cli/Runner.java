@@ -38,7 +38,7 @@ public class Runner implements Runnable {
         this.config = new RunnerConfig(args);
         this.mapper = buildObjectMapper();
         this.squiggly = buildSquiggly();
-        this.syntaxHighlighter = config.isColoredOutput() ? new SyntaxHighlighter() : null;
+        this.syntaxHighlighter = config.isColoredOutput() ? new SyntaxHighlighter(squiggly.getConfig()) : null;
     }
 
     private ObjectMapper buildObjectMapper() {
