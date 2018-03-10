@@ -53,6 +53,9 @@ public class RunnerConfig {
     @Parameter(names = "--indent", description = "number of spaces/tabs to use (no more than 10)")
     private Integer indent = null;
 
+    @Parameter(names = {"-j", "--join-output"}, description = "don't print a newline after each record")
+    private boolean joinOutput;
+
     @Parameter(names = {"-n", "--null-input"}, description = "use null instead of reading input")
     private boolean nullInput;
 
@@ -219,10 +222,13 @@ public class RunnerConfig {
         return indent;
     }
 
+    public boolean isJoinOutput() {
+        return joinOutput;
+    }
+
     public boolean isNullInput() {
         return nullInput;
     }
-
 
     public SquigglyConfigSource getConfigSource() {
         return configSource;
@@ -275,8 +281,10 @@ public class RunnerConfig {
                 ", filterFile=" + filterFile +
                 ", help=" + help +
                 ", indent=" + indent +
+                ", joinOutput=" + joinOutput +
                 ", nullInput=" + nullInput +
                 ", rawOutput=" + rawOutput +
+                ", slurp=" + slurp +
                 ", sortKeys=" + sortKeys +
                 ", tab=" + tab +
                 ", ttyIn=" + ttyIn +

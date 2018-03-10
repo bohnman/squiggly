@@ -136,10 +136,17 @@ public class Runner implements Runnable {
         PrintStream out = System.out;
 
         if (node.isTextual() && config.isRawOutput()) {
-            out.println(node.asText());
+            if (config.isJoinOutput()) {
+                out.print(node.asText());
+            } else {
+                out.println(node.asText());
+            }
         } else {
             write(node, out);
-            out.println();
+
+            if (!config.isJoinOutput()) {
+                out.println();
+            }
         }
     }
 
