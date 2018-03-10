@@ -4,6 +4,7 @@ import com.github.bohnman.core.bean.CoreBeans;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.function.FunctionPredicateBridge;
+import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
@@ -12,6 +13,7 @@ import com.github.bohnman.squiggly.core.convert.ConverterRecord;
 import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.core.parser.ArgumentNode;
+import com.github.bohnman.squiggly.core.parser.ArgumentNodeType;
 import com.github.bohnman.squiggly.core.parser.FunctionNode;
 import com.github.bohnman.squiggly.core.parser.FunctionNodeType;
 import com.github.bohnman.squiggly.core.parser.IntRangeNode;
@@ -51,7 +53,11 @@ public class SquigglyFunctionInvoker {
         this.variableResolver = notNull(variableResolver);
     }
 
-    public Object invoke(Object input, Iterable<FunctionNode> functionNodes) {
+    public Object invoke(@Nullable Object input, Iterable<FunctionNode> functionNodes) {
+        return invoke(input, null, functionNodes);
+    }
+
+    public Object invoke(@Nullable Object input, @Nullable Object parent, Iterable<FunctionNode> functionNodes) {
         Object value = input;
 
         for (FunctionNode functionNode : functionNodes) {
@@ -59,15 +65,28 @@ public class SquigglyFunctionInvoker {
                 break;
             }
 
-            value = invoke(value, functionNode);
+            value = invoke(value, parent, functionNode);
         }
 
         return value;
     }
 
     public Object invoke(@Nullable Object input, FunctionNode functionNode) {
+        return invoke(input, null, functionNode);
+    }
+
+
+    public Object invoke(@Nullable Object input, @Nullable Object parent, FunctionNode functionNode) {
         if (functionNode.getType().equals(FunctionNodeType.PROPERTY)) {
-            return invokeProperty(input, functionNode);
+            return invokeProperty(input, parent, functionNode);
+        }
+
+        if (functionNode.getType().equals(FunctionNodeType.ASSIGNMENT)) {
+            return invokeAssignment(parent, parent, functionNode);
+        }
+
+        if (functionNode.getType().equals(FunctionNodeType.SELF_ASSIGNMENT)) {
+            return invokeAssignment(input, parent, functionNode);
         }
 
 
@@ -94,7 +113,16 @@ public class SquigglyFunctionInvoker {
 
     }
 
-    private Object invokeProperty(Object input, FunctionNode functionNode) {
+    private Object invokeAssignment(Object input, Object parent, FunctionNode functionNode) {
+        List<ArgumentNode> argumentNodes = functionNode.getParameters();
+
+        CoreAssert.isTrue(argumentNodes.size() == 2);
+        CoreAssert.isTrue(argumentNodes.get(1).getType() == ArgumentNodeType.FUNCTION_CHAIN);
+
+        return invoke(input, parent, (List<FunctionNode>) argumentNodes.get(1).getValue());
+    }
+
+    private Object invokeProperty(Object input, Object parent, FunctionNode functionNode) {
         Object object = getValue(functionNode.getParameters().get(0), input);
         Object key = getValue(functionNode.getParameters().get(1), input);
 

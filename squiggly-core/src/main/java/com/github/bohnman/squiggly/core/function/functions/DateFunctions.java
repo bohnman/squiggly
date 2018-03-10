@@ -133,7 +133,6 @@ public class DateFunctions {
         return parseDateInternal(input, mainPattern, otherPatterns).toInstant().atZone(ZoneId.systemDefault());
     }
 
-
     public static LocalDateTime parseLocalDate(String input) {
         return parseLocalDate(input, "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm");
     }

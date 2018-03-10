@@ -153,6 +153,7 @@ arrayDeclaration
 //region Assignment
 assignment
     : Equals arg
+    | AssignSelf arg
     ;
 //endregion
 
@@ -302,7 +303,7 @@ namedOperator
 
 //region Properties
 initialPropertyAccessor
-    : (Dollar QuestionMark? Dot)? (Identifier | function)
+    : (Dollar QuestionMark? Dot)? Identifier
     | (Dollar QuestionMark? BracketLeft) (StringLiteral | variable) BracketRight
     | Dollar
     ;
@@ -363,6 +364,7 @@ Add: '+';
 And: '&&';
 AngleLeft: '<';
 AngleRight: '>';
+AssignSelf: '.=';
 At: '@';
 Backtick: '`';
 BracketLeft: '[';

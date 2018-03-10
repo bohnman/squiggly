@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.std.MapProperty;
-import com.github.bohnman.core.json.jackson.CoreObjectMappers;
 import com.github.bohnman.core.json.path.CoreJsonPath;
 import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
@@ -21,7 +20,6 @@ import com.github.bohnman.squiggly.jackson.Squiggly;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -108,13 +106,13 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
                 squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
             } else if (writer instanceof BeanPropertyWriter) {
                 BeanPropertyWriter beanPropertyWriter = (BeanPropertyWriter) writer;
-                String name = "" + functionInvoker.invoke(writer.getName(), match.getKeyFunctions());
-                Object value = functionInvoker.invoke(beanPropertyWriter.get(pojo), match.getValueFunctions());
+                String name = "" + functionInvoker.invoke(writer.getName(), pojo, match.getKeyFunctions());
+                Object value = functionInvoker.invoke(beanPropertyWriter.get(pojo), pojo, match.getValueFunctions());
                 squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
             } else if (writer instanceof MapProperty) {
                 MapProperty mapProperty = (MapProperty) writer;
-                String name = "" + functionInvoker.invoke(writer.getName(), match.getKeyFunctions());
-                Object value = functionInvoker.invoke(pojo, match.getValueFunctions());
+                String name = "" + functionInvoker.invoke(writer.getName(), pojo, match.getKeyFunctions());
+                Object value = functionInvoker.invoke(pojo, pojo, match.getValueFunctions());
                 squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
             } else {
                 squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
@@ -164,23 +162,16 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
     public static void main(String[] args) throws IOException {
-//        DecimalFormat format = new DecimalFormat();
-//        Number parse = format.parse("2.2");
-//        System.out.println(parse);
 
+        String filter = "nickNames[name.=$.slice(1)]";
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree(CoreObjectMappers.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
-        Squiggly squiggly = Squiggly.builder().variable("name", "name").build();
-        jsonNode = squiggly.apply(jsonNode, "nickNames[$name]");
-        System.out.println(mapper.writeValueAsString(jsonNode));
+        Person person = new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie");
+        mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
+//        Squiggly.init(mapper, filter).writeValue(System.out, person);
 
-
-//        ObjectMapper mapper = Squiggly.builder("nickNames={foo:'bar'}")
-//                .variable("foo", "name")
-//                .build()
-//                .apply(new ObjectMapper());
-//
-//        System.out.println("\n\n\n\n" + CoreObjectMappers.stringify(mapper, new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie")));
+        System.out.println();
+        System.out.println();
+        System.out.println();
     }
 
     public static class NickName implements Comparable<NickName> {
@@ -200,7 +191,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
 
         public String getChuck() {
-            return "chuck";
+            return "chuckie";
         }
 
         @Override

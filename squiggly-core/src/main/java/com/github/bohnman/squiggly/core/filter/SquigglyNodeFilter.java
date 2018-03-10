@@ -51,19 +51,24 @@ public class SquigglyNodeFilter {
         }
 
         return rootJsonNode.transform((context, jsonNode) -> {
-            if (context.getPath().isEmpty()) {
+            if (context.getObjectPath().isEmpty()) {
                 return jsonNode;
             }
 
-            SquigglyNode match = squiggly.getNodeMatcher().match(context.getPath(), filter, squigglyNode);
+            if (context.getKey() instanceof Number) {
+                // skip, because we're at the array element level
+                return jsonNode;
+            }
+
+            SquigglyNode match = squiggly.getNodeMatcher().match(context.getObjectPath(), filter, squigglyNode);
 
             if (match == null || match == SquigglyNodeMatcher.NEVER_MATCH) {
                 return null;
             }
 
-            context.setKey("" + squiggly.getFunctionInvoker().invoke(context.getKey(), match.getKeyFunctions()));
+            context.setKey("" + squiggly.getFunctionInvoker().invoke(context.getKey(), context.getParent(), match.getKeyFunctions()));
             Object origValue = jsonNode.getValue();
-            Object newValue = squiggly.getFunctionInvoker().invoke(origValue, match.getValueFunctions());
+            Object newValue = squiggly.getFunctionInvoker().invoke(origValue, context.getParent(), match.getValueFunctions());
 
             if (Objects.equals(origValue, newValue)) {
                 return jsonNode;

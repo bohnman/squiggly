@@ -300,9 +300,12 @@ public class SquigglyParser {
         }
 
         private List<FunctionNode> parseAssignment(SquigglyExpressionParser.AssignmentContext context) {
+            FunctionNodeType type = context.Equals() == null ? FunctionNodeType.SELF_ASSIGNMENT : FunctionNodeType.ASSIGNMENT;
+
             return Collections.singletonList(FunctionNode.builder()
                     .context(parseContext(context))
                     .name(SystemFunctionName.ASSIGN.getFunctionName())
+                    .type(type)
                     .parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
                     .parameter(buildArg(context.arg()))
                     .build());
@@ -472,11 +475,9 @@ public class SquigglyParser {
             } else if (context.variable() != null) {
                 value = buildVariableValue(context.variable());
                 type = ArgumentNodeType.VARIABLE;
-            } else if (context.function() != null || OP_DOLLAR.equals(op)) {
-                value = OP_DOLLAR;
-                type = ArgumentNodeType.STRING;
             } else {
-                throw new IllegalStateException(format("%s: Cannot find initial property name [%s]", parseContext(context), context.getText()));
+                value = context.Dollar().getText();
+                type = ArgumentNodeType.STRING;
             }
 
             return buildBasePropertyFunction(context, op)
@@ -855,12 +856,6 @@ public class SquigglyParser {
 
             if (context.initialPropertyAccessor() != null) {
                 functionNodes.add(buildPropertyFunction(context.initialPropertyAccessor()).ascending(ascending).build());
-
-                if (context.initialPropertyAccessor().function() != null) {
-                    functionNodes.add(buildFunction(context.initialPropertyAccessor().function(), null, true)
-                            .ignoreNulls(context.initialPropertyAccessor().QuestionMark() != null)
-                            .build());
-                }
             }
 
             if (context.function() != null) {
