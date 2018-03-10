@@ -37,6 +37,9 @@ public class RunnerConfig {
     @Parameter(names = {"-c", "--compact"}, description = "compact instead of pretty output")
     private boolean compact = false;
 
+    @Parameter(names = {"-E", "--expand"}, description = "expand arrays into separate output")
+    private boolean expand = false;
+
     private SquigglyConfigSource configSource;
 
     @Parameter(description = "<squiggly-filter> [file...]")
@@ -202,6 +205,14 @@ public class RunnerConfig {
         return System.console() != null;
     }
 
+    public JCommander getCommander() {
+        return commander;
+    }
+
+    public boolean isExpand() {
+        return expand;
+    }
+
     public List<String> getFiles() {
         return files;
     }
@@ -276,6 +287,7 @@ public class RunnerConfig {
                 ", monochromeOutput=" + monochromeOutput +
                 ", compact=" + compact +
                 ", configSource=" + configSource +
+                ", expand=" + expand +
                 ", files=" + files +
                 ", filter='" + filter + '\'' +
                 ", filterFile=" + filterFile +

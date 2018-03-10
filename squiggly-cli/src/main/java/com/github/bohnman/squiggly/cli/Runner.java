@@ -49,17 +49,16 @@ public class Runner implements Runnable {
 
         if (!config.isCompact()) {
             mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            char indentCh = config.isTab() ? '\t' : ' ';
+            String indent = CoreStrings.repeat(indentCh, config.getIndent());
+            DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter(indent, DefaultIndenter.SYS_LF);
+            DefaultPrettyPrinter printer = syntaxHighlighter == null ? new DefaultPrettyPrinter() : new SyntaxHighlightingPrettyPrinter(syntaxHighlighter);
+            mapper.setDefaultPrettyPrinter(printer);
         }
 
         if (config.isSortKeys()) {
             mapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
         }
-
-        char indentCh = config.isTab() ? '\t' : ' ';
-        String indent = CoreStrings.repeat(indentCh, config.getIndent());
-        DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter(indent, DefaultIndenter.SYS_LF);
-        DefaultPrettyPrinter printer = syntaxHighlighter == null ? new DefaultPrettyPrinter() : new SyntaxHighlightingPrettyPrinter(syntaxHighlighter);
-        mapper.setDefaultPrettyPrinter(printer);
 
         return mapper;
     }
@@ -85,7 +84,7 @@ public class Runner implements Runnable {
         List<JsonNode> nodes = config.isSlurp() ? new ArrayList<>() : null;
 
         if (config.isNullInput()) {
-            handle(mapper.getNodeFactory().nullNode(), nodes);
+            apply(mapper.getNodeFactory().nullNode(), nodes);
         } else if (config.getFiles().isEmpty()) {
             read(System.in, nodes);
         } else {
@@ -115,16 +114,26 @@ public class Runner implements Runnable {
                     continue;
                 }
 
-                handle(tree, nodes);
+                apply(tree, nodes);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    private void handle(JsonNode tree, List<JsonNode> nodes) throws IOException {
+    private void apply(JsonNode tree, List<JsonNode> nodes) throws IOException {
         JsonNode result = squiggly.apply(tree, config.getFilter());
 
+        if (config.isExpand() && result.isArray()) {
+            for (int i = 0; i < result.size(); i++) {
+                handleResult(result.get(i), nodes);
+            }
+        } else {
+            handleResult(result, nodes);
+        }
+    }
+
+    private void handleResult(JsonNode result, List<JsonNode> nodes) throws IOException {
         if (nodes == null) {
             write(result);
         } else {
@@ -135,7 +144,7 @@ public class Runner implements Runnable {
     private void write(JsonNode node) throws IOException {
         PrintStream out = System.out;
 
-        if (node.isTextual() && config.isRawOutput()) {
+        if (node.isTextual() && config.isRawOutput() && !config.isSlurp()) {
             if (config.isJoinOutput()) {
                 out.print(node.asText());
             } else {
@@ -152,7 +161,10 @@ public class Runner implements Runnable {
 
     private void write(JsonNode tree, PrintStream out) throws IOException {
         JsonGenerator jgen = createGenerator(out);
-        jgen.setPrettyPrinter(mapper.getSerializationConfig().getDefaultPrettyPrinter());
+
+        if (!config.isCompact()) {
+            jgen.setPrettyPrinter(mapper.getSerializationConfig().getDefaultPrettyPrinter());
+        }
         mapper.writeValue(jgen, tree);
     }
 
