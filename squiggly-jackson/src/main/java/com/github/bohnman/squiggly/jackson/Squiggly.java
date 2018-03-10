@@ -7,14 +7,19 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.core.function.SquigglyFunction;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
 import com.github.bohnman.squiggly.jackson.bean.JacksonBeanInfoIntrospector;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilterMixin;
+import com.github.bohnman.squiggly.jackson.function.JacksonFunctions;
 import com.github.bohnman.squiggly.jackson.json.JacksonJsonNode;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+
+import java.util.List;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
@@ -212,6 +217,11 @@ public class Squiggly extends BaseSquiggly {
             return this;
         }
 
+        @Override
+        protected void applyDefaultFunctions(List<SquigglyFunction<?>> functions) {
+            super.applyDefaultFunctions(functions);
+            functions.addAll(SquigglyFunctions.create(JacksonFunctions.class));
+        }
 
         @Override
         protected Squiggly newInstance() {

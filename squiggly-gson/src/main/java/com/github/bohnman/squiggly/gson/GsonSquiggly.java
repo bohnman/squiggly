@@ -3,6 +3,9 @@ package com.github.bohnman.squiggly.gson;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.core.function.SquigglyFunction;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
+import com.github.bohnman.squiggly.gson.function.GsonFunctions;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.github.bohnman.squiggly.gson.json.GsonJsonNode;
@@ -88,6 +91,12 @@ public class GsonSquiggly extends BaseSquiggly {
     }
 
     public static class Builder extends BaseBuilder<Builder, GsonSquiggly> {
+
+        @Override
+        protected void applyDefaultFunctions(List<SquigglyFunction<?>> functions) {
+            super.applyDefaultFunctions(functions);
+            functions.addAll(SquigglyFunctions.create(GsonFunctions.class));
+        }
 
         @Override
         protected GsonSquiggly newInstance() {

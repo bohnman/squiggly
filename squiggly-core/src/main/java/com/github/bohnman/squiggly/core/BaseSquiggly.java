@@ -224,9 +224,9 @@ public abstract class BaseSquiggly {
 
         private final List<SquigglyFunction<?>> functions = new ArrayList<>();
 
-        private boolean registerDefaultConverters = true;
+        protected boolean registerDefaultConverters = true;
 
-        private boolean registerDefaultFunctions = true;
+        protected boolean registerDefaultFunctions = true;
 
         private final Map<String, String> savedFilters = new HashMap<>();
 
@@ -623,7 +623,8 @@ public abstract class BaseSquiggly {
 
         @SuppressWarnings("unchecked")
         private List<SquigglyFunction<?>> getDefaultFunctions() {
-            List<SquigglyFunction<?>> defaultFunctions = SquigglyFunctions.create(DefaultFunctions.class);
+            List<SquigglyFunction<?>> defaultFunctions = new ArrayList<>();
+            applyDefaultFunctions(defaultFunctions);
 
 
             if (!registerDefaultFunctions) {
@@ -639,6 +640,10 @@ public abstract class BaseSquiggly {
             }
 
             return defaultFunctions;
+        }
+
+        protected void applyDefaultFunctions(List<SquigglyFunction<?>> functions) {
+            functions.addAll(SquigglyFunctions.create(DefaultFunctions.class));
         }
 
         @SuppressWarnings("unchecked")
