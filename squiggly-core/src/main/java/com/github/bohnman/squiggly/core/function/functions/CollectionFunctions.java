@@ -6,7 +6,7 @@ import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.lang.array.CoreArrayWrapper;
 import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.squiggly.core.function.ValueHandler;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.util.Collections;
 import java.util.List;
@@ -21,7 +21,7 @@ public class CollectionFunctions {
     private CollectionFunctions() {
     }
 
-    @SquigglyMethod(aliases = "where")
+    @SquigglyFunctionMethod(aliases = "where")
     public static Object filter(Object value, CoreLambda coreLambda) {
         if (coreLambda == null) {
             return Collections.emptyList();
@@ -56,7 +56,7 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyMethod(aliases = "where")
+    @SquigglyFunctionMethod(aliases = "where")
     @SuppressWarnings("unchecked")
     public static Object filter(Object value, Predicate predicate) {
         if (predicate == null) {

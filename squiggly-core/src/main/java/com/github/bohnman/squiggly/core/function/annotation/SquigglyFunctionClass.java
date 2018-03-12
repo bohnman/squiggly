@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface SquigglyClass {
+public @interface SquigglyFunctionClass {
 
     String prefix() default "";
 

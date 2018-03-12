@@ -6,7 +6,7 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.array.CoreArrayWrapper;
 import com.github.bohnman.core.library.CoreLibraries;
 import com.github.bohnman.squiggly.core.function.ValueHandler;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -28,7 +28,7 @@ public class ObjectFunctions {
         return CoreConversions.toBoolean(o1) && CoreConversions.toBoolean(o2);
     }
 
-    @SquigglyMethod
+    @SquigglyFunctionMethod
     public static Object assign(Object object, Object newValue) {
         return newValue;
     }
@@ -52,12 +52,12 @@ public class ObjectFunctions {
         return value;
     }
 
-    @SquigglyMethod("default")
+    @SquigglyFunctionMethod("default")
     public static Object defaultObject(Object o1, Object o2) {
         return (o1 == null) ? o2 : o1;
     }
 
-    @SquigglyMethod("default")
+    @SquigglyFunctionMethod("default")
     public static Object defaultObject(Object o1, Object o2, Object... oN) {
         Object value = (o1 == null) ? o2 : o1;
 
@@ -77,13 +77,13 @@ public class ObjectFunctions {
         return Objects.equals(o1, o2);
     }
 
-    @SquigglyMethod(aliases = "gt")
+    @SquigglyFunctionMethod(aliases = "gt")
     public static boolean greaterThan(Object o1, Object o2) {
         Integer compare = CoreObjects.compare(o1, o2);
         return compare != null && compare > 0;
     }
 
-    @SquigglyMethod(aliases = "gte")
+    @SquigglyFunctionMethod(aliases = "gte")
     public static boolean greaterThanEquals(Object o1, Object o2) {
         Integer compare = CoreObjects.compare(o1, o2);
         return compare != null && compare >= 0;
@@ -213,13 +213,13 @@ public class ObjectFunctions {
         return value instanceof String;
     }
 
-    @SquigglyMethod(aliases = "lt")
+    @SquigglyFunctionMethod(aliases = "lt")
     public static boolean lessThan(Object o1, Object o2) {
         Integer compare = CoreObjects.compare(o1, o2);
         return compare != null && compare < 0;
     }
 
-    @SquigglyMethod(aliases = "lte")
+    @SquigglyFunctionMethod(aliases = "lte")
     public static boolean lessThanEquals(Object o1, Object o2) {
         Integer compare = CoreObjects.compare(o1, o2);
         return compare != null && compare <= 0;
@@ -230,7 +230,7 @@ public class ObjectFunctions {
         return !CoreConversions.toBoolean(o);
     }
 
-    @SquigglyMethod(aliases = "nequals")
+    @SquigglyFunctionMethod(aliases = "nequals")
     public static boolean notEquals(Object o1, Object o2) {
         return !equals(o1, o2);
     }

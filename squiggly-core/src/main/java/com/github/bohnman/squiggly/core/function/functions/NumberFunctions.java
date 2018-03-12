@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.core.function.functions;
 
 import com.github.bohnman.core.convert.CoreConversions;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -39,7 +39,7 @@ public class NumberFunctions {
         return cast(Math.ceil(n.doubleValue()));
     }
 
-    @SquigglyMethod(aliases = "div")
+    @SquigglyFunctionMethod(aliases = "div")
     public static Number divide(Object o1, Object o2) {
         Number n1 = CoreConversions.toNumber(o1);
         Number n2 = CoreConversions.toNumber(o2);
@@ -92,7 +92,7 @@ public class NumberFunctions {
         return cast(Math.min(n1.doubleValue(), n2.doubleValue()));
     }
 
-    @SquigglyMethod(aliases = "mod")
+    @SquigglyFunctionMethod(aliases = "mod")
     public static Number modulus(Object o1, Object o2) {
         Number n1 = CoreConversions.toNumber(o1);
         Number n2 = CoreConversions.toNumber(o2);
@@ -108,7 +108,7 @@ public class NumberFunctions {
         return NumberFunctions.cast(n1.doubleValue() % n2.doubleValue());
     }
 
-    @SquigglyMethod(aliases = "mul")
+    @SquigglyFunctionMethod(aliases = "mul")
     public static Number multiply(Object o1, Object o2) {
         Number n1 = CoreConversions.toNumber(o1);
         Number n2 = CoreConversions.toNumber(o2);
@@ -146,7 +146,7 @@ public class NumberFunctions {
         return (Math.sqrt(n.doubleValue()));
     }
 
-    @SquigglyMethod(aliases = "sub")
+    @SquigglyFunctionMethod(aliases = "sub")
     public static Number subtract(Object o1, Object o2) {
         Number n1 = CoreConversions.toNumber(o1);
         Number n2 = CoreConversions.toNumber(o2);

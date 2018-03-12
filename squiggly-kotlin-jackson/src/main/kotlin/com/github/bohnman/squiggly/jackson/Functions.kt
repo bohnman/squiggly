@@ -5,9 +5,8 @@ import com.github.bohnman.squiggly.core.convert.ConverterRecord
 import com.github.bohnman.squiggly.core.function.FunctionRequest
 import com.github.bohnman.squiggly.core.function.SquigglyFunction
 import com.github.bohnman.squiggly.core.function.SquigglyParameter
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyClass
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod
-import com.github.bohnman.squiggly.jackson.Squiggly
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionClass
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod
 import com.github.bohnman.squiggly.jackson.config.SquigglyCustomizer
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -87,14 +86,14 @@ private fun Squiggly.Builder.function(kclass: KClass<*>, processed: MutableSet<K
         return this
     }
 
-    val classAnnotation = kclass.findAnnotation<SquigglyClass>()
+    val classAnnotation = kclass.findAnnotation<SquigglyFunctionClass>()
     val prefix = classAnnotation?.prefix ?: ""
     val registrationStrategy = classAnnotation?.strategy ?: SquigglyFunction.RegistrationStrategy.AUTO
 
     kclass.companionObject?.members
             ?.filter { it.visibility == KVisibility.PUBLIC }
             ?.filter {
-                val method = it.findAnnotation<SquigglyMethod>()
+                val method = it.findAnnotation<SquigglyFunctionMethod>()
                 method?.ignore?.not() ?: registrationStrategy == SquigglyFunction.RegistrationStrategy.AUTO
             }
             ?.forEach { CallableSquigglyFunction(it, kclass.companionObjectInstance, prefix) }
@@ -119,8 +118,8 @@ private class CallableSquigglyFunction(private val callable: KCallable<*>, priva
     private val aliases: List<String>
 
     init {
-        val methodAnnotation: SquigglyMethod? = callable.annotations
-                .filterIsInstance(SquigglyMethod::class.java)
+        val methodAnnotation: SquigglyFunctionMethod? = callable.annotations
+                .filterIsInstance(SquigglyFunctionMethod::class.java)
                 .firstOrNull()
 
         name = prefix + (methodAnnotation?.value ?: callable.name)

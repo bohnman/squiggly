@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.core.function;
 
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyClass;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionClass;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
@@ -84,14 +84,14 @@ public class SquigglyFunctions {
 
     public static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases) {
         Class<?> ownerClass = (owner instanceof Class) ? (Class) owner : owner.getClass();
-        return create(method, owner, name, aliases, ownerClass.getAnnotation(SquigglyClass.class));
+        return create(method, owner, name, aliases, ownerClass.getAnnotation(SquigglyFunctionClass.class));
     }
 
-    private static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyClass classAnnotation) {
-        return create(method, owner, name, aliases, classAnnotation, method.getAnnotation(SquigglyMethod.class));
+    private static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyFunctionClass classAnnotation) {
+        return create(method, owner, name, aliases, classAnnotation, method.getAnnotation(SquigglyFunctionMethod.class));
     }
 
-    private static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyClass classAnnotation, @Nullable SquigglyMethod functionAnnotation) {
+    private static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases, @Nullable SquigglyFunctionClass classAnnotation, @Nullable SquigglyFunctionMethod functionAnnotation) {
         if (functionAnnotation != null && functionAnnotation.ignore()) {
             throw new IllegalArgumentException(format("Method [%s] is marked as ignored.", method));
         }
@@ -149,14 +149,14 @@ public class SquigglyFunctions {
             return Stream.empty();
         }
 
-        SquigglyClass classAnnotation = ownerClass.getAnnotation(SquigglyClass.class);
+        SquigglyFunctionClass classAnnotation = ownerClass.getAnnotation(SquigglyFunctionClass.class);
         SquigglyFunction.RegistrationStrategy registrationStrategy = (classAnnotation == null) ? SquigglyFunction.RegistrationStrategy.AUTO : classAnnotation.strategy();
 
         Stream<? extends SquigglyFunction<?>> stream = Arrays.stream(ownerClass.getDeclaredMethods())
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .filter(method -> ownerStatic && Modifier.isStatic(method.getModifiers()))
                 .map(method -> {
-                    SquigglyMethod functonAnnotation = method.getAnnotation(SquigglyMethod.class);
+                    SquigglyFunctionMethod functonAnnotation = method.getAnnotation(SquigglyFunctionMethod.class);
 
                     if (functonAnnotation == null && SquigglyFunction.RegistrationStrategy.MANUAL == registrationStrategy) {
                         return null;

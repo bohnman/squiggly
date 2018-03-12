@@ -13,7 +13,7 @@ import com.github.bohnman.core.lang.array.CoreArrayWrapper;
 import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.squiggly.core.function.ValueHandler;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import javax.annotation.Nullable;
 import java.beans.PropertyDescriptor;
@@ -204,7 +204,7 @@ public class MixedFunctions {
         }.handle(value);
     }
 
-    @SquigglyMethod(aliases = "nmatch")
+    @SquigglyFunctionMethod(aliases = "nmatch")
     public static boolean notMatch(Object o, Pattern pattern) {
         return !match(o, pattern);
     }
@@ -362,7 +362,7 @@ public class MixedFunctions {
         }.handle(value);
     }
 
-    @SquigglyMethod(aliases = "length")
+    @SquigglyFunctionMethod(aliases = "length")
     public static int size(Object value) {
         return new ValueHandler<Integer>() {
             @Override
@@ -486,7 +486,7 @@ public class MixedFunctions {
         }.handle(value);
     }
 
-    @SquigglyMethod(aliases = "orderBy")
+    @SquigglyFunctionMethod(aliases = "orderBy")
     public static Object sort(Object value, CoreProperty... properties) {
         List<OrderBy> orderBys = Arrays.stream(properties)
                 .map(PropertyOrderBy::new)

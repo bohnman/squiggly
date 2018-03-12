@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.core.function.functions;
 
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyClass;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionClass;
 
-@SquigglyClass(include = {
+@SquigglyFunctionClass(include = {
         CollectionFunctions.class,
         DateFunctions.class,
         NumberFunctions.class,

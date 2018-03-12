@@ -5,7 +5,7 @@ import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.core.lang.array.CoreArrayWrapper;
 import com.github.bohnman.core.lang.array.CoreArrays;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyMethod;
+import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,7 +31,7 @@ public class StringFunctions {
         return Objects.toString(value1, "") + Objects.toString(value2, "");
     }
 
-    @SquigglyMethod(aliases = "capitalise")
+    @SquigglyFunctionMethod(aliases = "capitalise")
     public static String capitalize(String value) {
         return CoreStrings.capitalize(value);
     }
@@ -57,7 +57,7 @@ public class StringFunctions {
         }
     }
 
-    @SquigglyMethod
+    @SquigglyFunctionMethod
     public static String join(Object value, String separator) {
         if (value == null) {
             return null;
@@ -178,7 +178,7 @@ public class StringFunctions {
         return CoreStrings.trim(value);
     }
 
-    @SquigglyMethod(aliases = {"uppercase"})
+    @SquigglyFunctionMethod(aliases = {"uppercase"})
     public static String upper(String value) {
         return CoreStrings.upper(value);
     }
