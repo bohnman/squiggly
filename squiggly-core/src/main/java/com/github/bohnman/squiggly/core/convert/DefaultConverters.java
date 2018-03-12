@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.core.convert;
 
 import com.github.bohnman.core.convert.CoreConversions;
-import com.github.bohnman.core.lang.CoreClasses;
+import com.github.bohnman.core.library.CoreLibraries;
 import com.github.bohnman.squiggly.core.convert.joda.JodaConverters;
 
 import java.math.BigDecimal;
@@ -21,10 +21,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class DefaultConverters {
-
-    private static final boolean jodaTimePresent = CoreClasses.isPresent(
-            "org.joda.time.LocalDate", DefaultConverters.class.getClassLoader());
-
 
     public static void add(SquigglyConverterRegistry repo) {
 
@@ -197,7 +193,7 @@ public class DefaultConverters {
         repo.add(Date.class, LocalDate.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         repo.add(Date.class, LocalTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalTime());
 
-        if (jodaTimePresent) {
+        if (CoreLibraries.isJodaTimePresent()) {
             JodaConverters.add(repo);
         }
 
