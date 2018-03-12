@@ -185,6 +185,7 @@ arg
     | (NotName | Not) arg
     | arg (WildcardShallow | MultiplyName | SlashForward | DivideName | Modulus | ModulusName) arg
     | arg (Add | AddName | Subtract | SubtractName) arg
+    | arg (Elvis) arg
     | arg (AngleLeft | LessThanName | LessThanEquals | LessThanEqualsName | AngleRight | GreaterThanName | GreaterThanEquals | GreaterThanEqualsName) arg
     | arg (EqualsEquals | EqualsName | EqualsNot | EqualsNotSql | EqualsNotName | Match | MatchName | MatchNot | MatchNotName) arg
     | arg (And | AndName) arg
@@ -386,6 +387,7 @@ Equals: '=';
 EqualsEquals: '==';
 EqualsNot: '!=';
 EqualsNotSql: '<>';
+Elvis: '?:';
 GreaterThanEquals: '>=';
 Lambda: '->';
 LessThanEquals: '<=';

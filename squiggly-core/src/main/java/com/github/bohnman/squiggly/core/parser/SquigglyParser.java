@@ -665,6 +665,10 @@ public class SquigglyParser {
                 return SystemFunctionName.MODULUS.getFunctionName();
             }
 
+            if (arg.Elvis() != null) {
+                return SystemFunctionName.DEFAULT.getFunctionName();
+            }
+
             if (matchOp(arg.EqualsEquals(), arg.EqualsName())) {
                 return SystemFunctionName.EQUALS.getFunctionName();
             }

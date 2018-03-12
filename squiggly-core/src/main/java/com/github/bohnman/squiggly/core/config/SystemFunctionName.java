@@ -9,6 +9,7 @@ public enum SystemFunctionName {
     AND,
     ASSIGN,
     DIVIDE,
+    DEFAULT,
     EQUALS,
     GET,
     GREATER_THAN,
