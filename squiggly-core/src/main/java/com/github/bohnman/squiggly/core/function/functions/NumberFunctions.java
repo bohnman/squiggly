@@ -124,6 +124,18 @@ public class NumberFunctions {
         return NumberFunctions.cast(n1.doubleValue() * n2.doubleValue());
     }
 
+    public static Number pow(Number n, Number pow) {
+        if (n == null) {
+            return null;
+        }
+
+        if (pow == null) {
+            return n;
+        }
+
+        return Math.pow(n.doubleValue(), pow.doubleValue());
+    }
+
     public static Number round(Number n) {
         if (n == null) return null;
         return cast(Math.round(n.doubleValue()));
