@@ -71,7 +71,7 @@ dottedField
 
 field
     : Identifier
-    | namedOperator
+    | namedSymbol
     | RegexLiteral
     | StringLiteral
     | variable
@@ -173,7 +173,7 @@ function
 
 functionName
     : Identifier
-    | namedOperator
+    | namedSymbol
     ;
 //endregion
 
@@ -190,6 +190,7 @@ arg
     | arg (EqualsEquals | EqualsName | EqualsNot | EqualsNotSql | EqualsNotName | Match | MatchName | MatchNot | MatchNotName) arg
     | arg (And | AndName) arg
     | arg (Or | OrName) arg
+    | ifArg
     | argGroupStart arg argGroupEnd argChainLink*
     ;
 
@@ -209,6 +210,23 @@ argGroupStart
 
 argGroupEnd
     : ParenRight
+    ;
+
+
+ifArg
+    : ifClause elifClause* elseClause? End
+    ;
+
+ifClause
+    : If arg Then arg
+    ;
+
+elifClause
+    : Elif arg Then arg
+    ;
+
+elseClause
+    : Else arg
     ;
 //endregion
 
@@ -287,15 +305,19 @@ accessOperator
     | SafeNavigation
     ;
 
-namedOperator
+namedSymbol
     : AddName
     | AndName
     | SubtractName
     | MultiplyName
     | DivideName
+    | Elif
+    | Else
+    | End
     | ModulusName
     | EqualsName
     | EqualsNotName
+    | If
     | LessThanName
     | LessThanEqualsName
     | GreaterThanName
@@ -304,6 +326,7 @@ namedOperator
     | MatchNotName
     | OrName
     | NotName
+    | Then
     ;
 //endregion
 
@@ -387,8 +410,12 @@ Equals: '=';
 EqualsEquals: '==';
 EqualsNot: '!=';
 EqualsNotSql: '<>';
+Elif: 'elif';
+Else: 'else';
 Elvis: '?:';
+End: 'end';
 GreaterThanEquals: '>=';
+If: 'if';
 Lambda: '->';
 LessThanEquals: '<=';
 Match: '=~';
@@ -410,6 +437,7 @@ Subtract: '-';
 SubtractAssign: '-=';
 SquigglyLeft: '{';
 SquigglyRight: '}';
+Then: 'then';
 Tilde: '~';
 Underscore: '_';
 WildcardShallow: '*';

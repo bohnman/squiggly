@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -568,12 +569,50 @@ public class SquigglyParser {
                 return buildSubArg(arg);
             }
 
+            if (arg.ifArg() != null) {
+                return buildIfArg(arg.ifArg());
+            }
+
 
             throw new SquigglyParseException(parseContext(arg), "Unknown arg type [%s]", arg.getText());
         }
 
         private ArgumentNode.Builder buildNull(SquigglyExpressionParser.ArgContext arg) {
             return baseArg(arg, ArgumentNodeType.NULL).value(null);
+        }
+
+        private ArgumentNode.Builder buildIfArg(SquigglyExpressionParser.IfArgContext context) {
+            Stream<IfNode.IfClause> ifClauseStream = Stream.of(context.ifClause())
+                    .map(this::buildIfClause);
+
+            Stream<IfNode.IfClause> elifClauseStream = context.elifClause()
+                    .stream()
+                    .map(this::buildIfClause);
+
+            List<IfNode.IfClause> ifClauses = Stream.concat(ifClauseStream, elifClauseStream)
+                    .collect(toList());
+
+            ArgumentNode elseClause;
+
+            if (context.elseClause() == null) {
+                elseClause = baseArg(context, ArgumentNodeType.NULL).value(null).index(0).build();
+            } else {
+                elseClause = buildArg(context.elseClause().arg()).index(0).build();
+            }
+
+            return baseArg(context, ArgumentNodeType.IF).value(new IfNode(ifClauses, elseClause));
+        }
+
+        private IfNode.IfClause buildIfClause(SquigglyExpressionParser.IfClauseContext context) {
+            ArgumentNode condition = buildArg(context.arg(0)).index(0).build();
+            ArgumentNode value = buildArg(context.arg(1)).index(1).build();
+            return new IfNode.IfClause(condition, value);
+        }
+
+        private IfNode.IfClause buildIfClause(SquigglyExpressionParser.ElifClauseContext context) {
+            ArgumentNode condition = buildArg(context.arg(0)).index(0).build();
+            ArgumentNode value = buildArg(context.arg(1)).index(1).build();
+            return new IfNode.IfClause(condition, value);
         }
 
         private ArgumentNode.Builder buildLambda(SquigglyExpressionParser.LambdaContext lambda) {
@@ -987,8 +1026,8 @@ public class SquigglyParser {
 
             if (ctx.StringLiteral() != null) {
                 name = new ExactName(unescapeString(ctx.StringLiteral().getText()));
-            } else if (ctx.namedOperator() != null) {
-                name = new ExactName(ctx.namedOperator().getText());
+            } else if (ctx.namedSymbol() != null) {
+                name = new ExactName(ctx.namedSymbol().getText());
             } else if (ctx.Identifier() != null) {
                 name = new ExactName(ctx.Identifier().getText());
             } else if (ctx.wildcardField() != null) {

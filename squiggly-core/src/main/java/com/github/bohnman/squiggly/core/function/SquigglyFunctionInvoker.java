@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.core.function;
 
 import com.github.bohnman.core.bean.CoreBeans;
+import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.function.FunctionPredicateBridge;
@@ -17,6 +18,7 @@ import com.github.bohnman.squiggly.core.parser.ArgumentNode;
 import com.github.bohnman.squiggly.core.parser.ArgumentNodeType;
 import com.github.bohnman.squiggly.core.parser.FunctionNode;
 import com.github.bohnman.squiggly.core.parser.FunctionNodeType;
+import com.github.bohnman.squiggly.core.parser.IfNode;
 import com.github.bohnman.squiggly.core.parser.IntRangeNode;
 import com.github.bohnman.squiggly.core.parser.LambdaNode;
 import com.github.bohnman.squiggly.core.parser.SquigglyParseException;
@@ -36,7 +38,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 
 @SuppressWarnings("unchecked")
@@ -121,11 +122,14 @@ public class SquigglyFunctionInvoker {
         List<ArgumentNode> argumentNodes = functionNode.getParameters();
 
         CoreAssert.isTrue(argumentNodes.size() == 2);
-        CoreAssert.isTrue(argumentNodes.get(1).getType() == ArgumentNodeType.FUNCTION_CHAIN);
-
+        ArgumentNode lastArg = argumentNodes.get(1);
 
         if (SystemFunctionName.ASSIGN.getFunctionName().equals(functionNode.getName())) {
-            return invoke(input, parent, (List<FunctionNode>) argumentNodes.get(1).getValue());
+            if (lastArg.getType() == ArgumentNodeType.FUNCTION_CHAIN) {
+                return invoke(input, parent, (List<FunctionNode>) lastArg.getValue());
+            } else {
+                return getValue(lastArg, input);
+            }
         }
 
         return invokeNormalFunction(input, parent, functionNode);
@@ -363,6 +367,8 @@ public class SquigglyFunctionInvoker {
                 return buildFunctionChain((List<FunctionNode>) argumentNode.getValue());
             case LAMBDA:
                 return buildLambda((LambdaNode) argumentNode.getValue());
+            case IF:
+                return invokeIf((IfNode) argumentNode.getValue(), input);
             case INPUT:
                 return input;
             case INT_RANGE:
@@ -386,6 +392,18 @@ public class SquigglyFunctionInvoker {
             default:
                 return argumentNode.getValue();
         }
+    }
+
+    private Object invokeIf(IfNode ifNode, Object input) {
+        for (IfNode.IfClause ifClause : ifNode.getIfClauses()) {
+            Object condition = invokeAndGetValue(ifClause.getCondition(), input);
+
+            if (CoreConversions.toBoolean(condition)) {
+                return invokeAndGetValue(ifClause.getValue(), input);
+            }
+        }
+
+        return invokeAndGetValue(ifNode.getElseClause(), input);
     }
 
     private Map<Object, Object> buildObjectDeclaration(Object input, List<CorePair<ArgumentNode, ArgumentNode>> pairs) {

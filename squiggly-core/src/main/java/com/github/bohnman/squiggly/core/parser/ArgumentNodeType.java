@@ -5,6 +5,7 @@ public enum ArgumentNodeType {
     BOOLEAN,
     FLOAT,
     FUNCTION_CHAIN,
+    IF,
     INPUT,
     INT_RANGE,
     INTEGER,

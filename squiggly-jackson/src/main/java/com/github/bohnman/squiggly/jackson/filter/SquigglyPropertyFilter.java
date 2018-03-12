@@ -163,7 +163,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static void main(String[] args) throws IOException {
 
-        String filter = "age.=3";
+        String filter = "age=if $ == 3 then 3 elif $ == 38 then 22 end";
         ObjectMapper mapper = new ObjectMapper();
         Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");
         mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
