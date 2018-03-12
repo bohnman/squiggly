@@ -276,6 +276,7 @@ intRangeArg
 lambda
     : lambdaArg Lambda lambdaBody
     | ParenLeft (lambdaArg (Comma lambdaArg)*)? ParenRight Lambda lambdaBody
+    | lambdaArg? Lambda lambdaBody
     ;
 
 lambdaBody
