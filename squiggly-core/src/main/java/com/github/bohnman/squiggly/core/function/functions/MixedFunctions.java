@@ -82,6 +82,52 @@ public class MixedFunctions {
 
     }
 
+    public static boolean has(Object value, Object key) {
+        if (key == null) {
+            return false;
+        }
+
+        return new ValueHandler<Boolean>(key) {
+
+            @Override
+            protected Boolean handleArrayWrapper(CoreArrayWrapper wrapper) {
+                int size = wrapper.size();
+                Integer actualIndex = normalizeIndex(size, key);
+                if (actualIndex == null) return false;
+                return actualIndex >= 0 && actualIndex < size;
+            }
+
+
+            @Override
+            protected Boolean handleList(List<Object> list) {
+                int size = list.size();
+                Integer actualIndex = normalizeIndex(size, key);
+                if (actualIndex == null) return false;
+                return actualIndex >= 0 && actualIndex < size;
+            }
+
+            @Override
+            protected Boolean handleMap(Map<Object, Object> map) {
+                return map.containsKey(key);
+            }
+
+            @Override
+            protected Boolean handleString(String string) {
+                int size = string.length();
+                Integer actualIndex = normalizeIndex(size, key);
+                if (actualIndex == null) return false;
+                return actualIndex >= 0 && actualIndex < size;
+            }
+
+            @Override
+            protected Boolean handleObject(Object value) {
+                return CoreBeans.getReadablePropertyDescriptors(value.getClass())
+                        .anyMatch(pd -> pd.getName().equals(CoreConversions.toString(key)));
+            }
+        }.handle(value);
+
+    }
+
     public static Object keys(Object value) {
         return new ValueHandler<Object>() {
             @Override
@@ -312,6 +358,41 @@ public class MixedFunctions {
             @Override
             protected Object handleString(String string) {
                 return CoreStrings.reverse((String) value);
+            }
+        }.handle(value);
+    }
+
+    @SquigglyMethod(aliases = "length")
+    public static int size(Object value) {
+        return new ValueHandler<Integer>() {
+            @Override
+            protected Integer handleArrayWrapper(CoreArrayWrapper wrapper) {
+                return wrapper.size();
+            }
+
+            @Override
+            protected Integer handleIterable(Iterable<Object> iterable) {
+                return CoreIterables.size(iterable);
+            }
+
+            @Override
+            protected Integer handleNull() {
+                return 0;
+            }
+
+            @Override
+            protected Integer handleString(String string) {
+                return string.length();
+            }
+
+            @Override
+            protected Integer handleMap(Map<Object, Object> map) {
+                return map.size();
+            }
+
+            @Override
+            protected Integer handleObject(Object value) {
+                return (int) CoreBeans.getReadablePropertyDescriptors(value.getClass()).count();
             }
         }.handle(value);
     }
