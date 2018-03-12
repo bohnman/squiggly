@@ -9,6 +9,7 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
+import com.github.bohnman.squiggly.core.config.SystemFunctionName;
 import com.github.bohnman.squiggly.core.convert.ConverterRecord;
 import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
@@ -90,6 +91,10 @@ public class SquigglyFunctionInvoker {
             return invokeAssignment(input, parent, functionNode);
         }
 
+        return invokeNormalFunction(input, parent, functionNode);
+    }
+
+    private Object invokeNormalFunction(Object input, Object parent, FunctionNode functionNode) {
 
         List<SquigglyFunction<Object>> functions = functionRepository.findByName(functionNode.getName());
 
@@ -110,7 +115,6 @@ public class SquigglyFunctionInvoker {
         List<Object> parameters = convert(requestedParameters, winner);
 
         return winner.apply(new FunctionRequest(input, parameters));
-
     }
 
     private Object invokeAssignment(Object input, Object parent, FunctionNode functionNode) {
@@ -119,7 +123,12 @@ public class SquigglyFunctionInvoker {
         CoreAssert.isTrue(argumentNodes.size() == 2);
         CoreAssert.isTrue(argumentNodes.get(1).getType() == ArgumentNodeType.FUNCTION_CHAIN);
 
-        return invoke(input, parent, (List<FunctionNode>) argumentNodes.get(1).getValue());
+
+        if (SystemFunctionName.ASSIGN.getFunctionName().equals(functionNode.getName())) {
+            return invoke(input, parent, (List<FunctionNode>) argumentNodes.get(1).getValue());
+        }
+
+        return invokeNormalFunction(input, parent, functionNode);
     }
 
     private Object invokeProperty(Object input, Object parent, FunctionNode functionNode) {

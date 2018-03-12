@@ -154,6 +154,11 @@ arrayDeclaration
 assignment
     : Equals arg
     | AssignSelf arg
+    | AddAssign arg
+    | SubtractAssign arg
+    | MultiplyAssign arg
+    | DivideAssign arg
+    | ModulusAssign arg
     ;
 //endregion
 
@@ -361,6 +366,7 @@ SubtractName: 'sub';
 
 //region Symbols
 Add: '+';
+AddAssign: '+=';
 And: '&&';
 AngleLeft: '<';
 AngleRight: '>';
@@ -375,6 +381,7 @@ Comma: ',';
 Dollar: '$';
 Dot: '.';
 DotDot: '..';
+DivideAssign: '/=';
 Equals: '=';
 EqualsEquals: '==';
 EqualsNot: '!=';
@@ -385,6 +392,8 @@ LessThanEquals: '<=';
 Match: '=~';
 MatchNot: '!~';
 Modulus: '%';
+ModulusAssign: '%=';
+MultiplyAssign: '*=';
 Not: '!';
 Null: 'null';
 ParenLeft: '(';
@@ -396,6 +405,7 @@ QuoteDouble: '"';
 SafeNavigation: '?.';
 SlashForward: '/';
 Subtract: '-';
+SubtractAssign: '-=';
 SquigglyLeft: '{';
 SquigglyRight: '}';
 Tilde: '~';

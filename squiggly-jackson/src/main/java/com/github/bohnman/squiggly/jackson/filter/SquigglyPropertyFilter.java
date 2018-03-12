@@ -163,9 +163,9 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static void main(String[] args) throws IOException {
 
-        String filter = "nickNames[name.=$.slice(1)]";
+        String filter = "age.=3";
         ObjectMapper mapper = new ObjectMapper();
-        Person person = new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie");
+        Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");
         mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
 //        Squiggly.init(mapper, filter).writeValue(System.out, person);
 
@@ -204,11 +204,17 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         private final String firstName;
         private final String lastName;
         private List<NickName> nickNames;
+        private int age;
 
-        public Person(String firstName, String lastName, String... nickNames) {
+        public Person(String firstName, String lastName, int age, String... nickNames) {
+            this.age = age;
             this.firstName = firstName;
             this.lastName = lastName;
             this.nickNames = Arrays.stream(nickNames).map(NickName::new).collect(Collectors.toList());
+        }
+
+        public int getAge() {
+            return age;
         }
 
         public String getFirstName() {

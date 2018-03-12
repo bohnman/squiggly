@@ -299,11 +299,26 @@ public class SquigglyParser {
         }
 
         private List<FunctionNode> parseAssignment(SquigglyExpressionParser.AssignmentContext context) {
+
             FunctionNodeType type = context.Equals() == null ? FunctionNodeType.SELF_ASSIGNMENT : FunctionNodeType.ASSIGNMENT;
+
+            String name = SystemFunctionName.ASSIGN.getFunctionName();
+
+            if (context.AddAssign() != null) {
+                name = SystemFunctionName.ADD.getFunctionName();
+            } else if (context.SubtractAssign() != null) {
+                name = SystemFunctionName.SUBTRACT.getFunctionName();
+            } else if (context.MultiplyAssign() != null) {
+                name = SystemFunctionName.MULTIPLY.getFunctionName();
+            } else if (context.DivideAssign() != null) {
+                name = SystemFunctionName.DIVIDE.getFunctionName();
+            } else if (context.ModulusAssign() != null) {
+                name = SystemFunctionName.MODULUS.getFunctionName();
+            }
 
             return Collections.singletonList(FunctionNode.builder()
                     .context(parseContext(context))
-                    .name(SystemFunctionName.ASSIGN.getFunctionName())
+                    .name(name)
                     .type(type)
                     .parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
                     .parameter(buildArg(context.arg()))
