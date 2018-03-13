@@ -1,13 +1,13 @@
 package com.github.bohnman.squiggly.core.function;
 
 import com.github.bohnman.core.bean.CoreBeans;
+import com.github.bohnman.core.collect.CoreArrays;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.function.FunctionPredicateBridge;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.config.SystemFunctionName;

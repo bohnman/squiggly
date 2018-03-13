@@ -1,17 +1,16 @@
 package com.github.bohnman.squiggly.core.function.functions;
 
+import com.github.bohnman.core.collect.CoreArrayWrapper;
+import com.github.bohnman.core.collect.CoreArrays;
 import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.core.lang.array.CoreArrayWrapper;
-import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.IllegalFormatException;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class StringFunctions {
@@ -19,17 +18,6 @@ public class StringFunctions {
     private StringFunctions() {
     }
 
-    public static String add(String value1, Object value2) {
-        return Objects.toString(value1, "") + Objects.toString(value2, "");
-    }
-
-    public static String add(Object value1, String value2) {
-        return Objects.toString(value1, "") + Objects.toString(value2, "");
-    }
-
-    public static String add(Object value1, Object value2) {
-        return Objects.toString(value1, "") + Objects.toString(value2, "");
-    }
 
     @SquigglyFunctionMethod(aliases = "capitalise")
     public static String capitalize(String value) {

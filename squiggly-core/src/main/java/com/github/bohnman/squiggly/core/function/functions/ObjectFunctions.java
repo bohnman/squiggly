@@ -1,11 +1,11 @@
 package com.github.bohnman.squiggly.core.function.functions;
 
+import com.github.bohnman.core.collect.CoreArrayWrapper;
 import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.core.lang.array.CoreArrayWrapper;
 import com.github.bohnman.core.library.CoreLibraries;
-import com.github.bohnman.squiggly.core.function.ValueHandler;
+import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.time.Instant;

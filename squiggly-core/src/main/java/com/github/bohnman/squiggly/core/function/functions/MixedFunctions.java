@@ -1,19 +1,20 @@
 package com.github.bohnman.squiggly.core.function.functions;
 
 import com.github.bohnman.core.bean.CoreBeans;
+import com.github.bohnman.core.collect.CoreArrayWrapper;
+import com.github.bohnman.core.collect.CoreArrays;
+import com.github.bohnman.core.collect.CoreIndexedIterableWrapper;
 import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.core.collect.CoreLists;
-import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.lang.CoreMethods;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.core.lang.array.CoreArrayWrapper;
-import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
-import com.github.bohnman.squiggly.core.function.ValueHandler;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
+import com.github.bohnman.squiggly.core.function.value.BaseCollectionValueHandler;
+import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 
 import javax.annotation.Nullable;
 import java.beans.PropertyDescriptor;
@@ -23,6 +24,8 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -36,6 +39,20 @@ public class MixedFunctions {
     public MixedFunctions() {
     }
 
+    public static Object concat(Object o1, Object o2) {
+        if (o1 instanceof String  || o2 instanceof String) {
+            return CoreStrings.defaultIfEmpty(Objects.toString(o1), "") + CoreStrings.defaultIfEmpty(Objects.toString(o2), "");
+        }
+
+        if (o1 == null || o2 == null) {
+            return null;
+        }
+
+        CoreIndexedIterableWrapper<Object, ?> w1 = CoreIterables.wrap(o1);
+        CoreIndexedIterableWrapper<Object, ?> w2 = CoreIterables.wrap(o2);
+        return w1.collect(Stream.concat(w1.stream(), w2.stream()));
+    }
+
     public static Object get(Object value, Object key) {
         if (key == null) {
             return null;
@@ -44,18 +61,10 @@ public class MixedFunctions {
         return new ValueHandler<Object>(key) {
 
             @Override
-            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+            protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper wrapper) {
                 Integer actualIndex = normalizeIndex(wrapper.size(), key);
                 if (actualIndex == null) return null;
                 return wrapper.get(actualIndex);
-            }
-
-
-            @Override
-            protected Object handleList(List<Object> list) {
-                Integer actualIndex = normalizeIndex(list.size(), key);
-                if (actualIndex == null) return null;
-                return list.get(actualIndex);
             }
 
             @Override
@@ -90,17 +99,8 @@ public class MixedFunctions {
         return new ValueHandler<Boolean>(key) {
 
             @Override
-            protected Boolean handleArrayWrapper(CoreArrayWrapper wrapper) {
+            protected Boolean handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 int size = wrapper.size();
-                Integer actualIndex = normalizeIndex(size, key);
-                if (actualIndex == null) return false;
-                return actualIndex >= 0 && actualIndex < size;
-            }
-
-
-            @Override
-            protected Boolean handleList(List<Object> list) {
-                int size = list.size();
                 Integer actualIndex = normalizeIndex(size, key);
                 if (actualIndex == null) return false;
                 return actualIndex >= 0 && actualIndex < size;
@@ -129,25 +129,10 @@ public class MixedFunctions {
     }
 
     public static Object keys(Object value) {
-        return new ValueHandler<Object>() {
+        return new BaseCollectionValueHandler<Object>() {
             @Override
-            protected Object handleNull() {
-                return Collections.emptyList();
-            }
-
-            @Override
-            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+            protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 int size = wrapper.size();
-                int[] indexes = new int[size];
-                for (int i = 0; i < size; i++) {
-                    indexes[i] = i;
-                }
-                return indexes;
-            }
-
-            @Override
-            protected Object handleIterable(Iterable<Object> iterable) {
-                int size = CoreIterables.size(iterable);
                 return IntStream.range(0, size)
                         .boxed()
                         .collect(toList());
@@ -167,7 +152,13 @@ public class MixedFunctions {
         }.handle(value);
     }
 
-    public static Object limit(Object value, int limit) {
+    public static Object limit(Object value, Number max) {
+        if (max == null) {
+            return value;
+        }
+
+        int limit = max.intValue();
+
         if (limit < 0) {
             return slice(value, limit);
         } else {
@@ -183,13 +174,8 @@ public class MixedFunctions {
             }
 
             @Override
-            protected Boolean handleArrayWrapper(CoreArrayWrapper wrapper) {
+            protected Boolean handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return wrapper.stream().anyMatch(e -> match(e, pattern));
-            }
-
-            @Override
-            protected Boolean handleIterable(Iterable<Object> iterable) {
-                return CoreStreams.of(iterable).anyMatch(e -> match(e, pattern));
             }
 
             @Override
@@ -199,7 +185,9 @@ public class MixedFunctions {
 
             @Override
             protected Boolean handleObject(Object value) {
-                return handleString(CoreConversions.toString(value));
+                return handleList(CoreBeans.getReadablePropertyDescriptors(value.getClass())
+                        .map(PropertyDescriptor::getName)
+                        .collect(toList()));
             }
         }.handle(value);
     }
@@ -218,27 +206,14 @@ public class MixedFunctions {
         return new ValueHandler<Object>() {
 
             @Override
-            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+            protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), keys);
                 if (actualIndexes.isEmpty()) return wrapper.create(0);
-                CoreArrayWrapper newWrapper = wrapper.create(actualIndexes.size());
+                CoreIndexedIterableWrapper newWrapper = wrapper.create(actualIndexes.size());
                 for (int i = 0; i < actualIndexes.size(); i++) {
                     newWrapper.set(i, wrapper.get(actualIndexes.get(i)));
                 }
-                return newWrapper.getArray();
-            }
-
-            @Override
-            protected Object handleList(List<Object> list) {
-                List<Integer> actualIndexes = normalizeIndexes(list.size(), keys);
-                if (actualIndexes.isEmpty()) return Collections.emptyList();
-                List newList = new ArrayList(actualIndexes.size());
-
-                for (Integer actualIndex : actualIndexes) {
-                    newList.add(list.get(actualIndex));
-                }
-
-                return newList;
+                return newWrapper.getValue();
             }
 
             @Override
@@ -273,11 +248,12 @@ public class MixedFunctions {
         }
 
         return new ValueHandler<Object>() {
+
             @Override
-            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+            protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 List<Integer> actualIndexes = normalizeIndexes(wrapper.size(), keys);
                 if (actualIndexes.isEmpty()) return wrapper.create(0);
-                CoreArrayWrapper newWrapper = wrapper.create(Math.max(0, wrapper.size() - actualIndexes.size()));
+                CoreIndexedIterableWrapper<Object, ?> newWrapper = wrapper.create(Math.max(0, wrapper.size() - actualIndexes.size()));
                 int newIdx = 0;
 
                 for (int i = 0; i < wrapper.size(); i++) {
@@ -289,22 +265,7 @@ public class MixedFunctions {
                 for (int i = 0; i < actualIndexes.size(); i++) {
                     newWrapper.set(i, wrapper.get(actualIndexes.get(i)));
                 }
-                return newWrapper.getArray();
-            }
-
-            @Override
-            protected Object handleList(List<Object> list) {
-                List<Integer> actualIndexes = normalizeIndexes(list.size(), keys);
-                if (actualIndexes.isEmpty()) return Collections.emptyList();
-                List newList = new ArrayList(Math.max(0, list.size() - actualIndexes.size()));
-
-                for (int i = 0; i < list.size(); i++) {
-                    if (!actualIndexes.contains(i)) {
-                        newList.add(list.get(i));
-                    }
-                }
-
-                return newList;
+                return newWrapper.getValue();
             }
 
             @Override
@@ -338,9 +299,10 @@ public class MixedFunctions {
 
     public static Object reverse(Object value) {
         return new ValueHandler<Object>() {
+
             @Override
             protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
-                return CoreArrays.wrap(value).reverse().getArray();
+                return CoreArrays.wrap(value).reverse().getValue();
             }
 
             @Override
@@ -362,7 +324,7 @@ public class MixedFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = "length")
+    @SquigglyFunctionMethod(aliases = {"length", "count"})
     public static int size(Object value) {
         return new ValueHandler<Integer>() {
             @Override
@@ -417,32 +379,21 @@ public class MixedFunctions {
         return slice(value, start, range.getEnd());
     }
 
-    public static Object slice(Object value, int start) {
-        return new ValueHandler<Object>(start) {
+    public static Object slice(Object value, Number startIndex) {
+        if (startIndex == null) {
+            return value;
+        }
+
+        int start = startIndex.intValue();
+
+        return new BaseCollectionValueHandler<Object>(start) {
 
             @Override
-            protected Object handleNull() {
-                return Collections.emptyList();
-            }
-
-            @Override
-            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+            protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 int len = wrapper.size();
                 int realStart = CoreArrays.normalizeIndex(start, len);
                 int realEnd = len;
-                return (realStart >= realEnd) ? wrapper.create(0).getArray() : wrapper.slice(realStart).getArray();
-            }
-
-            @Override
-            protected Object handleList(List<Object> list) {
-                int realStart = CoreArrays.normalizeIndex(start, list.size());
-                int realEnd = list.size();
-                return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
-            }
-
-            @Override
-            protected Object handleObject(Object value) {
-                return Collections.singletonList(value);
+                return (realStart >= realEnd) ? wrapper.create(0).getValue() : wrapper.slice(realStart).getValue();
             }
 
             @Override
@@ -452,31 +403,21 @@ public class MixedFunctions {
         }.handle(value);
     }
 
-    public static Object slice(Object value, int start, int end) {
-        return new ValueHandler<Object>(start, end) {
-            @Override
-            protected Object handleNull() {
-                return Collections.emptyList();
-            }
+    public static Object slice(Object value, Number startIndex, Number endIndex) {
+        if (startIndex == null || endIndex == null) {
+            return value;
+        }
 
+        int start = startIndex.intValue();
+        int end = endIndex.intValue();
+
+        return new BaseCollectionValueHandler<Object>(start, end) {
             @Override
-            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+            protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 int len = wrapper.size();
                 int realStart = CoreArrays.normalizeIndex(start, len);
                 int realEnd = CoreArrays.normalizeIndex(end, len);
-                return (realStart >= realEnd) ? wrapper.create(0).getArray() : wrapper.slice(realStart, realEnd).getArray();
-            }
-
-            @Override
-            protected Object handleList(List<Object> list) {
-                int realStart = CoreArrays.normalizeIndex(start, list.size());
-                int realEnd = CoreArrays.normalizeIndex(end, list.size());
-                return (realStart >= realEnd) ? Collections.emptyList() : list.subList(realStart, realEnd);
-            }
-
-            @Override
-            protected Object handleObject(Object value) {
-                return Collections.singletonList(value);
+                return (realStart >= realEnd) ? wrapper.create(0).getValue() : wrapper.slice(realStart, realEnd).getValue();
             }
 
             @Override
@@ -493,30 +434,22 @@ public class MixedFunctions {
                 .collect(toList());
 
         return new ValueHandler<Object>((Object[]) properties) {
+
             @Override
-            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+            protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 List list = wrapper.stream()
                         .map(item -> newComparable(item, orderBys))
                         .sorted()
                         .map(OrderByComparable::getOriginalValue)
                         .collect(toList());
 
-                CoreArrayWrapper newWrapper = wrapper.create(list.size());
+                CoreIndexedIterableWrapper<Object, ?> newWrapper = wrapper.create(list.size());
 
                 for (int i = 0; i < list.size(); i++) {
                     newWrapper.set(i, list.get(i));
                 }
 
-                return newWrapper.getArray();
-            }
-
-            @Override
-            protected Object handleIterable(Iterable<Object> iterable) {
-                return CoreStreams.of(iterable)
-                        .map(item -> newComparable(item, orderBys))
-                        .sorted()
-                        .map(OrderByComparable::getOriginalValue)
-                        .collect(toList());
+                return newWrapper.getValue();
             }
 
             @Override
@@ -527,12 +460,7 @@ public class MixedFunctions {
     }
 
     public static Object values(Object value) {
-        return new ValueHandler<Object>() {
-            @Override
-            protected Object handleNull() {
-                return Collections.emptyList();
-            }
-
+        return new BaseCollectionValueHandler<Object>() {
             @Override
             protected Object handleArray(Object array) {
                 return array;

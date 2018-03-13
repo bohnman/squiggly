@@ -1,14 +1,14 @@
 package com.github.bohnman.squiggly.gson.json;
 
 import com.github.bohnman.core.bean.CoreBeans;
+import com.github.bohnman.core.collect.CoreArrayWrapper;
+import com.github.bohnman.core.collect.CoreArrays;
 import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.core.json.node.BaseCoreJsonNode;
 import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.json.node.CoreJsonNodeType;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreMethods;
-import com.github.bohnman.core.lang.array.CoreArrayWrapper;
-import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.tuple.CorePair;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

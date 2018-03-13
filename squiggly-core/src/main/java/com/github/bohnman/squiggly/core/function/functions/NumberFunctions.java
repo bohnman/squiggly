@@ -1,10 +1,15 @@
 package com.github.bohnman.squiggly.core.function.functions;
 
+import com.github.bohnman.core.collect.CoreIndexedIterableWrapper;
+import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.core.convert.CoreConversions;
+import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 public class NumberFunctions {
 
@@ -19,7 +24,21 @@ public class NumberFunctions {
         return Math.abs(n.doubleValue());
     }
 
-    public static Number add(Object o1, Object o2) {
+    public static Object add(Object o1, Object o2) {
+        if (o1 instanceof String  || o2 instanceof String) {
+            return CoreStrings.defaultIfEmpty(Objects.toString(o1), "") + CoreStrings.defaultIfEmpty(Objects.toString(o2), "");
+        }
+
+        if (o1 == null || o2 == null) {
+            return null;
+        }
+
+        if (CoreIterables.isIterableLike(o1) || CoreIterables.isIterableLike(o2)) {
+            CoreIndexedIterableWrapper<Object, ?> w1 = CoreIterables.wrap(o1);
+            CoreIndexedIterableWrapper<Object, ?> w2 = CoreIterables.wrap(o2);
+            return w1.collect(Stream.concat(w1.stream(), w2.stream()));
+        }
+
         Number n1 = CoreConversions.toNumber(o1);
         Number n2 = CoreConversions.toNumber(o2);
 

@@ -1,10 +1,12 @@
-package com.github.bohnman.squiggly.core.function;
+package com.github.bohnman.squiggly.core.function.value;
 
+import com.github.bohnman.core.collect.CoreArrayWrapper;
+import com.github.bohnman.core.collect.CoreArrays;
+import com.github.bohnman.core.collect.CoreIndexedIterableWrapper;
+import com.github.bohnman.core.collect.CoreListWrapper;
 import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
-import com.github.bohnman.core.lang.array.CoreArrayWrapper;
-import com.github.bohnman.core.lang.array.CoreArrays;
 import com.github.bohnman.core.range.CoreIntRange;
 
 import java.util.List;
@@ -90,7 +92,7 @@ public abstract class ValueHandler<T> {
     }
 
     protected T handleArrayWrapper(CoreArrayWrapper wrapper) {
-        return handleObject(wrapper.getArray());
+        return handleIndexedCollectionWrapper(wrapper);
     }
 
     protected T handleBoolean(Boolean bool) {
@@ -122,7 +124,15 @@ public abstract class ValueHandler<T> {
     }
 
     protected T handleList(List<Object> list) {
-        return handleObject(list);
+        return handleListWrapper(new CoreListWrapper<>(list));
+    }
+
+    protected T handleListWrapper(CoreListWrapper<Object> wrapper) {
+        return handleIndexedCollectionWrapper(wrapper);
+    }
+
+    protected T handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+        return handleObject(wrapper.getValue());
     }
 
     protected T handleMap(Map<Object, Object> map) {
