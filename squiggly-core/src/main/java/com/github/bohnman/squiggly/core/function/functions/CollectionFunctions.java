@@ -36,7 +36,7 @@ public class CollectionFunctions {
             @Override
             protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i)))
+                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getArray())))
                         .mapToObj(wrapper::get)
                         .toArray();
             }
@@ -44,7 +44,7 @@ public class CollectionFunctions {
             @Override
             protected Object handleList(List<Object> list) {
                 return IntStream.range(0, list.size())
-                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(list.get(i), i)))
+                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(list.get(i), i, list)))
                         .mapToObj(list::get)
                         .collect(Collectors.toList());
             }
@@ -152,14 +152,14 @@ public class CollectionFunctions {
             @Override
             protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> coreLambda.invoke(wrapper.get(i), i))
+                        .mapToObj(i -> coreLambda.invoke(wrapper.get(i), i, wrapper.getArray()))
                         .toArray();
             }
 
             @Override
             protected Object handleList(List<Object> list) {
                 return IntStream.range(0, list.size())
-                        .mapToObj(i -> coreLambda.invoke(list.get(i), i))
+                        .mapToObj(i -> coreLambda.invoke(list.get(i), i, list))
                         .collect(Collectors.toList());
             }
 
@@ -197,6 +197,50 @@ public class CollectionFunctions {
             @Override
             protected Object handleObject(Object value) {
                 return handleList(Collections.singletonList(value));
+            }
+        }.handle(value);
+    }
+
+    public static Object reduce(Object value, Object initialValue, CoreLambda coreLambda) {
+        if (coreLambda == null) {
+            return null;
+        }
+
+
+        return new ValueHandler<Object>(coreLambda) {
+            @Override
+            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+                if (wrapper.isEmpty()) {
+                    return initialValue;
+                }
+
+                Object accumulator = initialValue;
+
+                for (int i = 0; i < wrapper.size(); i++) {
+                    accumulator = coreLambda.invoke(accumulator, wrapper.get(i), i, wrapper.getArray());
+                }
+
+                return accumulator;
+            }
+
+            @Override
+            protected Object handleList(List<Object> list) {
+                if (list.isEmpty()) {
+                    return initialValue;
+                }
+
+                Object accumulator = initialValue;
+
+                for (int i = 0; i < list.size(); i++) {
+                    accumulator = coreLambda.invoke(accumulator, list.get(i), i, list);
+                }
+
+                return accumulator;
+            }
+
+            @Override
+            protected Object handleObject(Object value) {
+                return initialValue;
             }
         }.handle(value);
     }
