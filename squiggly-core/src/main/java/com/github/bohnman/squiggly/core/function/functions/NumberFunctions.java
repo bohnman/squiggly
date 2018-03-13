@@ -79,7 +79,10 @@ public class NumberFunctions {
         return cast(Math.floor(n.doubleValue()));
     }
 
-    public static Number max(Number n1, Number n2) {
+    public static Number max(Object o1, Object o2) {
+        Number n1 = CoreConversions.toNumber(o1);
+        Number n2 = CoreConversions.toNumber(o2);
+
         if (n1 == null && n2 == null) {
             return null;
         }
@@ -95,7 +98,11 @@ public class NumberFunctions {
         return cast(Math.max(n1.doubleValue(), n2.doubleValue()));
     }
 
-    public static Number min(Number n1, Number n2) {
+    public static Number min(Object o1, Object o2) {
+        Number n1 = CoreConversions.toNumber(o1);
+        Number n2 = CoreConversions.toNumber(o2);
+
+
         if (n1 == null && n2 == null) {
             return null;
         }
@@ -250,7 +257,7 @@ public class NumberFunctions {
         return number;
     }
 
-    private static Number cast(Number n) {
+    public static Number cast(Number n) {
         if (n == null) {
             return null;
         }

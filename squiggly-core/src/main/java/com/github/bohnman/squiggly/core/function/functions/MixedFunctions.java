@@ -324,7 +324,7 @@ public class MixedFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = {"length", "count"})
+    @SquigglyFunctionMethod(aliases = {"length", "count", "countBy"})
     public static int size(Object value) {
         return new ValueHandler<Integer>() {
             @Override

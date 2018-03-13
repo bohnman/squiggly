@@ -24,7 +24,7 @@ public class MapFunctionRepository implements SquigglyFunctionRepository {
 
     public <T> MapFunctionRepository(Iterable<SquigglyFunction<?>> functions) {
         Map<String, List<SquigglyFunction<Object>>> functionMap = (Map) CoreStreams.of(functions)
-                .flatMap(f -> Stream.concat(Stream.of(toPair(f.getName().toLowerCase(), f)), f.getAliases().stream().map(a -> toPair(a, f))))
+                .flatMap(f -> Stream.concat(Stream.of(toPair(f.getName().toLowerCase(), f)), f.getAliases().stream().map(a -> toPair(a.toLowerCase(), f))))
                 .collect(groupingBy(CorePair::getLeft, mapping(CorePair::getRight, toList())));
 
         this.functionMap = Collections.unmodifiableMap(functionMap);

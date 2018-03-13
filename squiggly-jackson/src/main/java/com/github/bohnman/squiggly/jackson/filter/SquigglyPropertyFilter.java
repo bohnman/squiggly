@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
@@ -163,7 +165,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static void main(String[] args) throws IOException {
 
-        String filter = "nickNames.=$.keyBy(chuck,name)";
+        String filter = "nickNames.=$.min(priority)";
         ObjectMapper mapper = new ObjectMapper();
         Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");
         mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
@@ -174,8 +176,12 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         System.out.println();
     }
 
+
+
     public static class NickName implements Comparable<NickName> {
+        private static final AtomicInteger SEQUENCE = new AtomicInteger();
         private final String name;
+        private final int priority = SEQUENCE.incrementAndGet();
 
         public NickName(String name) {
             this.name = name;
@@ -192,6 +198,14 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
         public String getChuck() {
             return "chuckie";
+        }
+
+        public int[] getNumbers() {
+            return new int[] { 1, 5, 9, 14 };
+        }
+
+        public int getPriority() {
+            return priority;
         }
 
         @Override

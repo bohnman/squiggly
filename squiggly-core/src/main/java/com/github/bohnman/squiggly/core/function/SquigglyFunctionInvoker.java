@@ -100,7 +100,7 @@ public class SquigglyFunctionInvoker {
         List<SquigglyFunction<Object>> functions = functionRepository.findByName(functionNode.getName());
 
         if (functions.isEmpty()) {
-            throw new SquigglyParseException(functionNode.getContext(), "Unrecognized function [%s]", functionNode.getContext(), functionNode.getName());
+            throw new SquigglyParseException(functionNode.getContext(), "Unrecognized function [%s]", functionNode.getName());
         }
 
         List<Object> requestedParameters = toParameters(functionNode, input);
@@ -154,12 +154,38 @@ public class SquigglyFunctionInvoker {
         SquigglyFunction<Object> winner = null;
         Score score = null;
 
+        List<SquigglyFunction<Object>> functionalFunctions = new ArrayList<>(functions.size());
+        List<SquigglyFunction<Object>> normalFunctions = new ArrayList<>(functions.size());
+
+
+
         for (SquigglyFunction<Object> function : functions) {
+            if (hasFunctionalParameter(function)) {
+                functionalFunctions.add(function);
+            } else {
+                normalFunctions.add(function);
+            }
+        }
 
+
+        for (SquigglyFunction<Object> function : functionalFunctions) {
             Score candidateScore = new Score();
-            boolean candidateScored = score(candidateScore, functionNode, input, requestedParameters, function);
 
-            if (candidateScored && (score == null || candidateScore.compareTo(score) > 0)) {
+            if (scoreCandidate(score, candidateScore, functionNode, input, requestedParameters, function)) {
+                score = candidateScore;
+                winner = function;
+            }
+        }
+
+        // if we have a match with function with a functional type parameter, just return so we don't end up evaluating the parameter
+        if (score != null && !score.isEmpty()) {
+            return winner;
+        }
+
+        for (SquigglyFunction<Object> function : normalFunctions) {
+            Score candidateScore = new Score();
+
+            if (scoreCandidate(score, candidateScore, functionNode, input, requestedParameters, function)) {
                 score = candidateScore;
                 winner = function;
             }
@@ -167,6 +193,15 @@ public class SquigglyFunctionInvoker {
 
 
         return winner;
+    }
+
+    private boolean scoreCandidate(Score score, Score candidateScore, FunctionNode functionNode, Object input, List<Object> requestedParameters, SquigglyFunction<Object> function) {
+        boolean candidateScored = score(candidateScore, functionNode, input, requestedParameters, function);
+        return candidateScored && (score == null || candidateScore.compareTo(score) > 0);
+    }
+
+    private boolean hasFunctionalParameter(SquigglyFunction<Object> function) {
+        return function.getParameters().stream().anyMatch(p -> Function.class.isAssignableFrom(p.getType()) || Predicate.class.isAssignableFrom(p.getType()));
     }
 
     private boolean score(Score score, FunctionNode functionNode, Object input, List<Object> requestedParameters, SquigglyFunction<Object> function) {
@@ -524,6 +559,10 @@ public class SquigglyFunctionInvoker {
         private Score base() {
             baseMatches++;
             return this;
+        }
+
+        public boolean isEmpty() {
+            return (exactMatches + assignableMatches + convertibleOrders + baseMatches) == 0;
         }
 
         @Override
