@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.core.convert;
 
 import com.github.bohnman.core.convert.CoreConversions;
+import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.library.CoreLibraries;
 import com.github.bohnman.squiggly.core.convert.joda.JodaConverters;
 
@@ -201,6 +202,7 @@ public class DefaultConverters {
         repo.add(Object.class, String.class, CoreConversions::toString, ConverterRecord.MAX_ORDER);
         repo.add(Object.class, Function.class, CoreConversions::toFunction, ConverterRecord.MAX_ORDER);
         repo.add(Object.class, Predicate.class, CoreConversions::toPredicate, ConverterRecord.MAX_ORDER);
+        repo.add(Object.class, CoreLambda.class, CoreConversions::toLambda, ConverterRecord.MAX_ORDER);
 
     }
 

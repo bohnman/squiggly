@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -24,24 +23,6 @@ import java.util.stream.Stream;
 @SuppressWarnings("unchecked")
 public class CollectionFunctions {
     private CollectionFunctions() {
-    }
-
-    public static boolean all(Object value, Predicate predicate) {
-        if (predicate == null) {
-            return false;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Boolean>(predicate) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper.stream();
-            }
-
-            @Override
-            protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.allMatch(predicate);
-            }
-        }.handle(value);
     }
 
     public static boolean all(Object value, CoreLambda lambda) {
@@ -64,24 +45,6 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = "some")
-    public static boolean any(Object value, Predicate predicate) {
-        if (predicate == null) {
-            return false;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Boolean>(predicate) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper.stream();
-            }
-
-            @Override
-            protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.anyMatch(predicate);
-            }
-        }.handle(value);
-    }
 
     @SquigglyFunctionMethod(aliases = "some")
     public static boolean any(Object value, CoreLambda lambda) {
@@ -104,23 +67,6 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static boolean none(Object value, Predicate predicate) {
-        if (predicate == null) {
-            return false;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Boolean>(predicate) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper.stream();
-            }
-
-            @Override
-            protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.noneMatch(predicate);
-            }
-        }.handle(value);
-    }
 
     public static boolean none(Object value, CoreLambda lambda) {
         if (lambda == null) {
@@ -160,21 +106,6 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = "where")
-    @SuppressWarnings("unchecked")
-    public static Object filter(Object value, Predicate predicate) {
-        if (predicate == null) {
-            return Collections.emptyList();
-        }
-
-        return new CollectionReturningValueHandler(predicate) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper.stream().filter((Predicate<Object>) predicate);
-            }
-        }.handle(value);
-    }
-
 
     public static Object reject(Object value, CoreLambda coreLambda) {
         if (coreLambda == null) {
@@ -193,20 +124,6 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static Object reject(Object value, Predicate predicate) {
-        if (predicate == null) {
-            return Collections.emptyList();
-        }
-
-        return new CollectionReturningValueHandler(predicate) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper.stream().filter((Predicate<Object>) predicate.negate());
-            }
-        }.handle(value);
-    }
-
-
     public static Object find(Object value, CoreLambda coreLambda) {
         if (coreLambda == null) {
             return null;
@@ -219,24 +136,6 @@ public class CollectionFunctions {
                 return IntStream.range(0, wrapper.size())
                         .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
                         .mapToObj(wrapper::get);
-            }
-
-            @Override
-            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.findFirst().orElse(null);
-            }
-        }.handle(value);
-    }
-
-    public static Object find(Object value, Predicate predicate) {
-        if (predicate == null) {
-            return null;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Object>(predicate) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper.stream().filter((Predicate<Object>) predicate);
             }
 
             @Override
@@ -262,32 +161,8 @@ public class CollectionFunctions {
 
             @Override
             protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                List list =  stream.collect(Collectors.toList());
-                return list.isEmpty() ? null: list.get(list.size() - 1);
-            }
-        }.handle(value);
-    }
-
-    public static Object findLast(Object value, Predicate predicate) {
-        if (predicate == null) {
-            return -1;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Integer>(predicate) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                for (int i = wrapper.size() -1; i >= 0; i--) {
-                    if (predicate.test(wrapper.get(i))) {
-                        return Stream.of(wrapper.get(i));
-                    }
-                }
-
-                return Stream.empty();
-            }
-
-            @Override
-            protected Integer handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return (Integer) stream.findFirst().orElse(-1);
+                List list = stream.collect(Collectors.toList());
+                return list.isEmpty() ? null : list.get(list.size() - 1);
             }
         }.handle(value);
     }
@@ -308,32 +183,8 @@ public class CollectionFunctions {
 
             @Override
             protected Integer handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                List list =  stream.collect(Collectors.toList());
+                List list = stream.collect(Collectors.toList());
                 return list.isEmpty() ? -1 : (Integer) list.get(list.size() - 1);
-            }
-        }.handle(value);
-    }
-
-    public static int findLastIndex(Object value, Predicate predicate) {
-        if (predicate == null) {
-            return -1;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Integer>(predicate) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                for (int i = wrapper.size() -1; i >= 0; i--) {
-                    if (predicate.test(wrapper.get(i))) {
-                        return Stream.of(i);
-                    }
-                }
-
-                return Stream.empty();
-            }
-
-            @Override
-            protected Integer handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return (Integer) stream.findFirst().orElse(-1);
             }
         }.handle(value);
     }
@@ -350,30 +201,6 @@ public class CollectionFunctions {
                 return IntStream.range(0, wrapper.size())
                         .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
                         .mapToObj(i -> i);
-            }
-
-            @Override
-            protected Integer handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return (Integer) stream.findFirst().orElse(-1);
-            }
-        }.handle(value);
-    }
-
-    public static int findIndex(Object value, Predicate predicate) {
-        if (predicate == null) {
-            return -1;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Integer>(predicate) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                for (int i = 0; i < wrapper.size(); i++) {
-                    if (predicate.test(wrapper.get(i))) {
-                        return Stream.of(i);
-                    }
-                }
-
-                return Stream.empty();
             }
 
             @Override
@@ -450,23 +277,6 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static Object flatMap(Object value, Function function) {
-        if (function == null) {
-            return Collections.emptyList();
-        }
-
-        return new CollectionReturningValueHandler() {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper.stream().flatMap(value -> {
-                    Object result = function.apply(value);
-                    return CoreIterables.wrap(result).stream();
-                });
-            }
-        }.handle(value);
-    }
-
-
     public static Object map(Object value, CoreLambda coreLambda) {
         if (coreLambda == null) {
             return Collections.emptyList();
@@ -481,28 +291,15 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static Object map(Object value, Function function) {
-        if (function == null) {
-            return Collections.emptyList();
-        }
-
-        return new CollectionReturningValueHandler() {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper.stream().map((Function<Object, Object>) function);
-            }
-        }.handle(value);
+    public static Map groupBy(Object value, CoreLambda keyFunction) {
+        return groupBy(value, keyFunction, CoreLambda.identity());
     }
 
-    public static Map groupBy(Object value, Function keyFunction) {
-        return groupBy(value, keyFunction, Function.identity());
+    public static Map groupBy(Object value, CoreLambda keyFunction, CoreLambda valueFunction) {
+        return groupBy(value, keyFunction, valueFunction, CoreLambda.identity());
     }
 
-    public static Map groupBy(Object value, Function keyFunction, Function valueFunction) {
-        return groupBy(value, keyFunction, valueFunction, Function.identity());
-    }
-
-    public static Map groupBy(Object value, Function keyFunction, Function valueFunction, Function finisher) {
+    public static Map groupBy(Object value, CoreLambda keyFunction, CoreLambda valueFunction, CoreLambda finisher) {
         return new BaseStreamingCollectionValueHandler<Map>() {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -511,29 +308,25 @@ public class CollectionFunctions {
 
             @Override
             protected Map handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                Function wrappedKeyFunction = keyFunction instanceof CoreLambda
-                        ? (index) -> ((CoreLambda) keyFunction).invoke(wrapper.get((Integer) index), index, wrapper.getValue())
-                        : (index) -> keyFunction.apply(wrapper.get((Integer) index));
-
-                Function wrappedValueFunction = valueFunction instanceof CoreLambda
-                        ? (index) -> ((CoreLambda) valueFunction).invoke(wrapper.get((Integer) index), index, wrapper.getValue())
-                        : (index) -> valueFunction.apply(wrapper.get((Integer) index));
+                Function wrappedKeyFunction = (index) -> keyFunction.invoke(wrapper.get((Integer) index), index, wrapper.getValue());
+                Function wrappedValueFunction = (index) -> valueFunction.invoke(wrapper.get((Integer) index), index, wrapper.getValue());
+                Function wrappedFinisher = finisher;
 
                 return (Map) stream.collect(Collectors.groupingBy(wrappedKeyFunction,
                         Collectors.mapping((Function<Object, Object>) wrappedValueFunction,
                                 Collectors.collectingAndThen(
                                         Collectors.toList(),
-                                        finisher))));
+                                        wrappedFinisher))));
             }
         }.handle(value);
     }
 
-    public static Map keyBy(Object value, Function keyFunction) {
-        return keyBy(value, keyFunction, Function.identity());
+    public static Map keyBy(Object value, CoreLambda keyFunction) {
+        return keyBy(value, keyFunction, CoreLambda.identity());
     }
 
 
-    public static Map keyBy(Object value, Function keyFunction, Function valueFunction) {
+    public static Map keyBy(Object value, CoreLambda keyFunction, CoreLambda valueFunction) {
         return new BaseStreamingCollectionValueHandler<Map>() {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -542,14 +335,8 @@ public class CollectionFunctions {
 
             @Override
             protected Map handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                Function wrappedKeyFunction = keyFunction instanceof CoreLambda
-                        ? (index) -> ((CoreLambda) keyFunction).invoke(wrapper.get((Integer) index), index, wrapper.getValue())
-                        : (index) -> keyFunction.apply(wrapper.get((Integer) index));
-
-                Function wrappedValueFunction = valueFunction instanceof CoreLambda
-                        ? (index) -> ((CoreLambda) valueFunction).invoke(wrapper.get((Integer) index), index, wrapper.getValue())
-                        : (index) -> valueFunction.apply(wrapper.get((Integer) index));
-
+                Function wrappedKeyFunction = (index) -> keyFunction.invoke(wrapper.get((Integer) index), index, wrapper.getValue());
+                Function wrappedValueFunction = (index) -> valueFunction.invoke(wrapper.get((Integer) index), index, wrapper.getValue());
                 return (Map) stream.collect(Collectors.toMap(wrappedKeyFunction, wrappedValueFunction, (a, b) -> b));
             }
         }.handle(value);
