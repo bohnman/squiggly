@@ -203,11 +203,15 @@ public class CollectionFunctions {
 
     public static Object reduce(Object value, Object initialValue, CoreLambda coreLambda) {
         if (coreLambda == null) {
-            return null;
+            return initialValue;
         }
 
-
         return new ValueHandler<Object>(coreLambda) {
+            @Override
+            protected Object handleNull() {
+                return initialValue;
+            }
+
             @Override
             protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
                 if (wrapper.isEmpty()) {
@@ -240,7 +244,7 @@ public class CollectionFunctions {
 
             @Override
             protected Object handleObject(Object value) {
-                return initialValue;
+                return handleList(Collections.singletonList(value));
             }
         }.handle(value);
     }
