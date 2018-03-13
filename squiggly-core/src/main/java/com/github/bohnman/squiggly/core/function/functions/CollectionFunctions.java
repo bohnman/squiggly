@@ -16,10 +16,13 @@ import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -455,12 +458,12 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = {"average", "averageBy", "avgBy", "mean", "meanBy" })
+    @SquigglyFunctionMethod(aliases = {"average", "averageBy", "avgBy", "mean", "meanBy"})
     public static Number avg(Object value) {
         return avg(value, CoreLambda.identity());
     }
 
-    @SquigglyFunctionMethod(aliases = {"average", "averageBy", "avgBy", "mean", "meanBy" })
+    @SquigglyFunctionMethod(aliases = {"average", "averageBy", "avgBy", "mean", "meanBy"})
     public static Number avg(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Number>() {
             @Override
@@ -612,6 +615,133 @@ public class CollectionFunctions {
             @Override
             protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
                 return stream.findFirst().orElse(null);
+            }
+        }.handle(value);
+    }
+
+    @SquigglyFunctionMethod(aliases = {"differenceBy", "diff", "diffBy"})
+    public static Object difference(Object value1, Object value2) {
+        return difference(value1, value2, CoreLambda.identity());
+    }
+
+    @SquigglyFunctionMethod(aliases = {"differenceBy", "diff", "diffBy"})
+    public static Object difference(Object value1, Object value2, CoreLambda lambda) {
+
+        CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
+            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper;
+            }
+        }.handle(value1);
+
+        CoreIndexedIterableWrapper<Object, ?> wrapper2 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
+            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper;
+            }
+        }.handle(value2);
+
+
+        List<Object> mappedList2 = IntStream.range(0, wrapper2.size())
+                .mapToObj(i -> lambda.invoke(wrapper2.get(i), i, wrapper2.getValue()))
+                .collect(Collectors.toList());
+
+
+        return wrapper1.collect(IntStream.range(0, wrapper1.size())
+                .filter(i -> {
+                    Object result = lambda.invoke(wrapper1.get(i), i, wrapper1.getValue());
+                    return !mappedList2.contains(result);
+                })
+                .mapToObj(wrapper1::get));
+    }
+
+
+
+    @SquigglyFunctionMethod(aliases = {"intersectionBy"})
+    public static Object intersection(Object value1, Object value2, CoreLambda lambda) {
+
+        CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
+            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper;
+            }
+        }.handle(value1);
+
+        CoreIndexedIterableWrapper<Object, ?> wrapper2 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
+            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper;
+            }
+        }.handle(value2);
+
+
+        List<Object> mappedList2 = IntStream.range(0, wrapper2.size())
+                .mapToObj(i -> lambda.invoke(wrapper2.get(i), i, wrapper2.getValue()))
+                .collect(Collectors.toList());
+
+
+        return wrapper1.collect(IntStream.range(0, wrapper1.size())
+                .filter(i -> {
+                    Object result = lambda.invoke(wrapper1.get(i), i, wrapper1.getValue());
+                    return mappedList2.contains(result);
+                })
+                .mapToObj(wrapper1::get));
+    }
+
+
+
+
+
+    @SquigglyFunctionMethod(aliases = {"unionBy"})
+    public static Object union(Object value1, Object value2) {
+        return union(value1, value2, CoreLambda.identity());
+    }
+
+    @SquigglyFunctionMethod(aliases = {"unionBY"})
+    public static Object union(Object value1, Object value2, CoreLambda lambda) {
+
+        CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
+            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper;
+            }
+        }.handle(value1);
+
+        CoreIndexedIterableWrapper<Object, ?> wrapper2 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
+            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper;
+            }
+        }.handle(value2);
+
+        Set<Object> seen = new HashSet<>();
+
+        IntPredicate predicate = (i) -> {
+            CoreIndexedIterableWrapper<Object, ?> wrapper = wrapper1;
+
+            if (i >= wrapper1.size()) {
+                i -= wrapper1.size();
+                wrapper = wrapper2;
+            }
+
+            return seen.add(lambda.invoke(wrapper.get(i), i, wrapper.getValue()));
+        };
+
+        return wrapper1.collect(IntStream.range(0, wrapper1.size() + wrapper2.size())
+                .filter(predicate)
+                .mapToObj(i -> i >= wrapper1.size() ? wrapper2.get(i - wrapper1.size()) : wrapper1.get(i)));
+    }
+
+    @SquigglyFunctionMethod(aliases = {"uniq", "uniqueBy", "uniqBy"})
+    public static Object unique(Object value) {
+        return unique(value, CoreLambda.identity());
+    }
+
+    @SquigglyFunctionMethod(aliases = {"uniq", "uniqueBy", "uniqBy"})
+    public static Object unique(Object value, CoreLambda lambda) {
+        return new CollectionReturningValueHandler() {
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .boxed()
+                        .collect(Collectors.toMap(i -> lambda.invoke(wrapper.get(i), i, wrapper.getValue()), wrapper::get, (a, b) -> a))
+                        .values()
+                        .stream();
+
             }
         }.handle(value);
     }

@@ -165,7 +165,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static void main(String[] args) throws IOException {
 
-        String filter = "nickNames.=$.min(priority)";
+        String filter = "numbers.=$.union([1, 13])";
         ObjectMapper mapper = new ObjectMapper();
         Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");
         mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
@@ -201,7 +201,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
 
         public int[] getNumbers() {
-            return new int[] { 1, 5, 9, 14 };
+            return new int[] { 1, 5, 9, 14, 9 };
         }
 
         public int getPriority() {
@@ -248,7 +248,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
 
         public int[] getNumbers() {
-            return new int[] { 1, 5, 9, 14 };
+            return new int[] { 1, 1, 5, 9, 14, 9 };
         }
     }
 }

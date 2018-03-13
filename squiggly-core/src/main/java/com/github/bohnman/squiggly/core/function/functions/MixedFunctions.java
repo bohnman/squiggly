@@ -25,7 +25,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -40,7 +39,7 @@ public class MixedFunctions {
     }
 
     public static Object concat(Object o1, Object o2) {
-        if (o1 instanceof String  || o2 instanceof String) {
+        if (o1 instanceof String || o2 instanceof String) {
             return CoreStrings.defaultIfEmpty(Objects.toString(o1), "") + CoreStrings.defaultIfEmpty(Objects.toString(o2), "");
         }
 
