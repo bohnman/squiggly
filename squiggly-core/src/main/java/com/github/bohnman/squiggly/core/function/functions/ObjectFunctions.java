@@ -90,7 +90,7 @@ public class ObjectFunctions {
         return compare != null && compare >= 0;
     }
 
-    public static CoreLambda identity(Object object) {
+    public static CoreLambda identity() {
         return CoreLambda.identity();
     }
 

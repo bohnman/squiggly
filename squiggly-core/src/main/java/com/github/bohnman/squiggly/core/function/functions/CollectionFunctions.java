@@ -7,13 +7,16 @@ import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.lang.CoreObjects;
+import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
+import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 import com.github.bohnman.squiggly.core.function.value.BaseCollectionValueHandler;
 import com.github.bohnman.squiggly.core.function.value.BaseStreamingCollectionValueHandler;
 import com.github.bohnman.squiggly.core.function.value.CollectionReturningValueHandler;
 import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -831,6 +834,64 @@ public class CollectionFunctions {
 
             }
         }.handle(value);
+    }
+
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    public static int[] range(CoreIntRange range) {
+        CoreIntRange exclusive = range.toExclusive();
+        return range(exclusive.getStart(), exclusive.getEnd());
+    }
+
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    public static int[] range(CoreIntRange range, Number step) {
+        CoreIntRange exclusive = range.toExclusive();
+        return range(exclusive.getStart(), exclusive.getEnd(), step);
+    }
+
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    public static int[] range(Number end) {
+        return range(0, end);
+    }
+
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    public static int[] range(Number start, Number end) {
+        Number step =  (start != null && end != null && start.intValue() > end.intValue()) ? -1 : 1;
+        return range(start, end, step);
+    }
+
+
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    public static int[] range(Number start, Number end, Number step) {
+        if (end == null || step == null) {
+            return new int[0];
+        }
+
+        if (start == null) {
+            start = 0;
+        }
+
+        int startInt = start.intValue();
+        int endInt = end.intValue();
+        int stepInt = step.intValue();
+
+        if (stepInt == 0) {
+            return new int[0];
+        }
+
+        int length = (int) Math.max(Math.ceil(((double) (endInt - startInt) / (double) stepInt)), 0);
+
+        int[] range = new int[length];
+
+        for (int i = 0; i < length; i++) {
+            range[i] = startInt;
+            startInt += stepInt;
+        }
+
+        return range;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(range(0, -5)));
     }
 
     private static Comparable toComparable(Object value) {
