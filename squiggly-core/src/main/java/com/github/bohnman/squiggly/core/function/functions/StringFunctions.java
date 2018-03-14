@@ -4,6 +4,7 @@ import com.github.bohnman.core.collect.CoreArrayWrapper;
 import com.github.bohnman.core.collect.CoreArrays;
 import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.convert.CoreConversions;
+import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.config.SquigglyEnvironment;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
@@ -16,6 +17,8 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings("SameParameterValue")
 public class StringFunctions {
+
+    private static final int MAX_PAD_MEMORY = 200;
 
     private StringFunctions() {
     }
@@ -180,7 +183,7 @@ public class StringFunctions {
     }
 
     public static String truncate(String value, Number maxSize, String append) {
-        if (value == null ) {
+        if (value == null) {
             return null;
         }
 
@@ -228,5 +231,24 @@ public class StringFunctions {
         return builder.toString();
     }
 
+    public static String lpad(String value, int size) {
+        return lpad(value, size, " ");
+    }
 
+    public static String lpad(String value, int size, String pad) {
+        return CoreStrings.leftPad(value, restrictPadSize(size, pad), pad);
+    }
+
+    public static String rpad(String value, int size) {
+        return rpad(value, size, " ");
+    }
+
+    public static String rpad(String value, int size, String pad) {
+        return CoreStrings.rightPad(value, restrictPadSize(size, pad), pad);
+    }
+
+    private static int restrictPadSize(int size, String pad) {
+        int maxSize = MAX_PAD_MEMORY / (CoreObjects.firstNonNull(pad, "").length() * 2);
+        return Math.min(size, maxSize);
+    }
 }
