@@ -203,7 +203,7 @@ public class StringFunctions {
         return CoreStrings.upper(value);
     }
 
-    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.SECURE)
     public static String repeat(String value, Number times) {
         if (value == null) {
             return null;

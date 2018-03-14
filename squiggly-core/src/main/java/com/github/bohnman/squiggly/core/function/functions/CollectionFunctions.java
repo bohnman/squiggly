@@ -836,31 +836,31 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.SECURE)
     public static int[] range(CoreIntRange range) {
         CoreIntRange exclusive = range.toExclusive();
         return range(exclusive.getStart(), exclusive.getEnd());
     }
 
-    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.SECURE)
     public static int[] range(CoreIntRange range, Number step) {
         CoreIntRange exclusive = range.toExclusive();
         return range(exclusive.getStart(), exclusive.getEnd(), step);
     }
 
-    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.SECURE)
     public static int[] range(Number end) {
         return range(0, end);
     }
 
-    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.SECURE)
     public static int[] range(Number start, Number end) {
         Number step =  (start != null && end != null && start.intValue() > end.intValue()) ? -1 : 1;
         return range(start, end, step);
     }
 
 
-    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.SECURE)
     public static int[] range(Number start, Number end, Number step) {
         if (end == null || step == null) {
             return new int[0];

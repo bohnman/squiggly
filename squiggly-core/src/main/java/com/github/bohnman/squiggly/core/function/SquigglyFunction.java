@@ -25,6 +25,6 @@ public interface SquigglyFunction<T> extends Function<FunctionRequest, T> {
 
     enum Environment {
         BASE ,
-        UNSAFE
+        SECURE
     }
 }
