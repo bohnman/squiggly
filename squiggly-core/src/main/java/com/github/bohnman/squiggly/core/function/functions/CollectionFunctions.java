@@ -39,18 +39,70 @@ public class CollectionFunctions {
     private CollectionFunctions() {
     }
 
-    public static boolean in(Object value, Object collection) {
-        return new BaseStreamingCollectionValueHandler<Boolean>(collection) {
+    @SquigglyFunctionMethod(aliases = "every")
+    public static boolean all(Object value, CoreLambda lambda) {
+        if (lambda == null) {
+            return false;
+        }
+
+        return new BaseStreamingCollectionValueHandler<Boolean>(lambda) {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper.stream();
+                return (Stream) IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .filter(bool -> bool);
             }
 
             @Override
             protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.anyMatch(o -> Objects.equals(o, value));
+                return stream.count() == wrapper.size();
             }
-        }.handle(collection);
+        }.handle(value);
+    }
+
+    @SquigglyFunctionMethod(aliases = "some")
+    public static boolean any(Object value, CoreLambda lambda) {
+        if (lambda == null) {
+            return false;
+        }
+
+        return new BaseStreamingCollectionValueHandler<Boolean>(lambda) {
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return (Stream) IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .filter(bool -> bool);
+            }
+
+            @Override
+            protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return stream.findAny().orElse(null) != null;
+            }
+        }.handle(value);
+    }
+
+    @SquigglyFunctionMethod(aliases = {"average", "averageBy", "avgBy", "mean", "meanBy"})
+    public static Number avg(Object value) {
+        return avg(value, CoreLambda.identity());
+    }
+
+    @SquigglyFunctionMethod(aliases = {"average", "averageBy", "avgBy", "mean", "meanBy"})
+    public static Number avg(Object value, CoreLambda lambda) {
+        return new BaseStreamingCollectionValueHandler<Number>() {
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> lambda.invoke(wrapper.get(i), i, wrapper.getValue()));
+            }
+
+            @Override
+            protected Number handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return NumberFunctions.cast(stream.map(CoreConversions::toNumber)
+                        .filter(Objects::nonNull)
+                        .mapToDouble(Number::doubleValue)
+                        .average().orElse(0));
+            }
+        }.handle(value);
     }
 
     @SquigglyFunctionMethod(aliases = {"chunkBy", "partition", "partitionBy"})
@@ -124,68 +176,56 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = "every")
-    public static boolean all(Object value, CoreLambda lambda) {
-        if (lambda == null) {
-            return false;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Boolean>(lambda) {
+    @SquigglyFunctionMethod(aliases = "countBy")
+    public static Number count(Object value, CoreLambda lambda) {
+        return new BaseStreamingCollectionValueHandler<Number>() {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return (Stream) IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
-                        .filter(bool -> bool);
+                return IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> lambda.invoke(wrapper.get(i), i, wrapper.getValue()));
             }
 
             @Override
-            protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.count() == wrapper.size();
+            protected Number handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return NumberFunctions.cast(stream.map(CoreConversions::toNumber)
+                        .filter(Objects::nonNull)
+                        .count());
             }
         }.handle(value);
     }
 
-
-    @SquigglyFunctionMethod(aliases = "some")
-    public static boolean any(Object value, CoreLambda lambda) {
-        if (lambda == null) {
-            return false;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Boolean>(lambda) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return (Stream) IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
-                        .filter(bool -> bool);
-            }
-
-            @Override
-            protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.findAny().orElse(null) != null;
-            }
-        }.handle(value);
+    @SquigglyFunctionMethod(aliases = {"differenceBy", "diff", "diffBy"})
+    public static Object difference(Object value1, Object value2) {
+        return difference(value1, value2, CoreLambda.identity());
     }
 
+    @SquigglyFunctionMethod(aliases = {"differenceBy", "diff", "diffBy"})
+    public static Object difference(Object value1, Object value2, CoreLambda lambda) {
 
-    public static boolean none(Object value, CoreLambda lambda) {
-        if (lambda == null) {
-            return false;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Boolean>(lambda) {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return (Stream) IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
-                        .filter(bool -> bool);
+        CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
+            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper;
             }
+        }.handle(value1);
 
-            @Override
-            protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.findAny().orElse(null) == null;
+        CoreIndexedIterableWrapper<Object, ?> wrapper2 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
+            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper;
             }
-        }.handle(value);
+        }.handle(value2);
+
+
+        List<Object> mappedList2 = IntStream.range(0, wrapper2.size())
+                .mapToObj(i -> lambda.invoke(wrapper2.get(i), i, wrapper2.getValue()))
+                .collect(Collectors.toList());
+
+
+        return wrapper1.collect(IntStream.range(0, wrapper1.size())
+                .filter(i -> {
+                    Object result = lambda.invoke(wrapper1.get(i), i, wrapper1.getValue());
+                    return !mappedList2.contains(result);
+                })
+                .mapToObj(wrapper1::get));
     }
 
     @SquigglyFunctionMethod(aliases = "where")
@@ -200,24 +240,6 @@ public class CollectionFunctions {
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
                         .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
-                        .mapToObj(wrapper::get);
-            }
-
-        }.handle(value);
-    }
-
-
-    public static Object reject(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
-            return Collections.emptyList();
-        }
-
-        return new CollectionReturningValueHandler(coreLambda) {
-
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .filter(i -> !CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
                         .mapToObj(wrapper::get);
             }
 
@@ -241,6 +263,27 @@ public class CollectionFunctions {
             @Override
             protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
                 return stream.findFirst().orElse(null);
+            }
+        }.handle(value);
+    }
+
+    public static int findIndex(Object value, CoreLambda coreLambda) {
+        if (coreLambda == null) {
+            return -1;
+        }
+
+        return new BaseStreamingCollectionValueHandler<Integer>(coreLambda) {
+
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .mapToObj(i -> i);
+            }
+
+            @Override
+            protected Integer handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return (Integer) stream.findFirst().orElse(-1);
             }
         }.handle(value);
     }
@@ -289,27 +332,6 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static int findIndex(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
-            return -1;
-        }
-
-        return new BaseStreamingCollectionValueHandler<Integer>(coreLambda) {
-
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
-                        .mapToObj(i -> i);
-            }
-
-            @Override
-            protected Integer handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return (Integer) stream.findFirst().orElse(-1);
-            }
-        }.handle(value);
-    }
-
     @SquigglyFunctionMethod(aliases = "head")
     public static Object first(Object value) {
         return new ValueHandler<Object>() {
@@ -336,32 +358,6 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = "tail")
-    public static Object last(Object value) {
-        return new ValueHandler<Object>() {
-            @Override
-            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
-                int len = wrapper.size();
-                return len == 0 ? null : wrapper.get(len - 1);
-            }
-
-            @Override
-            protected Object handleIterable(Iterable<Object> iterable) {
-                return CoreIterables.getLast(iterable, null);
-            }
-
-            @Override
-            protected Object handleObject(Object value) {
-                return value;
-            }
-
-            @Override
-            protected Object handleString(String string) {
-                return string.isEmpty() ? "" : string.substring(string.length() - 1);
-            }
-        }.handle(value);
-    }
-
     public static Object flatMap(Object value, CoreLambda coreLambda) {
         if (coreLambda == null) {
             return Collections.emptyList();
@@ -373,20 +369,6 @@ public class CollectionFunctions {
                 return IntStream.range(0, wrapper.size())
                         .mapToObj(i -> coreLambda.invoke(wrapper.get(i), i, wrapper.getValue()))
                         .flatMap(result -> CoreIterables.wrap(result).stream());
-            }
-        }.handle(value);
-    }
-
-    public static Object map(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
-            return Collections.emptyList();
-        }
-
-        return new CollectionReturningValueHandler() {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> coreLambda.invoke(wrapper.get(i), i, wrapper.getValue()));
             }
         }.handle(value);
     }
@@ -421,10 +403,52 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    public static boolean in(Object value, Object collection) {
+        return new BaseStreamingCollectionValueHandler<Boolean>(collection) {
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper.stream();
+            }
+
+            @Override
+            protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return stream.anyMatch(o -> Objects.equals(o, value));
+            }
+        }.handle(collection);
+    }
+
+    @SquigglyFunctionMethod(aliases = {"intersectionBy"})
+    public static Object intersection(Object value1, Object value2, CoreLambda lambda) {
+
+        CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
+            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper;
+            }
+        }.handle(value1);
+
+        CoreIndexedIterableWrapper<Object, ?> wrapper2 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
+            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper;
+            }
+        }.handle(value2);
+
+
+        List<Object> mappedList2 = IntStream.range(0, wrapper2.size())
+                .mapToObj(i -> lambda.invoke(wrapper2.get(i), i, wrapper2.getValue()))
+                .collect(Collectors.toList());
+
+
+        return wrapper1.collect(IntStream.range(0, wrapper1.size())
+                .filter(i -> {
+                    Object result = lambda.invoke(wrapper1.get(i), i, wrapper1.getValue());
+                    return mappedList2.contains(result);
+                })
+                .mapToObj(wrapper1::get));
+    }
+
     public static Map keyBy(Object value, CoreLambda keyFunction) {
         return keyBy(value, keyFunction, CoreLambda.identity());
     }
-
 
     public static Map keyBy(Object value, CoreLambda keyFunction, CoreLambda valueFunction) {
         return new BaseStreamingCollectionValueHandler<Map>() {
@@ -440,6 +464,213 @@ public class CollectionFunctions {
                 return (Map) stream.collect(Collectors.toMap(wrappedKeyFunction, wrappedValueFunction, (a, b) -> b));
             }
         }.handle(value);
+    }
+
+    @SquigglyFunctionMethod(aliases = "tail")
+    public static Object last(Object value) {
+        return new ValueHandler<Object>() {
+            @Override
+            protected Object handleArrayWrapper(CoreArrayWrapper wrapper) {
+                int len = wrapper.size();
+                return len == 0 ? null : wrapper.get(len - 1);
+            }
+
+            @Override
+            protected Object handleIterable(Iterable<Object> iterable) {
+                return CoreIterables.getLast(iterable, null);
+            }
+
+            @Override
+            protected Object handleObject(Object value) {
+                return value;
+            }
+
+            @Override
+            protected Object handleString(String string) {
+                return string.isEmpty() ? "" : string.substring(string.length() - 1);
+            }
+        }.handle(value);
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Arrays.toString(range(0, -5)));
+    }
+
+    public static Object map(Object value, CoreLambda coreLambda) {
+        if (coreLambda == null) {
+            return Collections.emptyList();
+        }
+
+        return new CollectionReturningValueHandler() {
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> coreLambda.invoke(wrapper.get(i), i, wrapper.getValue()));
+            }
+        }.handle(value);
+    }
+
+    public static Object max(Object value) {
+        return max(value, CoreLambda.identity());
+    }
+
+    public static Object max(Object value, CoreLambda lambda) {
+        return new BaseStreamingCollectionValueHandler<Object>() {
+            @SuppressWarnings("RedundantCast")
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> {
+                            Object result = lambda.invoke(wrapper.get(i), i, wrapper.getValue());
+                            return CorePair.of(result, toComparable(result));
+                        })
+                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> -1 * o1.getRight().compareTo(o2.getRight()))
+                        .map(CorePair::getLeft);
+            }
+
+            @Override
+            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return stream.findFirst().orElse(null);
+            }
+        }.handle(value);
+    }
+
+    public static Object maxBy(Object value) {
+        return maxBy(value, CoreLambda.identity());
+    }
+
+    public static Object maxBy(Object value, CoreLambda lambda) {
+        return new BaseStreamingCollectionValueHandler<Object>() {
+            @SuppressWarnings("RedundantCast")
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> CorePair.of(wrapper.get(i), toComparable(lambda.invoke(wrapper.get(i), i, wrapper.getValue()))))
+                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> -1 * o1.getRight().compareTo(o2.getRight()))
+                        .map(CorePair::getLeft);
+            }
+
+            @Override
+            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return stream.findFirst().orElse(null);
+            }
+        }.handle(value);
+    }
+
+    public static Object min(Object value) {
+        return min(value, CoreLambda.identity());
+    }
+
+    public static Object min(Object value, CoreLambda lambda) {
+        return new BaseStreamingCollectionValueHandler<Object>() {
+            @SuppressWarnings({"RedundantCast", "ComparatorCombinators"})
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> {
+                            Object result = lambda.invoke(wrapper.get(i), i, wrapper.getValue());
+                            return CorePair.of(result, toComparable(result));
+                        })
+                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> o1.getRight().compareTo(o2.getRight()))
+                        .map(CorePair::getLeft);
+            }
+
+            @Override
+            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return stream.findFirst().orElse(null);
+            }
+        }.handle(value);
+    }
+
+    public static Object minBy(Object value) {
+        return minBy(value, CoreLambda.identity());
+    }
+
+    public static Object minBy(Object value, CoreLambda lambda) {
+        return new BaseStreamingCollectionValueHandler<Object>() {
+            @SuppressWarnings({"RedundantCast", "ComparatorCombinators"})
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> CorePair.of(wrapper.get(i), toComparable(lambda.invoke(wrapper.get(i), i, wrapper.getValue()))))
+                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> o1.getRight().compareTo(o2.getRight()))
+                        .map(CorePair::getLeft);
+            }
+
+            @Override
+            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return stream.findFirst().orElse(null);
+            }
+        }.handle(value);
+    }
+
+    public static boolean none(Object value, CoreLambda lambda) {
+        if (lambda == null) {
+            return false;
+        }
+
+        return new BaseStreamingCollectionValueHandler<Boolean>(lambda) {
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return (Stream) IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .filter(bool -> bool);
+            }
+
+            @Override
+            protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return stream.findAny().orElse(null) == null;
+            }
+        }.handle(value);
+    }
+
+    public static int[] range(CoreIntRange range) {
+        CoreIntRange exclusive = range.toExclusive();
+        return range(exclusive.getStart(), exclusive.getEnd());
+    }
+
+    public static int[] range(CoreIntRange range, Number step) {
+        CoreIntRange exclusive = range.toExclusive();
+        return range(exclusive.getStart(), exclusive.getEnd(), step);
+    }
+
+    public static int[] range(Number end) {
+        return range(0, end);
+    }
+
+    public static int[] range(Number start, Number end) {
+        Number step = (start != null && end != null && start.intValue() > end.intValue()) ? -1 : 1;
+        return range(start, end, step);
+    }
+
+    public static int[] range(Number start, Number end, Number step) {
+        if (end == null || step == null) {
+            return new int[0];
+        }
+
+        if (start == null) {
+            start = 0;
+        }
+
+        int startInt = start.intValue();
+        int endInt = end.intValue();
+        int stepInt = step.intValue();
+
+        if (stepInt == 0) {
+            return new int[0];
+        }
+
+        int length = (int) Math.max(Math.ceil(((double) (endInt - startInt) / (double) stepInt)), 0);
+        length = Math.min(length, MAX_RANGE_LENGTH);
+
+        int[] range = new int[length];
+
+        for (int i = 0; i < length; i++) {
+            range[i] = startInt;
+            startInt += stepInt;
+        }
+
+        return range;
     }
 
     public static Object reduce(Object value, Object initialValue, CoreLambda coreLambda) {
@@ -470,6 +701,47 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    public static Object reject(Object value, CoreLambda coreLambda) {
+        if (coreLambda == null) {
+            return Collections.emptyList();
+        }
+
+        return new CollectionReturningValueHandler(coreLambda) {
+
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .filter(i -> !CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .mapToObj(wrapper::get);
+            }
+
+        }.handle(value);
+    }
+
+    @SquigglyFunctionMethod(aliases = "sumBy")
+    public static Number sum(Object value) {
+        return sum(value, CoreLambda.identity());
+    }
+
+    @SquigglyFunctionMethod(aliases = "sumBy")
+    public static Number sum(Object value, CoreLambda lambda) {
+        return new BaseStreamingCollectionValueHandler<Number>() {
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> lambda.invoke(wrapper.get(i), i, wrapper.getValue()));
+            }
+
+            @Override
+            protected Number handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return NumberFunctions.cast(stream.map(CoreConversions::toNumber)
+                        .filter(Objects::nonNull)
+                        .mapToDouble(Number::doubleValue)
+                        .sum());
+            }
+        }.handle(value);
+    }
+
     public static Object[] toArray(Object value) {
         return new ValueHandler<Object[]>() {
             @Override
@@ -492,6 +764,15 @@ public class CollectionFunctions {
                 return new Object[]{value};
             }
         }.handle(value);
+    }
+
+    private static Comparable toComparable(Object value) {
+        if (value instanceof Comparable) {
+            return (Comparable) value;
+        }
+
+        return o -> CoreObjects.firstNonNull(CoreObjects.compare(value, o), -1);
+
     }
 
     public static List<Object> toList(Object value) {
@@ -551,232 +832,6 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = {"average", "averageBy", "avgBy", "mean", "meanBy"})
-    public static Number avg(Object value) {
-        return avg(value, CoreLambda.identity());
-    }
-
-    @SquigglyFunctionMethod(aliases = {"average", "averageBy", "avgBy", "mean", "meanBy"})
-    public static Number avg(Object value, CoreLambda lambda) {
-        return new BaseStreamingCollectionValueHandler<Number>() {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> lambda.invoke(wrapper.get(i), i, wrapper.getValue()));
-            }
-
-            @Override
-            protected Number handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return NumberFunctions.cast(stream.map(CoreConversions::toNumber)
-                        .filter(Objects::nonNull)
-                        .mapToDouble(Number::doubleValue)
-                        .average().orElse(0));
-            }
-        }.handle(value);
-    }
-
-    @SquigglyFunctionMethod(aliases = "countBy")
-    public static Number count(Object value, CoreLambda lambda) {
-        return new BaseStreamingCollectionValueHandler<Number>() {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> lambda.invoke(wrapper.get(i), i, wrapper.getValue()));
-            }
-
-            @Override
-            protected Number handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return NumberFunctions.cast(stream.map(CoreConversions::toNumber)
-                        .filter(Objects::nonNull)
-                        .count());
-            }
-        }.handle(value);
-    }
-
-
-    @SquigglyFunctionMethod(aliases = "sumBy")
-    public static Number sum(Object value) {
-        return sum(value, CoreLambda.identity());
-    }
-
-    @SquigglyFunctionMethod(aliases = "sumBy")
-    public static Number sum(Object value, CoreLambda lambda) {
-        return new BaseStreamingCollectionValueHandler<Number>() {
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> lambda.invoke(wrapper.get(i), i, wrapper.getValue()));
-            }
-
-            @Override
-            protected Number handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return NumberFunctions.cast(stream.map(CoreConversions::toNumber)
-                        .filter(Objects::nonNull)
-                        .mapToDouble(Number::doubleValue)
-                        .sum());
-            }
-        }.handle(value);
-    }
-
-    public static Object max(Object value) {
-        return max(value, CoreLambda.identity());
-    }
-
-    public static Object max(Object value, CoreLambda lambda) {
-        return new BaseStreamingCollectionValueHandler<Object>() {
-            @SuppressWarnings("RedundantCast")
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> {
-                            Object result = lambda.invoke(wrapper.get(i), i, wrapper.getValue());
-                            return CorePair.of(result, toComparable(result));
-                        })
-                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> -1 * o1.getRight().compareTo(o2.getRight()))
-                        .map(CorePair::getLeft);
-            }
-
-            @Override
-            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.findFirst().orElse(null);
-            }
-        }.handle(value);
-    }
-
-    public static Object maxBy(Object value) {
-        return maxBy(value, CoreLambda.identity());
-    }
-
-    public static Object maxBy(Object value, CoreLambda lambda) {
-        return new BaseStreamingCollectionValueHandler<Object>() {
-            @SuppressWarnings("RedundantCast")
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> CorePair.of(wrapper.get(i), toComparable(lambda.invoke(wrapper.get(i), i, wrapper.getValue()))))
-                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> -1 * o1.getRight().compareTo(o2.getRight()))
-                        .map(CorePair::getLeft);
-            }
-
-            @Override
-            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.findFirst().orElse(null);
-            }
-        }.handle(value);
-    }
-
-    public static Object minBy(Object value) {
-        return minBy(value, CoreLambda.identity());
-    }
-
-    public static Object minBy(Object value, CoreLambda lambda) {
-        return new BaseStreamingCollectionValueHandler<Object>() {
-            @SuppressWarnings({"RedundantCast", "ComparatorCombinators"})
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> CorePair.of(wrapper.get(i), toComparable(lambda.invoke(wrapper.get(i), i, wrapper.getValue()))))
-                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> o1.getRight().compareTo(o2.getRight()))
-                        .map(CorePair::getLeft);
-            }
-
-            @Override
-            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.findFirst().orElse(null);
-            }
-        }.handle(value);
-    }
-
-    public static Object min(Object value) {
-        return min(value, CoreLambda.identity());
-    }
-
-    public static Object min(Object value, CoreLambda lambda) {
-        return new BaseStreamingCollectionValueHandler<Object>() {
-            @SuppressWarnings({"RedundantCast", "ComparatorCombinators"})
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> {
-                            Object result = lambda.invoke(wrapper.get(i), i, wrapper.getValue());
-                            return CorePair.of(result, toComparable(result));
-                        })
-                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> o1.getRight().compareTo(o2.getRight()))
-                        .map(CorePair::getLeft);
-            }
-
-            @Override
-            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.findFirst().orElse(null);
-            }
-        }.handle(value);
-    }
-
-    @SquigglyFunctionMethod(aliases = {"differenceBy", "diff", "diffBy"})
-    public static Object difference(Object value1, Object value2) {
-        return difference(value1, value2, CoreLambda.identity());
-    }
-
-    @SquigglyFunctionMethod(aliases = {"differenceBy", "diff", "diffBy"})
-    public static Object difference(Object value1, Object value2, CoreLambda lambda) {
-
-        CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
-            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper;
-            }
-        }.handle(value1);
-
-        CoreIndexedIterableWrapper<Object, ?> wrapper2 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
-            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper;
-            }
-        }.handle(value2);
-
-
-        List<Object> mappedList2 = IntStream.range(0, wrapper2.size())
-                .mapToObj(i -> lambda.invoke(wrapper2.get(i), i, wrapper2.getValue()))
-                .collect(Collectors.toList());
-
-
-        return wrapper1.collect(IntStream.range(0, wrapper1.size())
-                .filter(i -> {
-                    Object result = lambda.invoke(wrapper1.get(i), i, wrapper1.getValue());
-                    return !mappedList2.contains(result);
-                })
-                .mapToObj(wrapper1::get));
-    }
-
-
-    @SquigglyFunctionMethod(aliases = {"intersectionBy"})
-    public static Object intersection(Object value1, Object value2, CoreLambda lambda) {
-
-        CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
-            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper;
-            }
-        }.handle(value1);
-
-        CoreIndexedIterableWrapper<Object, ?> wrapper2 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
-            protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper;
-            }
-        }.handle(value2);
-
-
-        List<Object> mappedList2 = IntStream.range(0, wrapper2.size())
-                .mapToObj(i -> lambda.invoke(wrapper2.get(i), i, wrapper2.getValue()))
-                .collect(Collectors.toList());
-
-
-        return wrapper1.collect(IntStream.range(0, wrapper1.size())
-                .filter(i -> {
-                    Object result = lambda.invoke(wrapper1.get(i), i, wrapper1.getValue());
-                    return mappedList2.contains(result);
-                })
-                .mapToObj(wrapper1::get));
-    }
-
-
     @SquigglyFunctionMethod(aliases = {"unionBy"})
     public static Object union(Object value1, Object value2) {
         return union(value1, value2, CoreLambda.identity());
@@ -833,68 +888,5 @@ public class CollectionFunctions {
 
             }
         }.handle(value);
-    }
-
-    public static int[] range(CoreIntRange range) {
-        CoreIntRange exclusive = range.toExclusive();
-        return range(exclusive.getStart(), exclusive.getEnd());
-    }
-
-    public static int[] range(CoreIntRange range, Number step) {
-        CoreIntRange exclusive = range.toExclusive();
-        return range(exclusive.getStart(), exclusive.getEnd(), step);
-    }
-
-    public static int[] range(Number end) {
-        return range(0, end);
-    }
-
-    public static int[] range(Number start, Number end) {
-        Number step = (start != null && end != null && start.intValue() > end.intValue()) ? -1 : 1;
-        return range(start, end, step);
-    }
-
-
-    public static int[] range(Number start, Number end, Number step) {
-        if (end == null || step == null) {
-            return new int[0];
-        }
-
-        if (start == null) {
-            start = 0;
-        }
-
-        int startInt = start.intValue();
-        int endInt = end.intValue();
-        int stepInt = step.intValue();
-
-        if (stepInt == 0) {
-            return new int[0];
-        }
-
-        int length = (int) Math.max(Math.ceil(((double) (endInt - startInt) / (double) stepInt)), 0);
-        length = Math.min(length, MAX_RANGE_LENGTH);
-
-        int[] range = new int[length];
-
-        for (int i = 0; i < length; i++) {
-            range[i] = startInt;
-            startInt += stepInt;
-        }
-
-        return range;
-    }
-
-    public static void main(String[] args) {
-        System.out.println(Arrays.toString(range(0, -5)));
-    }
-
-    private static Comparable toComparable(Object value) {
-        if (value instanceof Comparable) {
-            return (Comparable) value;
-        }
-
-        return o -> CoreObjects.firstNonNull(CoreObjects.compare(value, o), -1);
-
     }
 }

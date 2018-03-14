@@ -25,7 +25,7 @@ public class NumberFunctions {
     }
 
     public static Object add(Object o1, Object o2) {
-        if (o1 instanceof String  || o2 instanceof String) {
+        if (o1 instanceof String || o2 instanceof String) {
             return CoreStrings.defaultIfEmpty(Objects.toString(o1), "") + CoreStrings.defaultIfEmpty(Objects.toString(o2), "");
         }
 
@@ -53,6 +53,25 @@ public class NumberFunctions {
         return cast(n1.doubleValue() + n2.doubleValue());
     }
 
+    public static Number cast(Number n) {
+        if (n == null) {
+            return null;
+        }
+
+        if (isIntegerType(n)) {
+            return n;
+        }
+
+        double doubleValue = n.doubleValue();
+        long longValue = n.longValue();
+
+        if ((doubleValue - longValue) == 0) {
+            return longValue;
+        }
+
+        return doubleValue;
+    }
+
     public static Number ceil(Number n) {
         if (n == null) return null;
         return cast(Math.ceil(n.doubleValue()));
@@ -77,6 +96,10 @@ public class NumberFunctions {
     public static Number floor(Number n) {
         if (n == null) return null;
         return cast(Math.floor(n.doubleValue()));
+    }
+
+    private static boolean isIntegerType(Number n) {
+        return (n instanceof Long || n instanceof Integer || n instanceof Short || n instanceof Byte);
     }
 
     public static Number max(Object o1, Object o2) {
@@ -255,29 +278,6 @@ public class NumberFunctions {
         }
 
         return number;
-    }
-
-    public static Number cast(Number n) {
-        if (n == null) {
-            return null;
-        }
-
-        if (isIntegerType(n)) {
-            return n;
-        }
-
-        double doubleValue = n.doubleValue();
-        long longValue = n.longValue();
-
-        if ((doubleValue - longValue) == 0) {
-            return longValue;
-        }
-
-        return doubleValue;
-    }
-
-    private static boolean isIntegerType(Number n) {
-        return (n instanceof Long || n instanceof Integer || n instanceof Short || n instanceof Byte);
     }
 
 }

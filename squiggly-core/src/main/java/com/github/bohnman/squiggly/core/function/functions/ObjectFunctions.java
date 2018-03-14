@@ -6,8 +6,8 @@ import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.library.CoreLibraries;
-import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
+import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -32,6 +32,10 @@ public class ObjectFunctions {
     @SquigglyFunctionMethod
     public static Object assign(Object object, Object newValue) {
         return newValue;
+    }
+
+    public static boolean canBeIterated(Object value) {
+        return isIterable(value) || isArray(value);
     }
 
     public static Object defaultEmpty(Object o1, Object o2) {
@@ -94,20 +98,12 @@ public class ObjectFunctions {
         return CoreLambda.identity();
     }
 
-    public static Object self(Object object) {
-        return object;
-    }
-
     public static Object ifelse(Boolean value, Object trueValue, Object falseValue) {
         return value ? trueValue : falseValue;
     }
 
     public static Object ifelse(Object value, Predicate predicate, Object trueValue, Object falseValue) {
         return predicate.test(value) ? trueValue : falseValue;
-    }
-
-    public static boolean canBeIterated(Object value) {
-        return isIterable(value) || isArray(value);
     }
 
     public static boolean isArray(Object value) {
@@ -156,6 +152,30 @@ public class ObjectFunctions {
         }
 
         return false;
+    }
+
+    private static boolean isEmpty(Object o) {
+        return new ValueHandler<Boolean>() {
+            @Override
+            protected Boolean handleNull() {
+                return true;
+            }
+
+            @Override
+            protected Boolean handleArrayWrapper(CoreArrayWrapper wrapper) {
+                return wrapper.isEmpty();
+            }
+
+            @Override
+            protected Boolean handleIterable(Iterable<Object> iterable) {
+                return CoreIterables.isEmpty(iterable);
+            }
+
+            @Override
+            protected Boolean handleObject(Object value) {
+                return false;
+            }
+        }.handle(o);
     }
 
     public static boolean isIterable(Object value) {
@@ -244,28 +264,8 @@ public class ObjectFunctions {
         return CoreConversions.toBoolean(o1) || CoreConversions.toBoolean(o2);
     }
 
-    private static boolean isEmpty(Object o) {
-        return new ValueHandler<Boolean>() {
-            @Override
-            protected Boolean handleNull() {
-                return true;
-            }
-
-            @Override
-            protected Boolean handleArrayWrapper(CoreArrayWrapper wrapper) {
-                return wrapper.isEmpty();
-            }
-
-            @Override
-            protected Boolean handleIterable(Iterable<Object> iterable) {
-                return CoreIterables.isEmpty(iterable);
-            }
-
-            @Override
-            protected Boolean handleObject(Object value) {
-                return false;
-            }
-        }.handle(o);
+    public static Object self(Object object) {
+        return object;
     }
 
     private static class InternalJodaFunctions {

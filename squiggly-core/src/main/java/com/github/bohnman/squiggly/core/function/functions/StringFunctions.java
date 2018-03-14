@@ -98,6 +98,43 @@ public class StringFunctions {
         return CoreStrings.lower(value);
     }
 
+    public static String lpad(String value, int size) {
+        return lpad(value, size, " ");
+    }
+
+    public static String lpad(String value, int size, String pad) {
+        return CoreStrings.leftPad(value, restrictPadSize(size, pad), pad);
+    }
+
+    public static String ltrim(String value) {
+        return CoreStrings.ltrim(value);
+    }
+
+    public static String repeat(String value, Number times) {
+        if (value == null) {
+            return null;
+        }
+
+        if (times == null) {
+            return value;
+        }
+
+        int timesInt = times.intValue();
+
+        if (timesInt <= 0) {
+            return "";
+        }
+
+        StringBuilder builder = new StringBuilder(value.length() * timesInt);
+        int repeat = restrictRepeatSize(value, timesInt);
+
+        for (int i = 0; i < repeat; i++) {
+            builder.append(value);
+        }
+
+        return builder.toString();
+    }
+
     public static String replace(String value, Object search, String replace) {
         if (value == null) {
             return null;
@@ -138,6 +175,32 @@ public class StringFunctions {
         return value;
     }
 
+    private static int restrictPadSize(int size, String pad) {
+        int maxSize = MAX_PAD_MEMORY / (CoreObjects.firstNonNull(pad, "").length() * 2);
+        return Math.min(size, maxSize);
+    }
+
+    private static int restrictRepeatSize(String repeat, int size) {
+        if (size == 1) {
+            return size;
+        }
+
+        int maxSize = MAX_REPEAT_MEMORY / (CoreObjects.firstNonNull(repeat, "").length() * 2);
+        return Math.max(1, Math.min(size, maxSize));
+    }
+
+    public static String rpad(String value, int size) {
+        return rpad(value, size, " ");
+    }
+
+    public static String rpad(String value, int size, String pad) {
+        return CoreStrings.rightPad(value, restrictPadSize(size, pad), pad);
+    }
+
+    public static String rtrim(String value) {
+        return CoreStrings.rtrim(value);
+    }
+
     public static List<String> split(String value, Object separator) {
         if (value == null) {
             return Collections.emptyList();
@@ -166,14 +229,6 @@ public class StringFunctions {
         return value.startsWith(search);
     }
 
-    public static String ltrim(String value) {
-        return CoreStrings.ltrim(value);
-    }
-
-    public static String rtrim(String value) {
-        return CoreStrings.rtrim(value);
-    }
-
     public static String trim(String value) {
         return CoreStrings.trim(value);
     }
@@ -200,65 +255,8 @@ public class StringFunctions {
         return value.substring(0, maxSizeInt) + append;
     }
 
-
     @SquigglyFunctionMethod(aliases = {"uppercase"})
     public static String upper(String value) {
         return CoreStrings.upper(value);
-    }
-
-
-    public static String repeat(String value, Number times) {
-        if (value == null) {
-            return null;
-        }
-
-        if (times == null) {
-            return value;
-        }
-
-        int timesInt = times.intValue();
-
-        if (timesInt <= 0) {
-            return "";
-        }
-
-        StringBuilder builder = new StringBuilder(value.length() * timesInt);
-        int repeat = restrictRepeatSize(value, timesInt);
-
-        for (int i = 0; i < repeat; i++) {
-            builder.append(value);
-        }
-
-        return builder.toString();
-    }
-
-    public static String lpad(String value, int size) {
-        return lpad(value, size, " ");
-    }
-
-    public static String lpad(String value, int size, String pad) {
-        return CoreStrings.leftPad(value, restrictPadSize(size, pad), pad);
-    }
-
-    public static String rpad(String value, int size) {
-        return rpad(value, size, " ");
-    }
-
-    public static String rpad(String value, int size, String pad) {
-        return CoreStrings.rightPad(value, restrictPadSize(size, pad), pad);
-    }
-
-    private static int restrictRepeatSize(String repeat, int size) {
-        if (size == 1) {
-            return size;
-        }
-
-        int maxSize = MAX_REPEAT_MEMORY / (CoreObjects.firstNonNull(repeat, "").length() * 2);
-        return Math.max(1, Math.min(size, maxSize));
-    }
-
-    private static int restrictPadSize(int size, String pad) {
-        int maxSize = MAX_PAD_MEMORY / (CoreObjects.firstNonNull(pad, "").length() * 2);
-        return Math.min(size, maxSize);
     }
 }

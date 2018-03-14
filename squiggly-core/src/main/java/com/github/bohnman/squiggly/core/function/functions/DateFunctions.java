@@ -133,6 +133,25 @@ public class DateFunctions {
         return parseDateInternal(input, mainPattern, otherPatterns).toInstant().atZone(ZoneId.systemDefault());
     }
 
+    private static Date parseDateInternal(String input, String mainPattern, String... otherPatterns) {
+
+        try {
+            return new SimpleDateFormat(mainPattern).parse(input);
+        } catch (ParseException e) {
+            // ignore;
+        }
+
+        for (String otherPattern : otherPatterns) {
+            try {
+                return new SimpleDateFormat(otherPattern).parse(input);
+            } catch (ParseException e) {
+                // ignore
+            }
+        }
+
+        throw new IllegalArgumentException("Unable to parse input");
+    }
+
     public static LocalDateTime parseLocalDate(String input) {
         return parseLocalDate(input, "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm:ss.SSS", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm");
     }
@@ -163,25 +182,6 @@ public class DateFunctions {
         }
 
         return dateTime.minus(number.intValue(), toTemporalUnit(unit));
-    }
-
-    private static Date parseDateInternal(String input, String mainPattern, String... otherPatterns) {
-
-        try {
-            return new SimpleDateFormat(mainPattern).parse(input);
-        } catch (ParseException e) {
-            // ignore;
-        }
-
-        for (String otherPattern : otherPatterns) {
-            try {
-                return new SimpleDateFormat(otherPattern).parse(input);
-            } catch (ParseException e) {
-                // ignore
-            }
-        }
-
-        throw new IllegalArgumentException("Unable to parse input");
     }
 
     private static TemporalUnit toTemporalUnit(String unit) {
