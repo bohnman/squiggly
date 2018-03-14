@@ -6,7 +6,6 @@ import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.squiggly.core.config.SquigglyEnvironment;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.util.Arrays;
@@ -19,6 +18,7 @@ import java.util.regex.Pattern;
 public class StringFunctions {
 
     private static final int MAX_PAD_MEMORY = 200;
+    private static final int MAX_REPEAT_MEMORY = 500;
 
     private StringFunctions() {
     }
@@ -206,7 +206,7 @@ public class StringFunctions {
         return CoreStrings.upper(value);
     }
 
-    @SquigglyFunctionMethod(env = SquigglyEnvironment.SECURE)
+
     public static String repeat(String value, Number times) {
         if (value == null) {
             return null;
@@ -218,13 +218,14 @@ public class StringFunctions {
 
         int timesInt = times.intValue();
 
-        if (timesInt == 0) {
+        if (timesInt <= 0) {
             return "";
         }
 
         StringBuilder builder = new StringBuilder(value.length() * timesInt);
+        int repeat = restrictRepeatSize(value, timesInt);
 
-        for (int i = 0; i < timesInt; i++) {
+        for (int i = 0; i < repeat; i++) {
             builder.append(value);
         }
 
@@ -245,6 +246,15 @@ public class StringFunctions {
 
     public static String rpad(String value, int size, String pad) {
         return CoreStrings.rightPad(value, restrictPadSize(size, pad), pad);
+    }
+
+    private static int restrictRepeatSize(String repeat, int size) {
+        if (size == 1) {
+            return size;
+        }
+
+        int maxSize = MAX_REPEAT_MEMORY / (CoreObjects.firstNonNull(repeat, "").length() * 2);
+        return Math.max(1, Math.min(size, maxSize));
     }
 
     private static int restrictPadSize(int size, String pad) {

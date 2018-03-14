@@ -9,7 +9,6 @@ import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.core.config.SquigglyEnvironment;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 import com.github.bohnman.squiggly.core.function.value.BaseCollectionValueHandler;
 import com.github.bohnman.squiggly.core.function.value.BaseStreamingCollectionValueHandler;
@@ -33,6 +32,10 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unchecked")
 public class CollectionFunctions {
+
+    private static final int MAX_RANGE_LENGTH = 100;
+
+
     private CollectionFunctions() {
     }
 
@@ -744,7 +747,6 @@ public class CollectionFunctions {
     }
 
 
-
     @SquigglyFunctionMethod(aliases = {"intersectionBy"})
     public static Object intersection(Object value1, Object value2, CoreLambda lambda) {
 
@@ -773,9 +775,6 @@ public class CollectionFunctions {
                 })
                 .mapToObj(wrapper1::get));
     }
-
-
-
 
 
     @SquigglyFunctionMethod(aliases = {"unionBy"})
@@ -836,31 +835,26 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(env = SquigglyEnvironment.SECURE)
     public static int[] range(CoreIntRange range) {
         CoreIntRange exclusive = range.toExclusive();
         return range(exclusive.getStart(), exclusive.getEnd());
     }
 
-    @SquigglyFunctionMethod(env = SquigglyEnvironment.SECURE)
     public static int[] range(CoreIntRange range, Number step) {
         CoreIntRange exclusive = range.toExclusive();
         return range(exclusive.getStart(), exclusive.getEnd(), step);
     }
 
-    @SquigglyFunctionMethod(env = SquigglyEnvironment.SECURE)
     public static int[] range(Number end) {
         return range(0, end);
     }
 
-    @SquigglyFunctionMethod(env = SquigglyEnvironment.SECURE)
     public static int[] range(Number start, Number end) {
-        Number step =  (start != null && end != null && start.intValue() > end.intValue()) ? -1 : 1;
+        Number step = (start != null && end != null && start.intValue() > end.intValue()) ? -1 : 1;
         return range(start, end, step);
     }
 
 
-    @SquigglyFunctionMethod(env = SquigglyEnvironment.SECURE)
     public static int[] range(Number start, Number end, Number step) {
         if (end == null || step == null) {
             return new int[0];
@@ -879,6 +873,7 @@ public class CollectionFunctions {
         }
 
         int length = (int) Math.max(Math.ceil(((double) (endInt - startInt) / (double) stepInt)), 0);
+        length = Math.min(length, MAX_RANGE_LENGTH);
 
         int[] range = new int[length];
 
