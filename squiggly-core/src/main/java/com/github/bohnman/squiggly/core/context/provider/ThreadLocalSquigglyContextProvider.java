@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.core.context.provider;
 
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterHolder;
+import com.github.bohnman.squiggly.core.holder.SquigglyFilterHolder;
 
 import javax.annotation.Nullable;
 

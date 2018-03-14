@@ -9,7 +9,7 @@ import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.core.context.provider.ThreadLocalSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterHolder;
+import com.github.bohnman.squiggly.core.holder.SquigglyFilterHolder;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariablesHolder;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.core.function.annotation;
 
-import com.github.bohnman.squiggly.core.function.SquigglyFunction;
+import com.github.bohnman.squiggly.core.config.SquigglyEnvironment;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -16,6 +16,6 @@ public @interface SquigglyFunctionMethod {
 
     boolean ignore() default false;
 
-    SquigglyFunction.Environment[] env() default SquigglyFunction.Environment.BASE;
+    SquigglyEnvironment[] env() default SquigglyEnvironment.DEFAULT;
 }
 

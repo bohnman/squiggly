@@ -1,5 +1,7 @@
 package com.github.bohnman.squiggly.core.function;
 
+import com.github.bohnman.squiggly.core.config.SquigglyEnvironment;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -14,8 +16,8 @@ public interface SquigglyFunction<T> extends Function<FunctionRequest, T> {
 
     List<SquigglyParameter> getParameters();
 
-    default List<Environment> getEnvironments() {
-        return Collections.singletonList(Environment.BASE);
+    default List<SquigglyEnvironment> getEnvironments() {
+        return Collections.singletonList(SquigglyEnvironment.DEFAULT);
     }
 
     enum RegistrationStrategy {
@@ -23,8 +25,4 @@ public interface SquigglyFunction<T> extends Function<FunctionRequest, T> {
         MANUAL
     }
 
-    enum Environment {
-        BASE ,
-        SECURE
-    }
 }

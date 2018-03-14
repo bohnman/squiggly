@@ -5,7 +5,7 @@ import com.github.bohnman.core.collect.CoreArrays;
 import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.squiggly.core.function.SquigglyFunction;
+import com.github.bohnman.squiggly.core.config.SquigglyEnvironment;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.util.Arrays;
@@ -203,7 +203,7 @@ public class StringFunctions {
         return CoreStrings.upper(value);
     }
 
-    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.SECURE)
+    @SquigglyFunctionMethod(env = SquigglyEnvironment.SECURE)
     public static String repeat(String value, Number times) {
         if (value == null) {
             return null;
@@ -227,4 +227,6 @@ public class StringFunctions {
 
         return builder.toString();
     }
+
+
 }

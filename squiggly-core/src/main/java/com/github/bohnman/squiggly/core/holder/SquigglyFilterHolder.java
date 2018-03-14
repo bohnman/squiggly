@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.core.filter;
+package com.github.bohnman.squiggly.core.holder;
 
 public class SquigglyFilterHolder {
 
