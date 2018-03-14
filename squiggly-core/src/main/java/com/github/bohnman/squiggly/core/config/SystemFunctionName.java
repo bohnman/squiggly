@@ -14,7 +14,6 @@ public enum SystemFunctionName {
     GET,
     GREATER_THAN,
     GREATER_THAN_EQUALS,
-    IDENTITY,
     LESS_THAN,
     LESS_THAN_EQUALS,
     MATCH,
@@ -25,6 +24,7 @@ public enum SystemFunctionName {
     NOT_MATCH,
     PROPERTY,
     OR,
+    SELF,
     SLICE,
     SUBTRACT;
 

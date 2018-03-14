@@ -3,6 +3,7 @@ package com.github.bohnman.squiggly.core.function.functions;
 import com.github.bohnman.core.collect.CoreArrayWrapper;
 import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.core.convert.CoreConversions;
+import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.library.CoreLibraries;
 import com.github.bohnman.squiggly.core.function.value.ValueHandler;
@@ -89,7 +90,11 @@ public class ObjectFunctions {
         return compare != null && compare >= 0;
     }
 
-    public static Object identity(Object object) {
+    public static CoreLambda identity(Object object) {
+        return CoreLambda.identity();
+    }
+
+    public static Object self(Object object) {
         return object;
     }
 

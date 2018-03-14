@@ -623,7 +623,7 @@ public class SquigglyParser {
 
             ParseContext parseContext = parseContext(lambda);
             FunctionNode body = FunctionNode.builder()
-                    .name(SystemFunctionName.IDENTITY.getFunctionName())
+                    .name(SystemFunctionName.SELF.getFunctionName())
                     .context(parseContext)
                     .parameter(buildArg(lambda.lambdaBody().arg()))
                     .build();
@@ -644,7 +644,7 @@ public class SquigglyParser {
 
                     functionNodes.add(FunctionNode.builder()
                             .context(parseContext(arg))
-                            .name(SystemFunctionName.IDENTITY.getFunctionName())
+                            .name(SystemFunctionName.SELF.getFunctionName())
                             .parameter(groupArg)
                             .build()
                     );
@@ -862,7 +862,7 @@ public class SquigglyParser {
             if (context.arrayDeclaration() != null) {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.arrayDeclaration()))
-                        .name(SystemFunctionName.IDENTITY.getFunctionName())
+                        .name(SystemFunctionName.SELF.getFunctionName())
                         .parameter(buildArrayDeclaration(context.arrayDeclaration()))
                         .build()
                 );
@@ -871,7 +871,7 @@ public class SquigglyParser {
             if (context.literal() != null) {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.literal()))
-                        .name(SystemFunctionName.IDENTITY.getFunctionName())
+                        .name(SystemFunctionName.SELF.getFunctionName())
                         .parameter(buildLiteral(context.literal()))
                         .build()
                 );
@@ -880,7 +880,7 @@ public class SquigglyParser {
             if (context.intRange() != null) {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.intRange()))
-                        .name(SystemFunctionName.IDENTITY.getFunctionName())
+                        .name(SystemFunctionName.SELF.getFunctionName())
                         .parameter(buildIntRange(context.intRange()))
                         .build()
                 );
@@ -889,7 +889,7 @@ public class SquigglyParser {
             if (context.objectDeclaration() != null) {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.objectDeclaration()))
-                        .name(SystemFunctionName.IDENTITY.getFunctionName())
+                        .name(SystemFunctionName.SELF.getFunctionName())
                         .parameter(buildObjectDeclaration(context.objectDeclaration()))
                         .build()
                 );
@@ -899,7 +899,7 @@ public class SquigglyParser {
             if (context.variable() != null) {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.variable()))
-                        .name(SystemFunctionName.IDENTITY.getFunctionName())
+                        .name(SystemFunctionName.SELF.getFunctionName())
                         .parameter(buildVariable(context.variable()))
                         .build()
                 );
