@@ -33,6 +33,20 @@ public class CollectionFunctions {
     private CollectionFunctions() {
     }
 
+    public static boolean in(Object value, Object collection) {
+        return new BaseStreamingCollectionValueHandler<Boolean>(collection) {
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper.stream();
+            }
+
+            @Override
+            protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
+                return stream.anyMatch(o -> Objects.equals(o, value));
+            }
+        }.handle(collection);
+    }
+
     @SquigglyFunctionMethod(aliases = {"chunkBy", "partition", "partitionBy"})
     public static Object chunk(Object value, Number size) {
         int chunkSize = size == null ? 0 : Math.max(0, size.intValue());
@@ -41,7 +55,7 @@ public class CollectionFunctions {
             return value;
         }
 
-        return new BaseCollectionValueHandler<Object>() {
+        return new BaseCollectionValueHandler<Object>(size) {
 
             @Override
             protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -83,7 +97,7 @@ public class CollectionFunctions {
     @SquigglyFunctionMethod(aliases = {"chunkBy", "partition", "partitionBy"})
     public static Object chunk(Object value, CoreLambda lambda) {
 
-        return new CollectionReturningValueHandler() {
+        return new CollectionReturningValueHandler(lambda) {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 Function<Integer, Object> wrappedKeyFunction = (index) -> lambda.invoke(wrapper.get((Integer) index), index, wrapper.getValue());
