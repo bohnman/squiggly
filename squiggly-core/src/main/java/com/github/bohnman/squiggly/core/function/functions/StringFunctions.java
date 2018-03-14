@@ -13,6 +13,7 @@ import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("SameParameterValue")
 public class StringFunctions {
 
     private StringFunctions() {
@@ -172,6 +173,29 @@ public class StringFunctions {
     public static String trim(String value) {
         return CoreStrings.trim(value);
     }
+
+    public static String truncate(String value, Number maxSize) {
+        return truncate(value, maxSize, "");
+    }
+
+    public static String truncate(String value, Number maxSize, String append) {
+        if (value == null ) {
+            return null;
+        }
+
+        if (maxSize == null) {
+            return value;
+        }
+
+        int maxSizeInt = maxSize.intValue();
+
+        if (value.length() <= maxSizeInt) {
+            return value;
+        }
+
+        return value.substring(0, maxSizeInt) + append;
+    }
+
 
     @SquigglyFunctionMethod(aliases = {"uppercase"})
     public static String upper(String value) {
