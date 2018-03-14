@@ -9,13 +9,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.bohnman.core.io.OutputStreamWrapper;
+import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.cli.config.RunnerConfig;
 import com.github.bohnman.squiggly.cli.printer.SyntaxHighlighter;
 import com.github.bohnman.squiggly.cli.printer.SyntaxHighlightingJsonGenerator;
 import com.github.bohnman.squiggly.cli.printer.SyntaxHighlightingPrettyPrinter;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
+import com.github.bohnman.squiggly.core.function.functions.CoreJsonNodeFunctions;
 import com.github.bohnman.squiggly.jackson.Squiggly;
+import com.github.bohnman.squiggly.jackson.json.JacksonJsonNode;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -122,14 +125,20 @@ public class Runner implements Runnable {
     }
 
     private void apply(JsonNode tree, List<JsonNode> nodes) throws IOException {
-        JsonNode result = squiggly.apply(tree, config.getFilter());
+        CoreJsonNode<JsonNode> result = squiggly.apply(new JacksonJsonNode(tree), config.getFilter());
 
-        if (config.isExpand() && result.isArray()) {
-            for (int i = 0; i < result.size(); i++) {
-                handleResult(result.get(i), nodes);
+        if (config.isFlatten()) {
+            result = CoreJsonNodeFunctions.flatten(result);
+        }
+
+        JsonNode rawResult = result.getRawNode();
+
+        if (config.isExpand() && rawResult.isArray()) {
+            for (int i = 0; i < rawResult.size(); i++) {
+                handleResult(rawResult.get(i), nodes);
             }
         } else {
-            handleResult(result, nodes);
+            handleResult(rawResult, nodes);
         }
     }
 

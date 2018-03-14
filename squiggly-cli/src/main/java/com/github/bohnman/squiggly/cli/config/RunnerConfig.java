@@ -51,6 +51,12 @@ public class RunnerConfig {
     @Parameter(names = {"-f", "--from-file"}, description = "Read filter from the file rather than from a command line. You can also use '#' to make comments.")
     private File filterFile;
 
+    @Parameter(names = {"--F", "--flatten"}, description = "Flatten nested arrays")
+    private boolean flatten;
+
+    @Parameter(names = {"--flatten-depth"}, description = "Max depth to flatten")
+    private int flattenDepth;
+
     @Parameter(names = {"-h", "--help"}, description = "Print Help", help = true)
     private boolean help = false;
 
@@ -235,6 +241,14 @@ public class RunnerConfig {
         return filter;
     }
 
+    public boolean isFlatten() {
+        return flatten;
+    }
+
+    public int getFlattenDepth() {
+        return flattenDepth;
+    }
+
     public boolean isHelp() {
         return help;
     }
@@ -305,6 +319,8 @@ public class RunnerConfig {
                 ", files=" + files +
                 ", filter='" + filter + '\'' +
                 ", filterFile=" + filterFile +
+                ", flatten=" + flatten +
+                ", flattenDepth=" + flattenDepth +
                 ", help=" + help +
                 ", indent=" + indent +
                 ", joinOutput=" + joinOutput +
