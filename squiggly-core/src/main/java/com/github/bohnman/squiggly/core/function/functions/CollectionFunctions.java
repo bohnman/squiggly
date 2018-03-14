@@ -17,6 +17,7 @@ import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,6 +33,78 @@ public class CollectionFunctions {
     private CollectionFunctions() {
     }
 
+    @SquigglyFunctionMethod(aliases = {"chunkBy", "partition", "partitionBy"})
+    public static Object chunk(Object value, Number size) {
+        int chunkSize = size == null ? 0 : Math.max(0, size.intValue());
+
+        if (chunkSize == 0) {
+            return value;
+        }
+
+        return new BaseCollectionValueHandler<Object>() {
+
+            @Override
+            protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                int wrapperSize = wrapper.size();
+
+                if (wrapperSize == 0) {
+                    return wrapper.stream();
+                }
+
+                int numEvenChunks = wrapperSize / chunkSize;
+                int remainder = wrapperSize % chunkSize;
+                int resultSize = numEvenChunks + (remainder == 0 ? 0 : 1);
+                int lastChunkSize = remainder == 0 ? chunkSize : remainder;
+
+                CoreIndexedIterableWrapper<Object, ?> result = wrapper.create(resultSize);
+
+                for (int i = 0; i < resultSize - 1; i += chunkSize) {
+                    CoreIndexedIterableWrapper<Object, ?> chunk = wrapper.create(chunkSize);
+
+                    for (int j = 0; j < chunkSize; j++) {
+                        chunk.set(j, wrapper.get(i + j));
+                    }
+
+                    result.set(i, chunk.getValue());
+                }
+
+                CoreIndexedIterableWrapper<Object, ?> lastChunk = wrapper.create(lastChunkSize);
+
+                for (int i = 0; i < lastChunkSize; i++) {
+                    lastChunk.set(i, wrapper.get(wrapperSize - lastChunkSize + i));
+                }
+
+                result.set(resultSize - 1, lastChunk.getValue());
+                return result.getValue();
+            }
+        }.handle(value);
+    }
+
+    @SquigglyFunctionMethod(aliases = {"chunkBy", "partition", "partitionBy"})
+    public static Object chunk(Object value, CoreLambda lambda) {
+
+        return new CollectionReturningValueHandler() {
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                Function<Integer, Object> wrappedKeyFunction = (index) -> lambda.invoke(wrapper.get((Integer) index), index, wrapper.getValue());
+
+                Map<Object, List<Object>> map = IntStream.range(0, wrapper.size())
+                        .boxed()
+                        .collect(Collectors.groupingBy(
+                                wrappedKeyFunction,
+                                LinkedHashMap::new,
+                                Collectors.mapping(wrapper::get, Collectors.toList())));
+
+                return map.values()
+                        .stream()
+                        .map(group -> wrapper.getValue() instanceof List ? group : wrapper.collect(group.stream()));
+
+
+            }
+        }.handle(value);
+    }
+
+    @SquigglyFunctionMethod(aliases = "every")
     public static boolean all(Object value, CoreLambda lambda) {
         if (lambda == null) {
             return false;
