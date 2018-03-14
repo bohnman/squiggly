@@ -7,6 +7,7 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.config.source.CompositeConfigSource;
 import com.github.bohnman.squiggly.core.config.source.PropertiesConfigSource;
 import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
+import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -41,6 +42,7 @@ public class SquigglyConfig {
     private final CoreCacheBuilderSpec convertCacheSpec;
     private final CompositeConfigSource source;
     private final String filterRequestParam;
+    private final SquigglyFunction.Environment functionEnvironment;
 
     public SquigglyConfig(SquigglyConfigSource... sources) {
         this(Arrays.asList(sources));
@@ -76,6 +78,7 @@ public class SquigglyConfig {
         propertyDescriptorCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.property.descriptorCache.spec");
         filterRequestParam = getString(source, propsMap, locationMap, "squiggly.filter.request.param");
         useContextInNodeFilter = getBool(source, propsMap, locationMap, "squiggly.filter.node.useContext");
+        functionEnvironment = SquigglyFunction.Environment.valueOf(getString(source, propsMap, locationMap, "squiggly.function.env").toUpperCase());
 
         this.propsMap = Collections.unmodifiableSortedMap(propsMap);
         this.locationMap = Collections.unmodifiableSortedMap(locationMap);
@@ -274,6 +277,10 @@ public class SquigglyConfig {
      */
     public boolean isFilterPropagateViewToNestedFilters() {
         return filterPropagateViewToNestedFilters;
+    }
+
+    public SquigglyFunction.Environment getFunctionEnvironment() {
+        return functionEnvironment;
     }
 
     /**

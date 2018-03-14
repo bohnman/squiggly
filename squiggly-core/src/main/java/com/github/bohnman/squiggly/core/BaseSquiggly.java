@@ -77,7 +77,7 @@ public abstract class BaseSquiggly {
         this.parser = notNull(builder.builtParser);
         this.variableResolver = notNull(builder.builtVariableResolver);
 
-        this.functionInvoker = new SquigglyFunctionInvoker(this.conversionService, this.functionRepository, this.variableResolver);
+        this.functionInvoker = new SquigglyFunctionInvoker(config, this.conversionService, this.functionRepository, this.variableResolver);
         this.nodeMatcher = new SquigglyNodeMatcher(this);
         this.nodeNormalizer = new SquigglyNodeNormalizer(this);
         this.nodeFilter = new SquigglyNodeFilter(this);

@@ -10,9 +10,11 @@ import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
+import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.config.SystemFunctionName;
 import com.github.bohnman.squiggly.core.convert.ConverterRecord;
 import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
+import com.github.bohnman.squiggly.core.function.SquigglyFunction.Environment;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.core.parser.ArgumentNode;
 import com.github.bohnman.squiggly.core.parser.ArgumentNodeType;
@@ -46,11 +48,14 @@ public class SquigglyFunctionInvoker {
     private final SquigglyFunctionRepository functionRepository;
     private final SquigglyVariableResolver variableResolver;
     private final SquigglyConversionService conversionService;
+    private final SquigglyConfig config;
 
     public SquigglyFunctionInvoker(
+            SquigglyConfig config,
             SquigglyConversionService conversionService,
             SquigglyFunctionRepository functionRepository,
             SquigglyVariableResolver variableResolver) {
+        this.config = notNull(config);
         this.conversionService = notNull(conversionService);
         this.functionRepository = notNull(functionRepository);
         this.variableResolver = notNull(variableResolver);
@@ -97,7 +102,10 @@ public class SquigglyFunctionInvoker {
 
     private Object invokeNormalFunction(Object input, Object parent, FunctionNode functionNode) {
 
-        List<SquigglyFunction<Object>> functions = functionRepository.findByName(functionNode.getName());
+        List<SquigglyFunction<Object>> functions = functionRepository.findByName(functionNode.getName())
+                .stream()
+                .filter(this::matchesEnvironment)
+                .collect(Collectors.toList());
 
         if (functions.isEmpty()) {
             throw new SquigglyParseException(functionNode.getContext(), "Unrecognized function [%s]", functionNode.getName());
@@ -116,6 +124,16 @@ public class SquigglyFunctionInvoker {
         List<Object> parameters = convert(requestedParameters, winner);
 
         return winner.apply(new FunctionRequest(input, parameters));
+    }
+
+    private boolean matchesEnvironment(SquigglyFunction<Object> function) {
+        for (Environment environment : function.getEnvironments()) {
+            if (environment == config.getFunctionEnvironment() || environment == Environment.BASE) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Object invokeAssignment(Object input, Object parent, FunctionNode functionNode) {
@@ -521,7 +539,7 @@ public class SquigglyFunctionInvoker {
             Map<String, Object> varMap = Collections.unmodifiableMap(varBuilder);
 
             SquigglyVariableResolver variableResolver = new CompositeVariableResolver(new MapVariableResolver(varMap), this.variableResolver);
-            SquigglyFunctionInvoker invoker = new SquigglyFunctionInvoker(conversionService, functionRepository, variableResolver);
+            SquigglyFunctionInvoker invoker = new SquigglyFunctionInvoker(config, conversionService, functionRepository, variableResolver);
             return invoker.invoke(input, lambdaNode.getBody());
         };
     }
