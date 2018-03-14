@@ -161,6 +161,13 @@ public class StringFunctions {
         return value.startsWith(search);
     }
 
+    public static String ltrim(String value) {
+        return CoreStrings.ltrim(value);
+    }
+
+    public static String rtrim(String value) {
+        return CoreStrings.rtrim(value);
+    }
 
     public static String trim(String value) {
         return CoreStrings.trim(value);
