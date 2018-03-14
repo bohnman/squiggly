@@ -5,6 +5,7 @@ import com.github.bohnman.core.collect.CoreArrays;
 import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreStrings;
+import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.util.Arrays;
@@ -200,5 +201,30 @@ public class StringFunctions {
     @SquigglyFunctionMethod(aliases = {"uppercase"})
     public static String upper(String value) {
         return CoreStrings.upper(value);
+    }
+
+    @SquigglyFunctionMethod(env = SquigglyFunction.Environment.UNSAFE)
+    public static String repeat(String value, Number times) {
+        if (value == null) {
+            return null;
+        }
+
+        if (times == null) {
+            return value;
+        }
+
+        int timesInt = times.intValue();
+
+        if (timesInt == 0) {
+            return "";
+        }
+
+        StringBuilder builder = new StringBuilder(value.length() * timesInt);
+
+        for (int i = 0; i < timesInt; i++) {
+            builder.append(value);
+        }
+
+        return builder.toString();
     }
 }
