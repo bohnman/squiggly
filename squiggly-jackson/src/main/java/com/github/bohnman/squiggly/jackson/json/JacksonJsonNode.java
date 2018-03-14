@@ -106,7 +106,7 @@ public class JacksonJsonNode extends BaseCoreJsonNode<JsonNode> {
         }
 
         if (value instanceof Boolean) {
-            return factory.numberNode((Float) value);
+            return factory.booleanNode((Boolean) value);
         }
 
         if (value instanceof Character) {
