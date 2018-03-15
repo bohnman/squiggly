@@ -17,7 +17,6 @@ import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -412,9 +411,19 @@ public class CollectionFunctions {
 
             @Override
             protected Boolean handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.anyMatch(o -> Objects.equals(o, value));
+                return stream.anyMatch(o -> CoreObjects.equals(o, value));
             }
         }.handle(collection);
+    }
+
+    public static boolean in(Object value, Object... candidates) {
+        for (Object candidate : candidates) {
+            if (CoreObjects.equals(value, candidate)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @SquigglyFunctionMethod(aliases = {"intersectionBy"})
@@ -522,9 +531,9 @@ public class CollectionFunctions {
                 return IntStream.range(0, wrapper.size())
                         .mapToObj(i -> {
                             Object result = lambda.invoke(wrapper.get(i), i, wrapper.getValue());
-                            return CorePair.of(result, toComparable(result));
+                            return CorePair.of(wrapper.get(i), result);
                         })
-                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> -1 * o1.getRight().compareTo(o2.getRight()))
+                        .sorted((o1, o2) -> -1 * CoreObjects.compare(o1.getRight(), o2.getRight(), -1))
                         .map(CorePair::getLeft);
             }
 
@@ -545,8 +554,8 @@ public class CollectionFunctions {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> CorePair.of(wrapper.get(i), toComparable(lambda.invoke(wrapper.get(i), i, wrapper.getValue()))))
-                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> -1 * o1.getRight().compareTo(o2.getRight()))
+                        .mapToObj(i -> CorePair.of(wrapper.get(i), lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .sorted((o1, o2) -> -1 * CoreObjects.compare(o1.getRight(), o2.getRight(), -1))
                         .map(CorePair::getLeft);
             }
 
@@ -569,9 +578,9 @@ public class CollectionFunctions {
                 return IntStream.range(0, wrapper.size())
                         .mapToObj(i -> {
                             Object result = lambda.invoke(wrapper.get(i), i, wrapper.getValue());
-                            return CorePair.of(result, toComparable(result));
+                            return CorePair.of(wrapper.get(i), result);
                         })
-                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> o1.getRight().compareTo(o2.getRight()))
+                        .sorted((o1, o2) -> CoreObjects.compare(o1.getRight(), o2.getRight(), -1))
                         .map(CorePair::getLeft);
             }
 
@@ -592,8 +601,8 @@ public class CollectionFunctions {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> CorePair.of(wrapper.get(i), toComparable(lambda.invoke(wrapper.get(i), i, wrapper.getValue()))))
-                        .sorted((Comparator<CorePair<Object, Comparable>>) (o1, o2) -> o1.getRight().compareTo(o2.getRight()))
+                        .mapToObj(i -> CorePair.of(wrapper.get(i), lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .sorted((o1, o2) -> CoreObjects.compare(o1.getRight(), o2.getRight(), -1))
                         .map(CorePair::getLeft);
             }
 
@@ -766,14 +775,6 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    private static Comparable toComparable(Object value) {
-        if (value instanceof Comparable) {
-            return (Comparable) value;
-        }
-
-        return o -> CoreObjects.firstNonNull(CoreObjects.compare(value, o), -1);
-
-    }
 
     public static List<Object> toList(Object value) {
         return new ValueHandler<List<Object>>() {

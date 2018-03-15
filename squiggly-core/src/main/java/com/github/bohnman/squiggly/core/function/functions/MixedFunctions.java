@@ -562,19 +562,7 @@ public class MixedFunctions {
                 Comparable compareValue = getCompareValue(orderBy);
                 Comparable otherCompareValue = other.getCompareValue(orderBy);
 
-                if (compareValue == otherCompareValue) {
-                    cmp = 0;
-                } else if (compareValue == null) {
-                    cmp = -1;
-                } else if (otherCompareValue == null) {
-                    cmp = 1;
-                } else if (compareValue.getClass().isAssignableFrom(otherCompareValue.getClass())) {
-                    cmp = compareValue.compareTo(otherCompareValue);
-                } else if (otherCompareValue.getClass().isAssignableFrom(compareValue.getClass())) {
-                    cmp = otherCompareValue.compareTo(compareValue);
-                } else {
-                    cmp = compareValue.toString().compareTo(otherCompareValue.toString());
-                }
+                cmp = CoreObjects.compare(compareValue, otherCompareValue, -1);
 
                 if (orderBy.isReverse()) {
                     cmp = cmp * -1;
@@ -633,7 +621,7 @@ public class MixedFunctions {
                 return (Comparable) compareValue;
             }
 
-            return o -> CoreObjects.firstNonNull(CoreObjects.compare(value, o), -1);
+            return o -> CoreObjects.compare(value, o, -1);
         }
     }
 }

@@ -18,7 +18,6 @@ import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -28,6 +27,23 @@ public class ObjectFunctions {
     public static boolean and(Object o1, Object o2) {
         return CoreConversions.toBoolean(o1) && CoreConversions.toBoolean(o2);
     }
+
+    public static boolean between(Object value, Object startInclusive, Object endExclusive) {
+        Integer c1 = CoreObjects.compare(startInclusive, value);
+
+        if (c1 == null || c1 > 0) {
+            return false;
+        }
+
+        Integer c2 = CoreObjects.compare(endExclusive, value);
+
+        if (c2 == null || c2 <= 0) {
+            return false;
+        }
+
+        return true;
+    }
+
 
     @SquigglyFunctionMethod
     public static Object assign(Object object, Object newValue) {
@@ -79,7 +95,7 @@ public class ObjectFunctions {
     }
 
     public static boolean equals(Object o1, Object o2) {
-        return Objects.equals(o1, o2);
+        return CoreObjects.equals(o1, o2);
     }
 
     @SquigglyFunctionMethod(aliases = "gt")
