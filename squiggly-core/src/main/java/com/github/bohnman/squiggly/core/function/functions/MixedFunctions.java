@@ -124,7 +124,29 @@ public class MixedFunctions {
                         .anyMatch(pd -> pd.getName().equals(CoreConversions.toString(key)));
             }
         }.handle(value);
+    }
 
+    public static int indexOf(Object haystack, Object needle) {
+        return new ValueHandler<Integer>(needle) {
+            @Override
+            protected Integer handleString(String string) {
+                return (needle instanceof String) ? string.indexOf((String) needle) : -1;
+            }
+
+            @Override
+            protected Integer handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .filter(i -> CoreObjects.equals(wrapper.get(i), needle))
+                        .findFirst()
+                        .orElse(-1);
+
+            }
+
+            @Override
+            protected Integer handleObject(Object value) {
+                return -1;
+            }
+        }.handle(haystack);
     }
 
     public static Object keys(Object value) {
@@ -149,6 +171,31 @@ public class MixedFunctions {
                         .collect(toList());
             }
         }.handle(value);
+    }
+
+    public static int lastIndexOf(Object haystack, Object needle) {
+        return new ValueHandler<Integer>(needle) {
+            @Override
+            protected Integer handleString(String string) {
+                return (needle instanceof String) ? string.lastIndexOf((String) needle) : -1;
+            }
+
+            @Override
+            protected Integer handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                List<Integer> matches = IntStream.range(0, wrapper.size())
+                        .filter(i -> CoreObjects.equals(wrapper.get(i), needle))
+                        .boxed()
+                        .collect(Collectors.toList());
+
+                return matches.isEmpty() ? -1 : matches.get(matches.size() - 1);
+
+            }
+
+            @Override
+            protected Integer handleObject(Object value) {
+                return -1;
+            }
+        }.handle(haystack);
     }
 
     public static Object limit(Object value, Number max) {
