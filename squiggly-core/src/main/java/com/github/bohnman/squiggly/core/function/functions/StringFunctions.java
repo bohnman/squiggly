@@ -23,12 +23,18 @@ public class StringFunctions {
     private StringFunctions() {
     }
 
-
     @SquigglyFunctionMethod(aliases = "capitalise")
     public static String capitalize(String value) {
         return CoreStrings.capitalize(value);
     }
 
+    public static boolean containsIgnoreCase(String value, String search) {
+        if (value == null || search == null) {
+            return false;
+        }
+
+        return value.contains(search);
+    }
 
     public static boolean endsWith(String value, String search) {
         if (value == null || search == null) {

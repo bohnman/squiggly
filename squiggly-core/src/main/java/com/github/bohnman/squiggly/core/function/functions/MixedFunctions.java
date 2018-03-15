@@ -52,6 +52,26 @@ public class MixedFunctions {
         return w1.collect(Stream.concat(w1.stream(), w2.stream()));
     }
 
+    public static boolean contains(Object haystack, Object needle) {
+        return new ValueHandler<Boolean>() {
+
+            @Override
+            protected Boolean handleString(String string) {
+                return string.contains(CoreConversions.toString(needle));
+            }
+
+            @Override
+            protected Boolean handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return wrapper.stream().anyMatch(candidate -> CoreObjects.equals(candidate, needle));
+            }
+
+            @Override
+            protected Boolean handleObject(Object value) {
+                return false;
+            }
+        }.handle(haystack);
+    }
+
     public static Object get(Object value, Object key) {
         if (key == null) {
             return null;
@@ -130,7 +150,7 @@ public class MixedFunctions {
         return new ValueHandler<Integer>(needle) {
             @Override
             protected Integer handleString(String string) {
-                return (needle instanceof String) ? string.indexOf((String) needle) : -1;
+                return string.indexOf("" + CoreConversions.toString(needle));
             }
 
             @Override
@@ -177,7 +197,7 @@ public class MixedFunctions {
         return new ValueHandler<Integer>(needle) {
             @Override
             protected Integer handleString(String string) {
-                return (needle instanceof String) ? string.lastIndexOf((String) needle) : -1;
+                return string.lastIndexOf("" + CoreConversions.toString(needle));
             }
 
             @Override
