@@ -4,6 +4,7 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionClas
 
 @SquigglyFunctionClass(include = {
         CollectionFunctions.class,
+        CoreJsonNodeFunctions.class,
         DateFunctions.class,
         NumberFunctions.class,
         MixedFunctions.class,
