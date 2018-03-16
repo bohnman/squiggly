@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -180,6 +181,17 @@ public class SquigglyParser {
     }
 
     private MutableNode analyze(MutableNode node) {
+        Map<MutableNode, MutableNode> nodesToAdd = new IdentityHashMap<>();
+        MutableNode analyze = analyze(node, nodesToAdd);
+
+        for (Map.Entry<MutableNode, MutableNode> entry : nodesToAdd.entrySet()) {
+            entry.getKey().addChild(entry.getValue());
+        }
+
+        return analyze;
+    }
+
+    private MutableNode analyze(MutableNode node, Map<MutableNode, MutableNode> nodesToAdd) {
         if (node.children != null && !node.children.isEmpty()) {
             boolean allNegated = true;
 
@@ -191,11 +203,11 @@ public class SquigglyParser {
             }
 
             if (allNegated) {
-                node.addChild(new MutableNode(newBaseViewName()).dotPathed(node.dotPathed));
+                nodesToAdd.put(node, new MutableNode(newBaseViewName()).dotPathed(node.dotPathed));
                 MutableNode parent = node.parent;
 
                 while (parent != null) {
-                    parent.addChild(new MutableNode(newBaseViewName()).dotPathed(parent.dotPathed));
+                    nodesToAdd.put(parent, new MutableNode(newBaseViewName()).dotPathed(parent.dotPathed));
 
                     if (!parent.dotPathed) {
                         break;
@@ -205,7 +217,7 @@ public class SquigglyParser {
                 }
             } else {
                 for (MutableNode child : node.children.values()) {
-                    analyze(child);
+                    analyze(child, nodesToAdd);
                 }
             }
 
