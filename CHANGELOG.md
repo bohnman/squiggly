@@ -1,3 +1,11 @@
+# 1.3.10 (2018-03-15)
+
+* Fixed ConcurrentModificationException as specified in issue #36
+
+# 1.3.9 (2018-02-20)
+
+* Fixed exclude filtering issue with deeply nested arrays
+
 # 1.3.8 (2018-01-01)
 
 * Fixed negative dot paths when multiple paths were specified
