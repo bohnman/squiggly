@@ -89,7 +89,7 @@
             </plugin>
             <!-- Package Info -->
             <plugin>
-                <groupId>com.github.bohnman.squiggly</groupId>
+                <groupId>com.github.bohnman</groupId>
                 <artifactId>package-info-maven-plugin</artifactId>
                 <configuration>
                     <packages>

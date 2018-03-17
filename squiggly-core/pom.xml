@@ -25,7 +25,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.bohnman.squiggly</groupId>
+            <groupId>com.github.bohnman</groupId>
             <artifactId>bohnman-core</artifactId>
         </dependency>
 
@@ -81,7 +81,7 @@
             </plugin>
             <!-- Package Info -->
             <plugin>
-                <groupId>com.github.bohnman.squiggly</groupId>
+                <groupId>com.github.bohnman</groupId>
                 <artifactId>package-info-maven-plugin</artifactId>
                 <configuration>
                     <packages>
