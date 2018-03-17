@@ -8,7 +8,7 @@
     <url>https://github.com/bohnman/squiggly-java</url>
     <description>The Squiggly Filter is a Jackson JSON PropertyFilter, which selects properties of an object/list/map using a subset of the Facebook Graph API filtering syntax.</description>
     <groupId>com.github.bohnman.squiggly</groupId>
-    <artifactId>squiggly</artifactId>
+    <artifactId>squiggly-java</artifactId>
     <packaging>pom</packaging>
     <version>2.0.0-SNAPSHOT</version>
 
