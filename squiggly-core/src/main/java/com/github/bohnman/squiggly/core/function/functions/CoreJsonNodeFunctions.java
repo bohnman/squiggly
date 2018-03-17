@@ -7,10 +7,11 @@ import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.json.node.CoreJsonNodeType;
 import com.github.bohnman.core.json.node.CoreJsonNodeVisitorContext;
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
+import com.github.bohnman.core.tuple.CorePair;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CoreJsonNodeFunctions {
 
@@ -31,7 +32,9 @@ public class CoreJsonNodeFunctions {
         new BaseCoreJsonNodeVisitor<T>() {
             @Override
             protected CoreJsonNode<T> visitAtomNode(CoreJsonNodeVisitorContext<T> context, CoreJsonNode<T> node) {
-                boolean result = CoreConversions.toBoolean(lambda.invoke(node.getValue(), context.getKey(), context.getDepth(), node, context));
+                Map.Entry entry = CorePair.of(context.getKey(), node.getValue());
+
+                boolean result = CoreConversions.toBoolean(lambda.invoke(entry, context.getDepth(), node, context));
 
                 if (result) {
                     matches.add(node);
@@ -44,12 +47,10 @@ public class CoreJsonNodeFunctions {
         return node.createArray(matches);
     }
 
-    @SquigglyFunctionMethod(aliases = {"findAndReplace"})
-    public static <T> CoreJsonNode transform(CoreJsonNode<T> node, CoreLambda predicate, CoreLambda replacement) {
-        return transform(node, predicate, replacement, CoreLambda.identity());
+    public static <T> CoreJsonNode transform(CoreJsonNode<T> node, CoreLambda predicate, CoreLambda valueReplacement) {
+        return transform(node, predicate, valueReplacement, CoreLambda.identity());
     }
 
-    @SquigglyFunctionMethod(aliases = {"findAndReplace"})
     @SuppressWarnings("unchecked")
     public static <T> CoreJsonNode transform(CoreJsonNode<T> node, CoreLambda predicate, CoreLambda valueReplacement, CoreLambda keyReplacement) {
         if (node == null) {
@@ -61,7 +62,8 @@ public class CoreJsonNodeFunctions {
         }
 
         return node.transform((context, candidate) -> {
-            boolean test = CoreConversions.toBoolean(predicate.invoke(candidate.getValue(), context.getKey(), context.getDepth(), candidate, context));
+            Map.Entry entry = CorePair.of(context.getKey(), candidate.getValue());
+            boolean test = CoreConversions.toBoolean(predicate.invoke(entry, context.getDepth(), candidate, context));
 
             if (!test) {
                 return candidate;
