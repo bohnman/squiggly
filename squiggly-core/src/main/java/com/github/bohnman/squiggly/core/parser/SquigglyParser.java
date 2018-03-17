@@ -623,7 +623,15 @@ public class SquigglyParser {
                 elseClause = buildArg(context.elseClause().arg()).index(0).build();
             }
 
-            return baseArg(context, ArgumentNodeType.IF).value(new IfNode(ifClauses, elseClause));
+            FunctionNode functionNode = FunctionNode.builder()
+                    .context(parseContext(context))
+                    .name(SystemFunctionName.SELF.getFunctionName())
+                    .argument(baseArg(context, ArgumentNodeType.IF).value(new IfNode(ifClauses, elseClause)))
+                    .build();
+
+
+            return baseArg(context, ArgumentNodeType.FUNCTION_CHAIN)
+                    .value(Collections.singletonList(functionNode));
         }
 
         private IfNode.IfClause buildIfClause(SquigglyExpressionParser.IfClauseContext context) {
