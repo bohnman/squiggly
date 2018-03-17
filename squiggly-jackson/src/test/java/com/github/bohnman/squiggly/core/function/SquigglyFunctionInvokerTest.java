@@ -32,7 +32,7 @@ public class SquigglyFunctionInvokerTest {
     private final SquigglyVariableResolver variableResolver = new MapVariableResolver();
     private final SquigglyConfig config = new SquigglyConfig();
     private final SquigglyConverterRegistry converterRegistry = SquigglyConverterRegistries.create(DefaultConverters::add);
-    private final SquigglyConversionService conversionService = new DefaultConversionService(config, converterRegistry.findAll());
+    private final SquigglyConversionService conversionService = new DefaultConversionService(config, converterRegistry);
     private final ParseContext parseContext = new ParseContext(1, 1);
 
 

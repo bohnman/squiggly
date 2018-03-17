@@ -26,8 +26,10 @@ public class DefaultConversionService implements SquigglyConversionService {
     private final CoreCache<Key, ConverterRecord> cache;
     private final Map<Key, ConverterRecord> registeredConverters;
 
-    public DefaultConversionService(SquigglyConfig config, List<ConverterRecord> records) {
+    public DefaultConversionService(SquigglyConfig config, SquigglyConverterRegistry converterRegistry) {
         this.cache = CoreCacheBuilder.from(config.getConvertCacheSpec()).build();
+
+        List<ConverterRecord> records = converterRegistry.findAll();
         Map<Key, ConverterRecord> map = new HashMap<>(records.size());
 
         for (ConverterRecord record : records) {

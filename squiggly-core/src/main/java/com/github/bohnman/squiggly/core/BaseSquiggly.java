@@ -223,7 +223,7 @@ public abstract class BaseSquiggly {
         private SquigglyContextProvider contextProvider;
 
         @Nullable
-        private Function<List<ConverterRecord>, SquigglyConversionService> conversionService;
+        private Function<SquigglyConverterRegistry, SquigglyConversionService> conversionService;
 
         @Nullable
         private SquigglyConverterRegistry converterRegistry;
@@ -316,7 +316,7 @@ public abstract class BaseSquiggly {
          * @param factory factory method
          * @return builder
          */
-        public B conversionService(Function<List<ConverterRecord>, SquigglyConversionService> factory) {
+        public B conversionService(Function<SquigglyConverterRegistry, SquigglyConversionService> factory) {
             this.conversionService = factory;
             return getThis();
         }
@@ -573,19 +573,19 @@ public abstract class BaseSquiggly {
         }
 
         private SquigglyConversionService buildConversionService(SquigglyConfig config) {
-            SquigglyConverterRegistry recordRepository = converterRegistry == null ? new ListConverterRegistry() : converterRegistry;
+            SquigglyConverterRegistry registry = converterRegistry == null ? new ListConverterRegistry() : converterRegistry;
 
-            recordRepository.addAll(converterRecords);
+            registry.addAll(converterRecords);
 
             if (registerDefaultConverters) {
-                DefaultConverters.add(recordRepository);
+                DefaultConverters.add(registry);
             }
 
             if (this.conversionService == null) {
-                return new DefaultConversionService(config, recordRepository.findAll());
+                return new DefaultConversionService(config, registry);
             }
 
-            return this.conversionService.apply(recordRepository.findAll());
+            return this.conversionService.apply(registry);
         }
 
         private SquigglyVariableResolver buildVariableResolver() {
