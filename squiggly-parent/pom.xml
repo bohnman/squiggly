@@ -7,7 +7,7 @@
     <name>Squiggly Parent</name>
     <url>https://github.com/bohnman/squiggly-java</url>
     <description>The Parent POM.</description>
-    <groupId>com.github.bohnman</groupId>
+    <groupId>com.github.bohnman.squiggly</groupId>
     <artifactId>squiggly-parent</artifactId>
     <packaging>pom</packaging>
     <version>2.0.0-SNAPSHOT</version>
@@ -74,7 +74,7 @@
             </dependency>
 
             <dependency>
-                <groupId>com.github.bohnman</groupId>
+                <groupId>com.github.bohnman.squiggly</groupId>
                 <artifactId>bohnman-core</artifactId>
                 <version>${bohnman-core.version}</version>
             </dependency>
@@ -138,37 +138,37 @@
             </dependency>
 
             <dependency>
-                <groupId>com.github.bohnman</groupId>
+                <groupId>com.github.bohnman.squiggly</groupId>
                 <artifactId>squiggly-cli</artifactId>
                 <version>${squiggly.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>com.github.bohnman</groupId>
+                <groupId>com.github.bohnman.squiggly</groupId>
                 <artifactId>squiggly-core</artifactId>
                 <version>${squiggly.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>com.github.bohnman</groupId>
+                <groupId>com.github.bohnman.squiggly</groupId>
                 <artifactId>squiggly-gson</artifactId>
                 <version>${squiggly.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>com.github.bohnman</groupId>
+                <groupId>com.github.bohnman.squiggly</groupId>
                 <artifactId>squiggly-kotlin-jackson</artifactId>
                 <version>${squiggly.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>com.github.bohnman</groupId>
+                <groupId>com.github.bohnman.squiggly</groupId>
                 <artifactId>squiggly-spring-boot-starter-jackson</artifactId>
                 <version>${squiggly.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>com.github.bohnman</groupId>
+                <groupId>com.github.bohnman.squiggly</groupId>
                 <artifactId>squiggly-jackson</artifactId>
                 <version>${squiggly.version}</version>
             </dependency>
@@ -284,7 +284,7 @@
                 </plugin>
                 <!-- Package Info -->
                 <plugin>
-                    <groupId>com.github.bohnman</groupId>
+                    <groupId>com.github.bohnman.squiggly</groupId>
                     <artifactId>package-info-maven-plugin</artifactId>
                     <version>${package-info-maven-plugin.version}</version>
                     <configuration>
