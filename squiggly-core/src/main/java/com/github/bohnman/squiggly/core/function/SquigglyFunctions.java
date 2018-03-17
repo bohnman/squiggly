@@ -25,29 +25,29 @@ public class SquigglyFunctions {
     private SquigglyFunctions() {
     }
 
-    public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionRequest, T> function) {
-        return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionRequest.class).build())) {
+    public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionExecutionRequest, T> function) {
+        return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionExecutionRequest.class).build())) {
             @Override
-            public T apply(FunctionRequest request) {
+            public T apply(FunctionExecutionRequest request) {
                 return function.apply(request);
             }
         };
     }
 
-    public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionRequest, T> function, String... aliases) {
-        return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionRequest.class).build()), aliases) {
+    public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionExecutionRequest, T> function, String... aliases) {
+        return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionExecutionRequest.class).build()), aliases) {
 
             @Override
-            public T apply(FunctionRequest request) {
+            public T apply(FunctionExecutionRequest request) {
                 return function.apply(request);
             }
         };
     }
 
-    public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionRequest, T> function, Iterable<String> aliases) {
-        return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionRequest.class).build()), aliases) {
+    public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionExecutionRequest, T> function, Iterable<String> aliases) {
+        return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionExecutionRequest.class).build()), aliases) {
             @Override
-            public T apply(FunctionRequest request) {
+            public T apply(FunctionExecutionRequest request) {
                 return function.apply(request);
             }
         };

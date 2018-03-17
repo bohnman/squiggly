@@ -11,15 +11,15 @@ public class FunctionNode {
 
     private final ParseContext context;
     private final String name;
-    private final List<ArgumentNode> parameters;
+    private final List<ArgumentNode> arguments;
     private final boolean ignoreNulls;
     private final FunctionNodeType type;
     private final boolean ascending;
 
-    public FunctionNode(ParseContext context, String name, List<ArgumentNode> parameters, boolean ignoreNulls, FunctionNodeType type, boolean ascending) {
+    public FunctionNode(ParseContext context, String name, List<ArgumentNode> arguments, boolean ignoreNulls, FunctionNodeType type, boolean ascending) {
         this.context = notNull(context);
         this.name = notNull(name);
-        this.parameters = Collections.unmodifiableList(notNull(parameters));
+        this.arguments = Collections.unmodifiableList(notNull(arguments));
         this.ignoreNulls = ignoreNulls;
         this.type = notNull(type);
         this.ascending = ascending;
@@ -33,8 +33,8 @@ public class FunctionNode {
         return name;
     }
 
-    public List<ArgumentNode> getParameters() {
-        return parameters;
+    public List<ArgumentNode> getArguments() {
+        return arguments;
     }
 
     public boolean isIgnoreNulls() {
@@ -55,7 +55,7 @@ public class FunctionNode {
 
     @Override
     public String toString() {
-        return String.format("%s(%s)", name, parameters);
+        return String.format("%s(%s)", name, arguments);
     }
 
     public static class Builder {
@@ -66,7 +66,7 @@ public class FunctionNode {
         @Nullable
         private String name;
 
-        private List<ArgumentNode> parameters = new ArrayList<>();
+        private List<ArgumentNode> arguments = new ArrayList<>();
         private boolean ignoreNulls;
 
         private FunctionNodeType type = FunctionNodeType.FUNCTION;
@@ -85,9 +85,9 @@ public class FunctionNode {
             return this;
         }
 
-        public Builder parameter(ArgumentNode.Builder arg) {
-            int index = parameters.size();
-            parameters.add(arg.index(index).build());
+        public Builder argument(ArgumentNode.Builder arg) {
+            int index = arguments.size();
+            arguments.add(arg.index(index).build());
             return this;
         }
 
@@ -107,7 +107,7 @@ public class FunctionNode {
         }
 
         public FunctionNode build() {
-            return new FunctionNode(context, name, parameters, ignoreNulls, type, ascending);
+            return new FunctionNode(context, name, arguments, ignoreNulls, type, ascending);
         }
     }
 }

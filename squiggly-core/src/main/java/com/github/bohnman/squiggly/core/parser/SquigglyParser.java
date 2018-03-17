@@ -322,8 +322,8 @@ public class SquigglyParser {
                     .context(parseContext(context))
                     .name(name)
                     .type(type)
-                    .parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
-                    .parameter(buildArg(context.arg()))
+                    .argument(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
+                    .argument(buildArg(context.arg()))
                     .build());
 
         }
@@ -400,8 +400,8 @@ public class SquigglyParser {
             return FunctionNode.builder()
                     .context(parseContext(arrayAccessor))
                     .name(SystemFunctionName.GET.getFunctionName())
-                    .parameter(baseArg(arrayAccessor, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
-                    .parameter(arg)
+                    .argument(baseArg(arrayAccessor, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
+                    .argument(arg)
                     .build();
         }
 
@@ -456,7 +456,7 @@ public class SquigglyParser {
             }
 
             return buildBasePropertyFunction(context, op)
-                    .parameter(baseArg(context, type).value(value));
+                    .argument(baseArg(context, type).value(value));
         }
 
         private FunctionNode.Builder buildPropertyFunction(SquigglyExpressionParser.InitialPropertyAccessorContext context) {
@@ -497,7 +497,7 @@ public class SquigglyParser {
             }
 
             return buildBasePropertyFunction(context, op)
-                    .parameter(baseArg(context, type).value(value));
+                    .argument(baseArg(context, type).value(value));
         }
 
         private FunctionNode.Builder buildBasePropertyFunction(ParserRuleContext context, String operator) {
@@ -505,7 +505,7 @@ public class SquigglyParser {
                     .context(parseContext(context))
                     .name(SystemFunctionName.PROPERTY.getFunctionName())
                     .type(FunctionNodeType.PROPERTY)
-                    .parameter(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT));
+                    .argument(baseArg(context, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT));
 
             if (OP_SAFE_NAVIGATION.equals(operator)
                     || OP_DOLLAR_BRACKET_LEFT_SAFE.equals(operator)
@@ -522,7 +522,7 @@ public class SquigglyParser {
             FunctionNode.Builder builder = buildBaseFunction(functionContext, context);
 
             if (input) {
-                builder.parameter(baseArg(functionContext, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT));
+                builder.argument(baseArg(functionContext, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT));
             }
 
             applyParameters(builder, functionContext);
@@ -547,7 +547,7 @@ public class SquigglyParser {
 
         private void applyParameter(FunctionNode.Builder builder, SquigglyExpressionParser.ArgContext parameter) {
             ArgumentNode.Builder arg = buildArg(parameter);
-            builder.parameter(arg);
+            builder.argument(arg);
         }
 
         private ArgumentNode.Builder buildArg(SquigglyExpressionParser.ArgContext arg) {
@@ -626,7 +626,7 @@ public class SquigglyParser {
             FunctionNode body = FunctionNode.builder()
                     .name(SystemFunctionName.SELF.getFunctionName())
                     .context(parseContext)
-                    .parameter(buildArg(lambda.lambdaBody().arg()))
+                    .argument(buildArg(lambda.lambdaBody().arg()))
                     .build();
 
 
@@ -646,7 +646,7 @@ public class SquigglyParser {
                     functionNodes.add(FunctionNode.builder()
                             .context(parseContext(arg))
                             .name(SystemFunctionName.SELF.getFunctionName())
-                            .parameter(groupArg)
+                            .argument(groupArg)
                             .build()
                     );
 
@@ -674,7 +674,7 @@ public class SquigglyParser {
                     .context(parseContext)
                     .name(op);
 
-            arg.arg().forEach(p -> functionNode.parameter(buildArg(p)));
+            arg.arg().forEach(p -> functionNode.argument(buildArg(p)));
 
             return baseArg(arg, ArgumentNodeType.FUNCTION_CHAIN)
                     .value(Collections.singletonList(functionNode.build()));
@@ -823,8 +823,8 @@ public class SquigglyParser {
             return FunctionNode.builder()
                     .context(parseContext(intRange))
                     .name(SystemFunctionName.SLICE.getFunctionName())
-                    .parameter(baseArg(intRange, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
-                    .parameter(arg)
+                    .argument(baseArg(intRange, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
+                    .argument(arg)
                     .build();
         }
 
@@ -864,7 +864,7 @@ public class SquigglyParser {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.arrayDeclaration()))
                         .name(SystemFunctionName.SELF.getFunctionName())
-                        .parameter(buildArrayDeclaration(context.arrayDeclaration()))
+                        .argument(buildArrayDeclaration(context.arrayDeclaration()))
                         .build()
                 );
             }
@@ -873,7 +873,7 @@ public class SquigglyParser {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.literal()))
                         .name(SystemFunctionName.SELF.getFunctionName())
-                        .parameter(buildLiteral(context.literal()))
+                        .argument(buildLiteral(context.literal()))
                         .build()
                 );
             }
@@ -882,7 +882,7 @@ public class SquigglyParser {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.intRange()))
                         .name(SystemFunctionName.SELF.getFunctionName())
-                        .parameter(buildIntRange(context.intRange()))
+                        .argument(buildIntRange(context.intRange()))
                         .build()
                 );
             }
@@ -891,7 +891,7 @@ public class SquigglyParser {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.objectDeclaration()))
                         .name(SystemFunctionName.SELF.getFunctionName())
-                        .parameter(buildObjectDeclaration(context.objectDeclaration()))
+                        .argument(buildObjectDeclaration(context.objectDeclaration()))
                         .build()
                 );
             }
@@ -901,7 +901,7 @@ public class SquigglyParser {
                 functionNodes.add(FunctionNode.builder()
                         .context(parseContext(context.variable()))
                         .name(SystemFunctionName.SELF.getFunctionName())
-                        .parameter(buildVariable(context.variable()))
+                        .argument(buildVariable(context.variable()))
                         .build()
                 );
             }

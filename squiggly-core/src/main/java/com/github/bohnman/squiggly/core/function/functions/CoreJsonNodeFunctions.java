@@ -30,7 +30,7 @@ public class CoreJsonNodeFunctions {
 
         new BaseCoreJsonNodeVisitor<T>() {
             @Override
-            protected CoreJsonNode<T> visitAtomNode(CoreJsonNodeVisitorContext context, CoreJsonNode<T> node) {
+            protected CoreJsonNode<T> visitAtomNode(CoreJsonNodeVisitorContext<T> context, CoreJsonNode<T> node) {
                 boolean result = CoreConversions.toBoolean(lambda.invoke(node.getValue(), context.getKey(), context.getDepth(), node, context));
 
                 if (result) {
@@ -98,7 +98,7 @@ public class CoreJsonNodeFunctions {
         new BaseCoreJsonNodeVisitor<T>() {
 
             @Override
-            protected CoreJsonNode<T> visitArray(CoreJsonNodeVisitorContext context, CoreJsonNode<T> node) {
+            protected CoreJsonNode<T> visitArray(CoreJsonNodeVisitorContext<T> context, CoreJsonNode<T> node) {
                 for (CoreJsonNode<T> child : node.getArrayElements()) {
                     if (child.isArray() && (maxDepthInt < 0 || ((context.getDepth() + 1) <= maxDepthInt))) {
                         visitArray(context.descend(null, node, null, null), child);
@@ -111,7 +111,7 @@ public class CoreJsonNodeFunctions {
             }
 
             @Override
-            protected CoreJsonNode<T> visitChildren(CoreJsonNodeVisitorContext context, CoreJsonNode<T> node) {
+            protected CoreJsonNode<T> visitChildren(CoreJsonNodeVisitorContext<T> context, CoreJsonNode<T> node) {
                 return node;
             }
         }.visit(node);

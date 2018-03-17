@@ -52,7 +52,7 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
     }
 
     @Override
-    public Object apply(FunctionRequest request) {
+    public Object apply(FunctionExecutionRequest request) {
         try {
             return method.invoke(owner, request.getParameters().toArray());
         } catch (Throwable e) {

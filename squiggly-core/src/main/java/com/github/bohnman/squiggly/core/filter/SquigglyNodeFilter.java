@@ -66,12 +66,15 @@ public class SquigglyNodeFilter {
                 return null;
             }
 
-            context.setKey("" + squiggly.getFunctionInvoker().invoke(context.getKey(), context.getParent(), match.getKeyFunctions()));
-            Object origValue = jsonNode.getValue();
-            Object newValue = squiggly.getFunctionInvoker().invoke(origValue, context.getParent(), match.getValueFunctions());
+            context.setKey("" + squiggly.getFunctionInvoker().invoke(context.getKey(), context.getParentNode(), match.getKeyFunctions()));
+            Object newValue = squiggly.getFunctionInvoker().invoke(jsonNode, context.getParentNode(), match.getValueFunctions());
 
-            if (Objects.equals(origValue, newValue)) {
+            if (Objects.equals(jsonNode, newValue)) {
                 return jsonNode;
+            }
+
+            if (newValue instanceof CoreJsonNode) {
+                return (CoreJsonNode) newValue;
             }
 
             return jsonNode.create(newValue);

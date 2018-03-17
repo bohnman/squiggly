@@ -4,12 +4,12 @@ import java.util.List;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
-public class FunctionRequest {
+public class FunctionExecutionRequest {
 
     private final Object input;
     private final List<Object> parameters;
 
-    public FunctionRequest(Object input, List<Object> parameters) {
+    public FunctionExecutionRequest(Object input, List<Object> parameters) {
         this.input = input;
         this.parameters = notNull(parameters);
     }

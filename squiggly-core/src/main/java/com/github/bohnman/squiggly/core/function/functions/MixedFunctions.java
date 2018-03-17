@@ -7,13 +7,16 @@ import com.github.bohnman.core.collect.CoreIndexedIterableWrapper;
 import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.convert.CoreConversions;
+import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.lang.CoreMethods;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.core.range.CoreIntRange;
+import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 import com.github.bohnman.squiggly.core.function.value.BaseCollectionValueHandler;
+import com.github.bohnman.squiggly.core.function.value.CollectionReturningValueHandler;
 import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 
 import javax.annotation.Nullable;
@@ -21,6 +24,7 @@ import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -531,7 +535,6 @@ public class MixedFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = "orderBy")
     public static Object sort(Object value, CoreProperty... properties) {
         List<OrderBy> orderBys = Arrays.stream(properties)
                 .map(PropertyOrderBy::new)
@@ -561,6 +564,18 @@ public class MixedFunctions {
                 return value;
             }
         }.handle(value);
+    }
+
+    public static Object sortBy(Object value, CoreLambda lambda) {
+        return new CollectionReturningValueHandler() {
+            @Override
+            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return IntStream.range(0, wrapper.size())
+                        .mapToObj(i -> CorePair.of(wrapper.get(i), lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .sorted((Comparator<? super CorePair<Object, Object>>) (o1, o2) -> CoreObjects.compare(o1.getRight(), o2.getRight(), -1))
+                        .map(CorePair::getLeft);
+            }
+        };
     }
 
     @SuppressWarnings("unchecked")

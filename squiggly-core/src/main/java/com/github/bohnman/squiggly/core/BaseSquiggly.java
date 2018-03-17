@@ -19,7 +19,7 @@ import com.github.bohnman.squiggly.core.filter.repository.CompositeFilterReposit
 import com.github.bohnman.squiggly.core.filter.repository.MapFilterRepository;
 import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterRepository;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
-import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
+import com.github.bohnman.squiggly.core.function.invoke.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
 import com.github.bohnman.squiggly.core.function.functions.DefaultFunctions;
 import com.github.bohnman.squiggly.core.function.repository.CompositeFunctionRepository;

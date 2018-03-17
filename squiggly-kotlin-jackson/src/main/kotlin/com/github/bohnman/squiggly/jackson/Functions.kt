@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.jackson
 
 import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider
 import com.github.bohnman.squiggly.core.convert.ConverterRecord
-import com.github.bohnman.squiggly.core.function.FunctionRequest
+import com.github.bohnman.squiggly.core.function.FunctionExecutionRequest
 import com.github.bohnman.squiggly.core.function.SquigglyFunction
 import com.github.bohnman.squiggly.core.function.SquigglyParameter
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionClass
@@ -151,7 +151,7 @@ private class CallableSquigglyFunction(private val callable: KCallable<*>, priva
         return parameters.toMutableList()
     }
 
-    override fun apply(req: FunctionRequest): Any? {
+    override fun apply(req: FunctionExecutionRequest): Any? {
         if (owner == null) {
             return callable.call(*req.parameters.toTypedArray())
         }

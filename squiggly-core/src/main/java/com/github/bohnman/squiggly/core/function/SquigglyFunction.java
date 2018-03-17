@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-public interface SquigglyFunction<T> extends Function<FunctionRequest, T> {
+public interface SquigglyFunction<T> extends Function<FunctionExecutionRequest, T> {
 
     String getName();
 

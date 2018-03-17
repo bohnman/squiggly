@@ -80,13 +80,13 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = {"average", "averageBy", "avgBy", "mean", "meanBy"})
+    @SquigglyFunctionMethod(aliases = {"average", "mean"})
     public static Number avg(Object value) {
-        return avg(value, CoreLambda.identity());
+        return avgBy(value, CoreLambda.identity());
     }
 
-    @SquigglyFunctionMethod(aliases = {"average", "averageBy", "avgBy", "mean", "meanBy"})
-    public static Number avg(Object value, CoreLambda lambda) {
+    @SquigglyFunctionMethod(aliases = {"averageBy", "meanBy"})
+    public static Number avgBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Number>() {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -104,7 +104,7 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = {"chunkBy", "partition", "partitionBy"})
+    @SquigglyFunctionMethod(aliases = {"partition"})
     public static Object chunk(Object value, Number size) {
         int chunkSize = size == null ? 0 : Math.max(0, size.intValue());
 
@@ -151,8 +151,8 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = {"chunkBy", "partition", "partitionBy"})
-    public static Object chunk(Object value, CoreLambda lambda) {
+    @SquigglyFunctionMethod(aliases = {"partitionBy"})
+    public static Object chunkBy(Object value, CoreLambda lambda) {
 
         return new CollectionReturningValueHandler(lambda) {
             @Override
@@ -175,8 +175,7 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = "countBy")
-    public static Number count(Object value, CoreLambda lambda) {
+    public static Number countBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Number>() {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -193,13 +192,13 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = {"differenceBy", "diff", "diffBy"})
+    @SquigglyFunctionMethod(aliases = { "diff"})
     public static Object difference(Object value1, Object value2) {
-        return difference(value1, value2, CoreLambda.identity());
+        return differenceBy(value1, value2, CoreLambda.identity());
     }
 
-    @SquigglyFunctionMethod(aliases = {"differenceBy", "diff", "diffBy"})
-    public static Object difference(Object value1, Object value2, CoreLambda lambda) {
+    @SquigglyFunctionMethod(aliases = {"diffBy"})
+    public static Object differenceBy(Object value1, Object value2, CoreLambda lambda) {
 
         CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
             protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -227,7 +226,6 @@ public class CollectionFunctions {
                 .mapToObj(wrapper1::get));
     }
 
-    @SquigglyFunctionMethod(aliases = "where")
     public static Object filter(Object value, CoreLambda coreLambda) {
         if (coreLambda == null) {
             return Collections.emptyList();
@@ -426,8 +424,11 @@ public class CollectionFunctions {
         return false;
     }
 
-    @SquigglyFunctionMethod(aliases = {"intersectionBy"})
-    public static Object intersection(Object value1, Object value2, CoreLambda lambda) {
+    public static Object intersection(Object value1, Object value2) {
+        return intersectionBy(value1, value2, CoreLambda.identity());
+    }
+
+    public static Object intersectionBy(Object value1, Object value2, CoreLambda lambda) {
 
         CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
             protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -520,10 +521,10 @@ public class CollectionFunctions {
     }
 
     public static Object max(Object value) {
-        return max(value, CoreLambda.identity());
+        return maxBy(value, CoreLambda.identity());
     }
 
-    public static Object max(Object value, CoreLambda lambda) {
+    public static Object maxBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Object>() {
             @SuppressWarnings("RedundantCast")
             @Override
@@ -544,11 +545,8 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static Object maxBy(Object value) {
-        return maxBy(value, CoreLambda.identity());
-    }
 
-    public static Object maxBy(Object value, CoreLambda lambda) {
+    public static Object maxWith(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Object>() {
             @SuppressWarnings("RedundantCast")
             @Override
@@ -567,10 +565,10 @@ public class CollectionFunctions {
     }
 
     public static Object min(Object value) {
-        return min(value, CoreLambda.identity());
+        return minBy(value, CoreLambda.identity());
     }
 
-    public static Object min(Object value, CoreLambda lambda) {
+    public static Object minBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Object>() {
             @SuppressWarnings({"RedundantCast", "ComparatorCombinators"})
             @Override
@@ -591,11 +589,7 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static Object minBy(Object value) {
-        return minBy(value, CoreLambda.identity());
-    }
-
-    public static Object minBy(Object value, CoreLambda lambda) {
+    public static Object minWith(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Object>() {
             @SuppressWarnings({"RedundantCast", "ComparatorCombinators"})
             @Override
@@ -727,13 +721,11 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = "sumBy")
     public static Number sum(Object value) {
-        return sum(value, CoreLambda.identity());
+        return sumBy(value, CoreLambda.identity());
     }
 
-    @SquigglyFunctionMethod(aliases = "sumBy")
-    public static Number sum(Object value, CoreLambda lambda) {
+    public static Number sumBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Number>() {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -833,13 +825,11 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = {"unionBy"})
     public static Object union(Object value1, Object value2) {
-        return union(value1, value2, CoreLambda.identity());
+        return unionBy(value1, value2, CoreLambda.identity());
     }
 
-    @SquigglyFunctionMethod(aliases = {"unionBY"})
-    public static Object union(Object value1, Object value2, CoreLambda lambda) {
+    public static Object unionBy(Object value1, Object value2, CoreLambda lambda) {
 
         CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
             protected CoreIndexedIterableWrapper<Object, ?> handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -871,13 +861,13 @@ public class CollectionFunctions {
                 .mapToObj(i -> i >= wrapper1.size() ? wrapper2.get(i - wrapper1.size()) : wrapper1.get(i)));
     }
 
-    @SquigglyFunctionMethod(aliases = {"uniq", "uniqueBy", "uniqBy"})
+    @SquigglyFunctionMethod(aliases = {"uniq"})
     public static Object unique(Object value) {
-        return unique(value, CoreLambda.identity());
+        return uniqueBy(value, CoreLambda.identity());
     }
 
-    @SquigglyFunctionMethod(aliases = {"uniq", "uniqueBy", "uniqBy"})
-    public static Object unique(Object value, CoreLambda lambda) {
+    @SquigglyFunctionMethod(aliases = {"uniqBy"})
+    public static Object uniqueBy(Object value, CoreLambda lambda) {
         return new CollectionReturningValueHandler() {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
