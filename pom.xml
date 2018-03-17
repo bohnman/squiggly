@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Squiggly Java</name>
+    <name>Squiggly Build POM</name>
     <url>https://github.com/bohnman/squiggly-java</url>
-    <description>The Squiggly Filter is a Jackson JSON PropertyFilter, which selects properties of an object/list/map using a subset of the Facebook Graph API filtering syntax.</description>
+    <description>This is the build POM for squiggly-java</description>
     <groupId>com.github.bohnman.squiggly</groupId>
-    <artifactId>squiggly-java</artifactId>
+    <artifactId>squiggly-build</artifactId>
     <packaging>pom</packaging>
     <version>2.0.0-SNAPSHOT</version>
 
