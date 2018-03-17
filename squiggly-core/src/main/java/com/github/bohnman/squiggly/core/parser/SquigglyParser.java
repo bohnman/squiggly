@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -147,9 +148,8 @@ public class SquigglyParser {
 
             if (ctx.expressionList() != null) {
                 handleExpressionList(ctx.expressionList(), root);
-            } else if (ctx.selfReferencingExpression() != null) {
-                // TODO: finish
-                SquigglyExpressionParser.SelfReferencingExpressionContext expressionContext = ctx.selfReferencingExpression();
+            } else if (ctx.topLevelExpression() != null) {
+                handleTopLevelExpression(ctx.topLevelExpression(), root);
             }
 
             MutableNode analyzedRoot = analyze(root);
@@ -167,6 +167,28 @@ public class SquigglyParser {
         private ParseContext parseContext(ParserRuleContext ctx) {
             Token start = ctx.getStart();
             return new ParseContext(start.getLine(), start.getCharPositionInLine());
+        }
+
+        private void handleTopLevelExpression(SquigglyExpressionParser.TopLevelExpressionContext context, MutableNode root) {
+            root.name = new AnyDeepName();
+            if (context.topLevelArgChain() != null) {
+                handleTopLevelArgChain(context.topLevelArgChain(), root);
+            }
+        }
+
+        private void handleTopLevelArgChain(SquigglyExpressionParser.TopLevelArgChainContext context, MutableNode root) {
+            if (context.assignment() != null) {
+                root.valueFunctions(parseAssignment(context.assignment()));
+                return;
+            }
+
+            if (!context.argChainLink().isEmpty()) {
+                root.valueFunctions(context.argChainLink()
+                        .stream()
+                        .map(argChainLink -> buildFunction(argChainLink, true).build())
+                        .collect(Collectors.toList())
+                );
+            }
         }
 
         private void handleExpressionList(SquigglyExpressionParser.ExpressionListContext ctx, MutableNode parent) {
@@ -1140,7 +1162,7 @@ public class SquigglyParser {
             }
 
             if (allNegated) {
-                nodesToAdd.put(node, new MutableNode(node.getContext(),newBaseViewName()).dotPathed(node.dotPathed));
+                nodesToAdd.put(node, new MutableNode(node.getContext(), newBaseViewName()).dotPathed(node.dotPathed));
                 MutableNode parent = node.parent;
 
                 while (parent != null) {

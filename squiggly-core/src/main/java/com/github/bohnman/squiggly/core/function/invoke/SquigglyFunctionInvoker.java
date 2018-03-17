@@ -73,7 +73,7 @@ public class SquigglyFunctionInvoker {
         Object value = input;
 
         for (FunctionNode functionNode : functionNodes) {
-            if (functionNode.isIgnoreNulls() && value == null) {
+            if (functionNode.isIgnoreNulls() && isNull(value)) {
                 break;
             }
 
@@ -81,6 +81,18 @@ public class SquigglyFunctionInvoker {
         }
 
         return value;
+    }
+
+    private boolean isNull(Object value) {
+        if (value == null) {
+            return true;
+        }
+
+        if (value instanceof CoreJsonNode) {
+            return ((CoreJsonNode) value).isNull();
+        }
+
+        return false;
     }
 
     public Object invoke(@Nullable Object input, FunctionNode functionNode) {
@@ -116,7 +128,9 @@ public class SquigglyFunctionInvoker {
         }
 
         List<Object> parameters = toParameters(functionNode, input);
-        FunctionMatchResult result = matcher.apply(new FunctionMatchRequest(functionNode, input, parameters, functions));
+
+        FunctionMatchRequest request = new FunctionMatchRequest(functionNode, input, parameters, functions);
+        FunctionMatchResult result = matcher.apply(request);
 
         if (result.getWinner() == null) {
             throw new SquigglyParseException(functionNode.getContext(), "Unable to match function [%s] with parameters %s.",
@@ -125,7 +139,7 @@ public class SquigglyFunctionInvoker {
                             .map(p -> String.format("{type=%s, value=%s}", (p == null ? "null" : p.getClass()), p)).collect(Collectors.toList()));
         }
 
-        parameters = convert(result.getParameters(), result.getWinner());
+        parameters = convertParameters(request, result);
 
         return result.getWinner().apply(new FunctionExecutionRequest(input, parameters));
     }
@@ -165,6 +179,10 @@ public class SquigglyFunctionInvoker {
             return input;
         }
 
+        if (object instanceof CoreJsonNode) {
+            object = ((CoreJsonNode) input).getValue();
+        }
+
         if (key instanceof Function) {
             return ((Function) key).apply(object);
         }
@@ -181,8 +199,9 @@ public class SquigglyFunctionInvoker {
     }
 
 
-    private List<Object> convert(List<Object> requestedParameters, SquigglyFunction<Object> winner) {
-        List<SquigglyParameter> configuredParameters = winner.getParameters();
+    private List<Object> convertParameters(FunctionMatchRequest request, FunctionMatchResult result) {
+        List<Object> requestedParameters = result.getParameters();
+        List<SquigglyParameter> configuredParameters = result.getWinner().getParameters();
 
         if (configuredParameters.isEmpty()) {
             return Collections.emptyList();
@@ -200,7 +219,7 @@ public class SquigglyFunctionInvoker {
         for (int i = 0; i < end; i++) {
             Object requestedParam = requestedParameters.get(i);
             SquigglyParameter configuredParam = configuredParameters.get(i);
-            parameters.add(convert(requestedParam, configuredParam.getType()));
+            parameters.add(convertParameter(requestedParam, configuredParam.getType()));
         }
 
         if (varargsIndex >= 0) {
@@ -210,7 +229,7 @@ public class SquigglyFunctionInvoker {
             Object[] array = CoreArrays.newArray(varargType, len);
 
             for (int i = varargsIndex; i < requestedParametersSize; i++) {
-                array[i - varargsIndex] = convert(requestedParameters.get(i), varargType);
+                array[i - varargsIndex] = convertParameter(requestedParameters.get(i), varargType);
             }
 
             parameters.add(array);
@@ -219,16 +238,20 @@ public class SquigglyFunctionInvoker {
         return Collections.unmodifiableList(parameters);
     }
 
-    private Object convert(Object requestedParam, Class<?> type) {
-        if (requestedParam == null) {
+    private Object convertParameter(Object source, Class<?> targetType) {
+        if ((source instanceof CoreJsonNode) && !CoreJsonNode.class.isAssignableFrom(targetType)) {
+            source = ((CoreJsonNode) source).getValue();
+        }
+
+        if (source == null) {
             return null;
         }
 
-        if (type.isAssignableFrom(requestedParam.getClass())) {
-            return requestedParam;
+        if (targetType.isAssignableFrom(source.getClass())) {
+            return source;
         }
 
-        return conversionService.convert(requestedParam, type);
+        return conversionService.convert(source, targetType);
     }
 
     private List<Object> toParameters(FunctionNode functionNode, Object input) {

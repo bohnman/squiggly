@@ -3,6 +3,7 @@ package com.github.bohnman.squiggly.core.function.invoke;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.function.FunctionPredicateBridge;
+import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.convert.ConverterRecord;
@@ -152,10 +153,14 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
             return applyScore(score, request, result, configuredType, index);
         }
 
-        return applyNormalScore(score, configuredType, requestedType);
+        return applyNormalScore(score, request, result, configuredType, index, requestedType);
     }
 
-    private Score applyNormalScore(Score score, Class<?> configuredType, Class<?> requestedType) {
+    private Score applyNormalScore(Score score, FunctionMatchRequest request, FunctionMatchResult result, Class<?> configuredType, int index, Class<?> requestedType) {
+        if (CoreJsonNode.class.isAssignableFrom(requestedType) && !CoreJsonNode.class.isAssignableFrom(configuredType)) {
+            requestedType =  ((CoreJsonNode)request.getParameters().get(index)).getValue().getClass();
+        }
+
         if (configuredType.isAssignableFrom(requestedType)) {
             score.assignable(computeDistance(requestedType, configuredType));
             return score;
@@ -190,6 +195,10 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
                 return 2;
             }
 
+            return 0;
+        }
+
+        if (targetClass.equals(CoreJsonNode.class)) {
             return 0;
         }
 

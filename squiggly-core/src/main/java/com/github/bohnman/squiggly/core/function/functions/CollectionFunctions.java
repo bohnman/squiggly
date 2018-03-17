@@ -243,7 +243,7 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static Object find(Object value, CoreLambda coreLambda) {
+    public static Object findFirst(Object value, CoreLambda coreLambda) {
         if (coreLambda == null) {
             return null;
         }
@@ -861,12 +861,12 @@ public class CollectionFunctions {
                 .mapToObj(i -> i >= wrapper1.size() ? wrapper2.get(i - wrapper1.size()) : wrapper1.get(i)));
     }
 
-    @SquigglyFunctionMethod(aliases = {"uniq"})
+    @SquigglyFunctionMethod(aliases = {"distinct", "uniq"})
     public static Object unique(Object value) {
         return uniqueBy(value, CoreLambda.identity());
     }
 
-    @SquigglyFunctionMethod(aliases = {"uniqBy"})
+    @SquigglyFunctionMethod(aliases = {"distinctBy", "uniqBy"})
     public static Object uniqueBy(Object value, CoreLambda lambda) {
         return new CollectionReturningValueHandler() {
             @Override

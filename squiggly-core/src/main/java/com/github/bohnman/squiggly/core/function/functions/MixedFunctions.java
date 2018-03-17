@@ -60,6 +60,11 @@ public class MixedFunctions {
         return new ValueHandler<Boolean>() {
 
             @Override
+            protected Boolean handleNull() {
+                return false;
+            }
+
+            @Override
             protected Boolean handleString(String string) {
                 return string.contains(CoreConversions.toString(needle));
             }
@@ -115,7 +120,7 @@ public class MixedFunctions {
     }
 
     public static boolean has(Object value, Object key) {
-        if (key == null) {
+        if (value == null || key == null) {
             return false;
         }
 
@@ -151,6 +156,10 @@ public class MixedFunctions {
     }
 
     public static int indexOf(Object haystack, Object needle) {
+        if (haystack == null || needle == null) {
+            return -1;
+        }
+
         return new ValueHandler<Integer>(needle) {
             @Override
             protected Integer handleString(String string) {
@@ -198,6 +207,10 @@ public class MixedFunctions {
     }
 
     public static int lastIndexOf(Object haystack, Object needle) {
+        if (haystack == null || needle == null) {
+            return -1;
+        }
+
         return new ValueHandler<Integer>(needle) {
             @Override
             protected Integer handleString(String string) {
@@ -307,6 +320,7 @@ public class MixedFunctions {
     }
 
     public static Object pick(Object value, Object... keys) {
+
         if (keys.length == 0) {
             return value;
         }

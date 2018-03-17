@@ -17,7 +17,7 @@ public class CoreJsonNodeFunctions {
     private CoreJsonNodeFunctions() {
     }
 
-    public static <T> CoreJsonNode<T> find(CoreJsonNode<T> node, CoreLambda lambda) {
+    public static <T> CoreJsonNode<T> findAll(CoreJsonNode<T> node, CoreLambda lambda) {
         if (node == null) {
             return null;
         }
@@ -45,13 +45,18 @@ public class CoreJsonNodeFunctions {
     }
 
     @SquigglyFunctionMethod(aliases = {"findAndReplace"})
-    @SuppressWarnings("unchecked")
     public static <T> CoreJsonNode transform(CoreJsonNode<T> node, CoreLambda predicate, CoreLambda replacement) {
+        return transform(node, predicate, replacement, CoreLambda.identity());
+    }
+
+    @SquigglyFunctionMethod(aliases = {"findAndReplace"})
+    @SuppressWarnings("unchecked")
+    public static <T> CoreJsonNode transform(CoreJsonNode<T> node, CoreLambda predicate, CoreLambda valueReplacement, CoreLambda keyReplacement) {
         if (node == null) {
             return null;
         }
 
-        if (predicate == null || replacement == null) {
+        if (predicate == null || valueReplacement == null || keyReplacement == null) {
             return node;
         }
 
@@ -62,7 +67,9 @@ public class CoreJsonNodeFunctions {
                 return candidate;
             }
 
-            Object result = replacement.invoke(candidate.getValue(), context.getKey(), context.getDepth(), candidate, context);
+            context.setKey(keyReplacement.invoke(context.getKey(), candidate.getValue(), context.getDepth(), candidate, context));
+
+            Object result = valueReplacement.invoke(candidate.getValue(), context.getKey(), context.getDepth(), candidate, context);
 
             if (result instanceof CoreJsonNode) {
                 return (CoreJsonNode) result;

@@ -33,7 +33,7 @@ public class StringFunctions {
             return false;
         }
 
-        return value.contains(search);
+        return value.toLowerCase().contains(search.toLowerCase());
     }
 
     public static boolean endsWith(String value, String search) {

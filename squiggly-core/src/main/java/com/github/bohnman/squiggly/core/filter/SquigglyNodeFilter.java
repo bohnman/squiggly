@@ -19,7 +19,6 @@ public class SquigglyNodeFilter {
         this.squiggly = CoreAssert.notNull(squiggly);
     }
 
-
     public <T> CoreJsonNode<T> apply(CoreJsonNode<T> node, String... filters) {
         for (String filter : filters) {
             node = applyFilter(node, filter);
@@ -50,9 +49,17 @@ public class SquigglyNodeFilter {
             return rootJsonNode;
         }
 
+        if (squigglyNode.isAnyDeep()) {
+            return invokeValueFunctions(rootJsonNode, rootJsonNode, squigglyNode);
+        }
+
         return rootJsonNode.transform((context, jsonNode) -> {
             if (context.getObjectPath().isEmpty()) {
-                return jsonNode;
+                if (squigglyNode.getValueFunctions().isEmpty()) {
+                    return jsonNode;
+                }
+
+                return invokeValueFunctions(jsonNode, jsonNode, squigglyNode);
             }
 
             if (context.getKey() instanceof Number) {
@@ -66,18 +73,18 @@ public class SquigglyNodeFilter {
                 return null;
             }
 
-            context.setKey("" + squiggly.getFunctionInvoker().invoke(context.getKey(), context.getParentNode(), match.getKeyFunctions()));
-            Object newValue = squiggly.getFunctionInvoker().invoke(jsonNode, context.getParentNode(), match.getValueFunctions());
-
-            if (Objects.equals(jsonNode, newValue)) {
-                return jsonNode;
-            }
-
-            if (newValue instanceof CoreJsonNode) {
-                return (CoreJsonNode) newValue;
-            }
-
-            return jsonNode.create(newValue);
+            context.setKey(Objects.toString(squiggly.getFunctionInvoker().invoke(context.getKey(), context.getParentNode(), match.getKeyFunctions())));
+            return invokeValueFunctions(jsonNode, context.getParentNode(), squigglyNode);
         });
+    }
+
+    private <T> CoreJsonNode<T> invokeValueFunctions(CoreJsonNode<T> jsonNode, CoreJsonNode parentNode, SquigglyNode squigglyNode) {
+        Object newValue = squiggly.getFunctionInvoker().invoke(jsonNode, parentNode, squigglyNode.getValueFunctions());
+
+        if (newValue instanceof CoreJsonNode) {
+            return (CoreJsonNode) newValue;
+        }
+
+        return jsonNode.create(newValue);
     }
 }

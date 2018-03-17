@@ -18,7 +18,7 @@ expressionList
 
 nodeExpressionList
     : expressionList
-    | selfReferencingExpression
+    | topLevelExpression
     ;
 
 expression
@@ -53,14 +53,13 @@ recursiveFieldExpression
     : recursiveField keyValueFieldArgChain?
     ;
 
-selfReferencingExpression
-    : Dollar selfReferencingArgChain? nestedExpression?
-    | Dollar Dot dottedFieldExpression
+topLevelExpression
+    : Dollar topLevelArgChain?
     ;
 
-selfReferencingArgChain
+topLevelArgChain
     : assignment
-    | standaloneFieldArg? continuingFieldArgChain
+    | argChainLink+
     ;
 //endregion
 
