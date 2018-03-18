@@ -18,7 +18,6 @@ import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-
 import java.util.List;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
@@ -141,6 +140,14 @@ public class Squiggly extends BaseSquiggly {
 
     public static Squiggly init() {
         return builder().build();
+    }
+
+    public static Squiggly init(String filter) {
+        return builder(filter).build();
+    }
+
+    public static Squiggly init(SquigglyContextProvider provider) {
+        return builder(provider).build();
     }
 
 
