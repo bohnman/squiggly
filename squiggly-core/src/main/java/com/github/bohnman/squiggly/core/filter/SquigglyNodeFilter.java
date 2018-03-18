@@ -74,7 +74,7 @@ public class SquigglyNodeFilter {
             }
 
             context.setKey(Objects.toString(squiggly.getFunctionInvoker().invoke(context.getKey(), context.getParentNode(), match.getKeyFunctions())));
-            return invokeValueFunctions(jsonNode, context.getParentNode(), squigglyNode);
+            return invokeValueFunctions(jsonNode, context.getParentNode(), match);
         });
     }
 
