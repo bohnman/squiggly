@@ -26,7 +26,7 @@ public class NumberFunctions {
 
     public static Object add(Object o1, Object o2) {
         if (o1 instanceof String || o2 instanceof String) {
-            return CoreStrings.defaultIfEmpty(Objects.toString(o1), "") + CoreStrings.defaultIfEmpty(Objects.toString(o2), "");
+            return CoreStrings.defaultIfEmpty(CoreConversions.safeToString(o1), "") + CoreStrings.defaultIfEmpty(CoreConversions.safeToString(o2), "");
         }
 
         if (o1 == null || o2 == null) {

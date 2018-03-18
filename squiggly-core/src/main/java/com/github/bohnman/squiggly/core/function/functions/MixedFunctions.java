@@ -44,7 +44,7 @@ public class MixedFunctions {
 
     public static Object concat(Object o1, Object o2) {
         if (o1 instanceof String || o2 instanceof String) {
-            return CoreStrings.defaultIfEmpty(Objects.toString(o1), "") + CoreStrings.defaultIfEmpty(Objects.toString(o2), "");
+            return CoreStrings.defaultIfEmpty(CoreConversions.safeToString(o1), "") + CoreStrings.defaultIfEmpty(CoreConversions.safeToString(o2), "");
         }
 
         if (o1 == null || o2 == null) {
@@ -66,7 +66,7 @@ public class MixedFunctions {
 
             @Override
             protected Boolean handleString(String string) {
-                return string.contains(CoreConversions.toString(needle));
+                return string.contains(CoreConversions.safeToString(needle));
             }
 
             @Override
@@ -110,7 +110,7 @@ public class MixedFunctions {
             @Override
             protected Object handleObject(Object value) {
                 return CoreBeans.getReadablePropertyDescriptors(value.getClass())
-                        .filter(pd -> pd.getName().equals(CoreConversions.toString(key)))
+                        .filter(pd -> pd.getName().equals(CoreConversions.safeToString(key)))
                         .map(pd -> CoreMethods.invoke(pd.getReadMethod(), value))
                         .findFirst()
                         .orElse(null);
@@ -150,7 +150,7 @@ public class MixedFunctions {
             @Override
             protected Boolean handleObject(Object value) {
                 return CoreBeans.getReadablePropertyDescriptors(value.getClass())
-                        .anyMatch(pd -> pd.getName().equals(CoreConversions.toString(key)));
+                        .anyMatch(pd -> pd.getName().equals(CoreConversions.safeToString(key)));
             }
         }.handle(value);
     }
@@ -163,7 +163,7 @@ public class MixedFunctions {
         return new ValueHandler<Integer>(needle) {
             @Override
             protected Integer handleString(String string) {
-                return string.indexOf("" + CoreConversions.toString(needle));
+                return string.indexOf("" + CoreConversions.safeToString(needle));
             }
 
             @Override
@@ -214,7 +214,7 @@ public class MixedFunctions {
         return new ValueHandler<Integer>(needle) {
             @Override
             protected Integer handleString(String string) {
-                return string.lastIndexOf("" + CoreConversions.toString(needle));
+                return string.lastIndexOf("" + CoreConversions.safeToString(needle));
             }
 
             @Override

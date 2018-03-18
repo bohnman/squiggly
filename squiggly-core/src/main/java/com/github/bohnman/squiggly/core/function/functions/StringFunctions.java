@@ -76,7 +76,7 @@ public class StringFunctions {
                     builder.append(separator);
                 }
 
-                builder.append(CoreConversions.toString(wrapper.get(i)));
+                builder.append(CoreConversions.safeToString(wrapper.get(i)));
             }
 
             return builder.toString();
@@ -91,13 +91,13 @@ public class StringFunctions {
                     builder.append(separator);
                 }
 
-                builder.append(CoreConversions.toString(list.get(i)));
+                builder.append(CoreConversions.safeToString(list.get(i)));
             }
 
             return builder.toString();
         }
 
-        return CoreConversions.toString(value);
+        return CoreConversions.safeToString(value);
     }
 
     public static String lower(String value) {

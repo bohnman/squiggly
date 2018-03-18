@@ -137,8 +137,8 @@ public class JodaConverters {
         repo.add(org.joda.time.Instant.class, org.joda.time.LocalTime.class, (s) -> s.toDateTime().toLocalTime());
         repo.add(org.joda.time.Instant.class, LocalTime.class, (s) -> toLocalTime(s.toDateTime().toLocalTime()));
 
-        repo.add(org.joda.time.DateTime.class, ZonedDateTime.class, (s) -> Instant.ofEpochMilli(s.getMillis()).atZone(ZoneId.systemDefault()));
-        repo.add(org.joda.time.DateTime.class, OffsetDateTime.class, (s) -> Instant.ofEpochMilli(s.getMillis()).atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        repo.add(org.joda.time.DateTime.class, ZonedDateTime.class, (s) -> Instant.ofEpochMilli(s.getMillis()).atZone(s.getZone().toTimeZone().toZoneId()));
+        repo.add(org.joda.time.DateTime.class, OffsetDateTime.class, (s) -> Instant.ofEpochMilli(s.getMillis()).atZone(s.getZone().toTimeZone().toZoneId()).toOffsetDateTime());
         repo.add(org.joda.time.DateTime.class, org.joda.time.Instant.class, DateTime::toInstant);
         repo.add(org.joda.time.DateTime.class, Instant.class, (s) -> Instant.ofEpochMilli(s.getMillis()));
         repo.add(org.joda.time.DateTime.class, Date.class, DateTime::toDate);

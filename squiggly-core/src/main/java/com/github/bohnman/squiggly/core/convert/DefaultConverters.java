@@ -199,7 +199,7 @@ public class DefaultConverters {
         }
 
         // Object
-        repo.add(Object.class, String.class, CoreConversions::toString, ConverterRecord.MAX_ORDER);
+        repo.add(Object.class, String.class, CoreConversions::safeToString, ConverterRecord.MAX_ORDER);
         repo.add(Object.class, Function.class, CoreConversions::toFunction, ConverterRecord.MAX_ORDER);
         repo.add(Object.class, Predicate.class, CoreConversions::toPredicate, ConverterRecord.MAX_ORDER);
         repo.add(Object.class, CoreLambda.class, CoreConversions::toLambda, ConverterRecord.MAX_ORDER);
