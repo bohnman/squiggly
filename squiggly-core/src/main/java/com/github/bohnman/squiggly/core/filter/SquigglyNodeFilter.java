@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.core.filter;
 
 import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
+import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
@@ -24,7 +25,7 @@ public class SquigglyNodeFilter {
             node = applyFilter(node, filter);
         }
 
-        if (squiggly.getConfig().isUseContextInNodeFilter() && squiggly.getContextProvider().isFilteringEnabled()) {
+        if (appendContextFilter() && squiggly.getContextProvider().isFilteringEnabled()) {
             Object value = node.getValue();
             Class<?> beanClass = value == null ? Object.class : value.getClass();
             SquigglyContext context = squiggly.getContextProvider().getContext(beanClass, squiggly);
@@ -32,6 +33,10 @@ public class SquigglyNodeFilter {
         }
 
         return node;
+    }
+
+    protected boolean appendContextFilter() {
+        return CoreObjects.firstNonNull(squiggly.getConfig().getAppendContextInNodeFilter(), true);
     }
 
     private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> node, String filter) {

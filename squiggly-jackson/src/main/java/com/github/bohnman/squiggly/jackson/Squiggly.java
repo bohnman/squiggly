@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
 import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.core.filter.SquigglyNodeFilter;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
 import com.github.bohnman.squiggly.jackson.bean.JacksonBeanInfoIntrospector;
@@ -30,11 +32,28 @@ public class Squiggly extends BaseSquiggly {
 
     private final SquigglyPropertyFilter filter;
     private final SquigglyJacksonSerializer serializer;
+    private volatile boolean propertyFilterApplied;
 
     private Squiggly(Builder builder) {
         super(builder, new JacksonBeanInfoIntrospector(builder.getBuiltConfig(), builder.getBuiltMetrics()));
         this.filter = new SquigglyPropertyFilter(this);
         this.serializer = notNull(builder.builtSerializer);
+    }
+
+    @Override
+    protected SquigglyNodeFilter createNodeFilter() {
+        return new SquigglyNodeFilter(this) {
+            @Override
+            protected boolean appendContextFilter() {
+                Boolean append = getConfig().getAppendContextInNodeFilter();
+
+                if (append == null && propertyFilterApplied) {
+                    return false;
+                }
+
+                return CoreObjects.firstNonNull(append, true);
+            }
+        };
     }
 
     public JsonNode apply(JsonNode node, String... filters) {
@@ -49,6 +68,7 @@ public class Squiggly extends BaseSquiggly {
      */
     @SuppressWarnings("deprecation")
     public ObjectMapper apply(ObjectMapper mapper) {
+        propertyFilterApplied = true;
         FilterProvider filterProvider = mapper.getSerializationConfig().getFilterProvider();
         SimpleFilterProvider simpleFilterProvider;
 

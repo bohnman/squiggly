@@ -80,7 +80,11 @@ public abstract class BaseSquiggly {
         this.functionInvoker = new SquigglyFunctionInvoker(config, this.conversionService, this.functionRepository, this.variableResolver);
         this.nodeMatcher = new SquigglyNodeMatcher(this);
         this.nodeNormalizer = new SquigglyNodeNormalizer(this);
-        this.nodeFilter = new SquigglyNodeFilter(this);
+        this.nodeFilter = createNodeFilter();
+    }
+
+    protected SquigglyNodeFilter createNodeFilter() {
+        return new SquigglyNodeFilter(this);
     }
 
 

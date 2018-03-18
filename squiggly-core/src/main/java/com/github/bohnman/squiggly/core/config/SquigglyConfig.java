@@ -4,6 +4,7 @@ import com.github.bohnman.core.cache.CoreCacheBuilderSpec;
 import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreObjects;
+import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.core.config.source.CompositeConfigSource;
 import com.github.bohnman.squiggly.core.config.source.PropertiesConfigSource;
 import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
@@ -34,7 +35,7 @@ public class SquigglyConfig {
     private final boolean filterImplicitlyIncludeBaseFieldsInView;
     private final CoreCacheBuilderSpec filterPathCacheSpec;
     private final boolean filterPropagateViewToNestedFilters;
-    private final boolean useContextInNodeFilter;
+    private final Boolean appendContextInNodeFilter;
     private final CoreCacheBuilderSpec parserNodeCacheSpec;
     private final boolean propertyAddNonAnnotatedFieldsToBaseView;
     private final CoreCacheBuilderSpec propertyDescriptorCacheSpec;
@@ -76,7 +77,7 @@ public class SquigglyConfig {
         propertyAddNonAnnotatedFieldsToBaseView = getBool(source, propsMap, locationMap, "squiggly.property.addNonAnnotatedFieldsToBaseView");
         propertyDescriptorCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.property.descriptorCache.spec");
         filterRequestParam = getString(source, propsMap, locationMap, "squiggly.filter.request.param");
-        useContextInNodeFilter = getBool(source, propsMap, locationMap, "squiggly.filter.node.useContext");
+        appendContextInNodeFilter = getBool(source, propsMap, locationMap, "squiggly.filter.node.appendContext");
         functionEnvironment = SquigglyEnvironment.valueOf(getString(source, propsMap, locationMap, "squiggly.env").toUpperCase());
 
         this.propsMap = Collections.unmodifiableSortedMap(propsMap);
@@ -113,7 +114,7 @@ public class SquigglyConfig {
     public Boolean getBoolean(String key, @Nullable Boolean defaultValue) {
         String value = propsMap.get(key);
 
-        if (value == null) {
+        if (CoreStrings.isEmpty(value)) {
             return defaultValue;
         }
 
@@ -129,7 +130,7 @@ public class SquigglyConfig {
     public Integer getInt(String key, @Nullable Integer defaultValue) {
         String value = propsMap.get(key);
 
-        if (value == null) {
+        if (CoreStrings.isEmpty(value)) {
             return defaultValue;
         }
 
@@ -146,7 +147,7 @@ public class SquigglyConfig {
     public Long getLong(String key, @Nullable Long defaultValue) {
         String value = propsMap.get(key);
 
-        if (value == null) {
+        if (CoreStrings.isEmpty(value)) {
             return defaultValue;
         }
 
@@ -163,7 +164,7 @@ public class SquigglyConfig {
     public Float getFloat(String key, @Nullable Float defaultValue) {
         String value = propsMap.get(key);
 
-        if (value == null) {
+        if (CoreStrings.isEmpty(value)) {
             return defaultValue;
         }
 
@@ -180,7 +181,7 @@ public class SquigglyConfig {
     public Double getDouble(String key, @Nullable Double defaultValue) {
         String value = propsMap.get(key);
 
-        if (value == null) {
+        if (CoreStrings.isEmpty(value)) {
             return defaultValue;
         }
 
@@ -198,8 +199,14 @@ public class SquigglyConfig {
         return CoreCacheBuilderSpec.parse(value);
     }
 
-    private boolean getBool(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
-        return "true".equals(getString(source, props, locations, key));
+    private Boolean getBool(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
+        String value = getString(source, props, locations, key);
+
+        if (CoreStrings.isEmpty(value)) {
+            return null;
+        }
+
+        return "true".equals(value);
     }
 
     private String getString(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
@@ -312,10 +319,10 @@ public class SquigglyConfig {
 
     /**
      * Determins whether to use the SquigglyContext in the node filter as last filter.
-     * @return true if use, false if not
+     * @return true if use, false if not, or null if defer
      */
-    public boolean isUseContextInNodeFilter() {
-        return useContextInNodeFilter;
+    public Boolean getAppendContextInNodeFilter() {
+        return appendContextInNodeFilter;
     }
 
     /**
