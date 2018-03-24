@@ -26,4 +26,9 @@ public class ExactName implements SquigglyName {
 
         return -1;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

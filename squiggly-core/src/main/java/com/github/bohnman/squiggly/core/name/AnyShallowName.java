@@ -23,4 +23,9 @@ public class AnyShallowName implements SquigglyName {
     public static AnyShallowName get() {
         return INSTANCE;
     }
+
+    @Override
+    public String toString() {
+        return ID;
+    }
 }

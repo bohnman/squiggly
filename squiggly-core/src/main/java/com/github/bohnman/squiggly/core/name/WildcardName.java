@@ -41,4 +41,9 @@ public class WildcardName implements SquigglyName {
 
         return -1;
     }
+
+    @Override
+    public String toString() {
+        return rawName;
+    }
 }
