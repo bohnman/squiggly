@@ -10,8 +10,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collections;
 import java.util.List;
 
-import static com.github.bohnman.core.lang.CoreAssert.notNull;
-
 /**
  * A squiggly node represents a component of a filter expression.
  */
@@ -27,7 +25,9 @@ public class SquigglyNode {
             Collections.emptyList(),
             false,
             false,
-            false);
+            false,
+            false,
+            null);
 
     private final ParseContext context;
     private final SquigglyName name;
@@ -37,30 +37,22 @@ public class SquigglyNode {
     private final boolean squiggly;
     private final boolean negated;
     private final boolean emptyNested;
+    private final boolean recursive;
+    private final IntRangeNode depthRange;
 
-    /**
-     * Constructor.
-     *
-     * @param context        parser context
-     * @param name           name of the node
-     * @param children       child nodes
-     * @param keyFunctions   key functions
-     * @param valueFunctions value functions
-     * @param negated        whether or not the node has been negated
-     * @param squiggly       whether or not a node is squiggly
-     * @param emptyNested    whether of not filter specified {}
-     * @see #isSquiggly()
-     */
-    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested) {
-        this.context = notNull(context);
+    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean squiggly, boolean negated, boolean emptyNested, boolean recursive, IntRangeNode depthRange) {
+        this.context = context;
         this.name = name;
-        this.negated = negated;
-        this.children = Collections.unmodifiableList(children);
-        this.keyFunctions = Collections.unmodifiableList(keyFunctions);
-        this.valueFunctions = Collections.unmodifiableList(valueFunctions);
+        this.children = children;
+        this.keyFunctions = keyFunctions;
+        this.valueFunctions = valueFunctions;
         this.squiggly = squiggly;
+        this.negated = negated;
         this.emptyNested = emptyNested;
+        this.recursive = recursive;
+        this.depthRange = depthRange;
     }
+
 
     /**
      * Performs a match against the name of another node/element.
@@ -181,7 +173,7 @@ public class SquigglyNode {
      * @return ndoe
      */
     public SquigglyNode withName(SquigglyName newName) {
-        return new SquigglyNode(context, newName, children, keyFunctions, valueFunctions, negated, squiggly, emptyNested);
+        return new SquigglyNode(context, newName, children, keyFunctions, valueFunctions, squiggly, negated, emptyNested, recursive, depthRange);
     }
 
     /**
@@ -191,6 +183,6 @@ public class SquigglyNode {
      * @return children
      */
     public SquigglyNode withChildren(List<SquigglyNode> newChildren) {
-        return new SquigglyNode(context, name, newChildren, keyFunctions, valueFunctions, negated, squiggly, emptyNested);
+        return new SquigglyNode(context, name, newChildren, keyFunctions, valueFunctions, squiggly, negated, emptyNested, recursive, depthRange);
     }
 }

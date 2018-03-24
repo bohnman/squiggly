@@ -25,12 +25,13 @@ expression
     : negatedExpression
     | fieldGroupExpression
     | dottedFieldExpression
-    | recursiveFieldExpression
+    | recursiveExpression
     ;
 
 dottedFieldExpression
-    : dottedField nestedExpression?
-    | dottedField keyValueFieldArgChain (nestedExpression | (Dot dottedField nestedExpression?))?
+    : dottedField keyValueFieldArgChain? nestedExpression?
+    | MultiplyAssign arg nestedExpression?
+    | WildcardDeep Equals arg nestedExpression?
     ;
 
 fieldGroupExpression
@@ -49,8 +50,17 @@ nestedExpression
     | BracketLeft expressionList? BracketRight
     ;
 
-recursiveFieldExpression
-    : recursiveField keyValueFieldArgChain?
+recursiveExpression
+    : WildcardDeep SquigglyLeft recursiveArg (Comma recursiveArg)* SquigglyRight intRange?
+    | WildcardDeep ParenLeft recursiveArg (Comma recursiveArg)* ParenRight intRange?
+    | WildcardDeep
+    ;
+
+recursiveArg
+    : field keyValueFieldArgChain?
+    | Subtract field
+    | MultiplyAssign arg
+    | WildcardDeep Equals arg
     ;
 
 topLevelExpression
@@ -80,22 +90,6 @@ field
 
 fieldGroup
     : ParenLeft field (Comma field)* ParenRight
-    ;
-
-recursiveField
-    : WildcardShallow recursiveDepth
-    | WildcardDeep
-    ;
-
-recursiveDepth
-    : SquigglyLeft recursiveDepthArg SquigglyRight
-    | SquigglyLeft recursiveDepthArg Colon recursiveDepth? SquigglyRight
-    | QuestionMark
-    | WildcardShallow
-    ;
-
-recursiveDepthArg
-    : IntegerLiteral
     ;
 
 wildcardField
