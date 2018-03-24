@@ -12,13 +12,13 @@ public class WildcardName implements SquigglyName {
 
     public WildcardName(String name) {
         this.name = name;
-        this.rawName = CoreStrings.remove(this.name, "*");
+        this.rawName = CoreStrings.remove(this.name, AnyShallowName.ID);
         this.pattern = buildPattern();
     }
 
     private Pattern buildPattern() {
-        String[] search = {"*", "?"};
-        String[] replace = {".*", ".?"};
+        String[] search = {AnyShallowName.ID, AnyShallowName.SINGLE_ID};
+        String[] replace = {"." + AnyShallowName.ID, "." + AnyShallowName.SINGLE_ID};
 
         return Pattern.compile("^" + CoreStrings.replaceEach(name, search, replace) + "$");
     }
@@ -44,6 +44,6 @@ public class WildcardName implements SquigglyName {
 
     @Override
     public String toString() {
-        return rawName;
+        return name;
     }
 }

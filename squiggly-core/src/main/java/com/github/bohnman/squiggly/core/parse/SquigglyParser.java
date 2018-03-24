@@ -247,11 +247,11 @@ public class SquigglyParser {
                 ruleContext = dottedField;
                 keyValueContext = context.keyValueFieldArgChain();
             } else if (context.MultiplyAssign() != null) {
-                name = new WildcardName("*");
+                name = AnyShallowName.get();
                 keyValueContext = createValueAssignmentKeyValueArgChain(context, FakeAssignmentContext.createEquals(context, context.arg()));
                 ruleContext = context;
             } else if (context.WildcardDeep() != null) {
-                name = new WildcardName("*");
+                name = AnyShallowName.get();
                 keyValueContext = createValueAssignmentKeyValueArgChain(context, FakeAssignmentContext.createMultiplyAssign(context, context.arg()));
                 ruleContext = context;
             } else {
@@ -298,11 +298,11 @@ public class SquigglyParser {
             if (context.Subtract() != null) {
                 node = parent.addChild(new MutableNode(parseContext(context.field()), createName(context.field())).negated(true));
             } else if (context.MultiplyAssign() != null) {
-                SquigglyName name = new WildcardName("*");
+                SquigglyName name = AnyShallowName.get();
                 SquigglyExpressionParser.KeyValueFieldArgChainContext keyValueContext = createValueAssignmentKeyValueArgChain(context, FakeAssignmentContext.createEquals(context, context.arg()));
                 node = createNode(parent, name, context, keyValueContext, null);
             } else if (context.WildcardDeep() != null) {
-                SquigglyName name = new WildcardName("*");
+                SquigglyName name = AnyShallowName.get();
                 SquigglyExpressionParser.KeyValueFieldArgChainContext keyValueContext = createValueAssignmentKeyValueArgChain(context, FakeAssignmentContext.createMultiplyAssign(context, context.arg()));
                 node = createNode(parent, name, context, keyValueContext, null);
             } else if (context.field() != null) {
@@ -1152,7 +1152,7 @@ public class SquigglyParser {
 
                 name = new RegexName(pattern.pattern(), pattern);
             } else if (context.wildcard() != null) {
-                if ("*".equals(context.wildcard().getText())) {
+                if (AnyShallowName.ID.equals(context.wildcard().getText())) {
                     name = AnyShallowName.get();
                 } else {
                     name = new WildcardName(context.wildcard().getText());

@@ -3,6 +3,7 @@ package com.github.bohnman.squiggly.core.name;
 public class AnyShallowName implements SquigglyName {
 
     public static final String ID = "*";
+    public static final String SINGLE_ID = "?";
     private static final AnyShallowName INSTANCE = new AnyShallowName();
 
     @Override
