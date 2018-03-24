@@ -11,8 +11,8 @@ import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.name.ExactName;
-import com.github.bohnman.squiggly.core.parser.ParseContext;
-import com.github.bohnman.squiggly.core.parser.SquigglyNode;
+import com.github.bohnman.squiggly.core.parse.ParseContext;
+import com.github.bohnman.squiggly.core.parse.node.SquigglyNode;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 
 import java.util.Collections;

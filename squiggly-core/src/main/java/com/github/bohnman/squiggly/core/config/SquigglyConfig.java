@@ -293,7 +293,7 @@ public class SquigglyConfig {
      * Get the {@link CoreCacheBuilderSpec} of the node cache in the squiggly parser.
      *
      * @return spec
-     * @see com.github.bohnman.squiggly.core.parser.SquigglyParser
+     * @see com.github.bohnman.squiggly.core.parse.SquigglyParser
      */
     public CoreCacheBuilderSpec getParserNodeCacheSpec() {
         return parserNodeCacheSpec;

@@ -6,7 +6,7 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
-import com.github.bohnman.squiggly.core.parser.SquigglyNode;
+import com.github.bohnman.squiggly.core.parse.node.SquigglyNode;
 
 import java.util.List;
 import java.util.Objects;

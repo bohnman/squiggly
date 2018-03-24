@@ -28,7 +28,7 @@ import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepo
 import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.core.normalize.SquigglyNodeNormalizer;
-import com.github.bohnman.squiggly.core.parser.SquigglyParser;
+import com.github.bohnman.squiggly.core.parse.SquigglyParser;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;

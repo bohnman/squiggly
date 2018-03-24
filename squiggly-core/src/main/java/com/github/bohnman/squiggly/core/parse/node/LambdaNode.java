@@ -1,4 +1,6 @@
-package com.github.bohnman.squiggly.core.parser;
+package com.github.bohnman.squiggly.core.parse.node;
+
+import com.github.bohnman.squiggly.core.parse.ParseContext;
 
 import java.util.Collections;
 import java.util.List;

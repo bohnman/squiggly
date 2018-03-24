@@ -10,10 +10,10 @@ import com.github.bohnman.squiggly.core.convert.joda.SquigglyConverterRegistries
 import com.github.bohnman.squiggly.core.function.invoke.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.core.function.repository.MapFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
-import com.github.bohnman.squiggly.core.parser.ArgumentNode;
-import com.github.bohnman.squiggly.core.parser.ArgumentNodeType;
-import com.github.bohnman.squiggly.core.parser.FunctionNode;
-import com.github.bohnman.squiggly.core.parser.ParseContext;
+import com.github.bohnman.squiggly.core.parse.node.ArgumentNode;
+import com.github.bohnman.squiggly.core.parse.node.ArgumentNodeType;
+import com.github.bohnman.squiggly.core.parse.node.FunctionNode;
+import com.github.bohnman.squiggly.core.parse.ParseContext;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
 import org.junit.Test;

@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.core.context;
 
-import com.github.bohnman.squiggly.core.parser.SquigglyNode;
+import com.github.bohnman.squiggly.core.parse.node.SquigglyNode;
 
 /**
  * A squiggly context provides parsing and filtering information for parsing.

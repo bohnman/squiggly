@@ -3,7 +3,7 @@ package com.github.bohnman.squiggly.core.normalize;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.name.ExactName;
-import com.github.bohnman.squiggly.core.parser.SquigglyNode;
+import com.github.bohnman.squiggly.core.parse.node.SquigglyNode;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
 
 import java.util.ArrayList;

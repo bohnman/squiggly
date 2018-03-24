@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.core.function.invoke;
 
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
-import com.github.bohnman.squiggly.core.parser.FunctionNode;
+import com.github.bohnman.squiggly.core.parse.node.FunctionNode;
 
 import java.util.List;
 

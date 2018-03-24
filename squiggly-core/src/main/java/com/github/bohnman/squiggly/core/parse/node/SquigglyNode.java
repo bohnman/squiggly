@@ -1,10 +1,11 @@
-package com.github.bohnman.squiggly.core.parser;
+package com.github.bohnman.squiggly.core.parse.node;
 
 import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.name.AnyShallowName;
 import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.name.SquigglyName;
 import com.github.bohnman.squiggly.core.name.VariableName;
+import com.github.bohnman.squiggly.core.parse.ParseContext;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collections;

@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.core.parser;
+package com.github.bohnman.squiggly.core.parse;
 
 import com.github.bohnman.core.antlr4.ThrowingErrorListener;
 import com.github.bohnman.core.cache.CoreCache;
@@ -16,9 +16,17 @@ import com.github.bohnman.squiggly.core.name.RegexName;
 import com.github.bohnman.squiggly.core.name.SquigglyName;
 import com.github.bohnman.squiggly.core.name.VariableName;
 import com.github.bohnman.squiggly.core.name.WildcardName;
-import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionBaseVisitor;
-import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionLexer;
-import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionParser;
+import com.github.bohnman.squiggly.core.parse.antlr4.SquigglyExpressionBaseVisitor;
+import com.github.bohnman.squiggly.core.parse.antlr4.SquigglyExpressionLexer;
+import com.github.bohnman.squiggly.core.parse.antlr4.SquigglyExpressionParser;
+import com.github.bohnman.squiggly.core.parse.node.ArgumentNode;
+import com.github.bohnman.squiggly.core.parse.node.ArgumentNodeType;
+import com.github.bohnman.squiggly.core.parse.node.FunctionNode;
+import com.github.bohnman.squiggly.core.parse.node.FunctionNodeType;
+import com.github.bohnman.squiggly.core.parse.node.IfNode;
+import com.github.bohnman.squiggly.core.parse.node.IntRangeNode;
+import com.github.bohnman.squiggly.core.parse.node.LambdaNode;
+import com.github.bohnman.squiggly.core.parse.node.SquigglyNode;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonToken;
