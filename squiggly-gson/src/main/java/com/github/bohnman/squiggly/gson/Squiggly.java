@@ -15,9 +15,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class GsonSquiggly extends BaseSquiggly {
+public class Squiggly extends BaseSquiggly {
 
-    public GsonSquiggly(BaseBuilder builder) {
+    public Squiggly(BaseBuilder builder) {
         super(builder);
     }
 
@@ -37,7 +37,7 @@ public class GsonSquiggly extends BaseSquiggly {
      *
      * @return squiggly
      */
-    public static GsonSquiggly init() {
+    public static Squiggly init() {
         return builder().build();
     }
 
@@ -47,7 +47,7 @@ public class GsonSquiggly extends BaseSquiggly {
      * @param filter the filter
      * @return squiggly
      */
-    public static GsonSquiggly init(String filter) {
+    public static Squiggly init(String filter) {
         return builder(filter).build();
     }
 
@@ -57,7 +57,7 @@ public class GsonSquiggly extends BaseSquiggly {
      * @param contextProvider context provider
      * @return squigly
      */
-    public static GsonSquiggly init(SquigglyContextProvider contextProvider) {
+    public static Squiggly init(SquigglyContextProvider contextProvider) {
         return builder(contextProvider).build();
     }
 
@@ -90,7 +90,7 @@ public class GsonSquiggly extends BaseSquiggly {
         return builder().context(contextProvider);
     }
 
-    public static class Builder extends BaseBuilder<Builder, GsonSquiggly> {
+    public static class Builder extends BaseBuilder<Builder, Squiggly> {
 
         @Override
         protected void applyDefaultFunctions(List<SquigglyFunction<?>> functions) {
@@ -99,8 +99,8 @@ public class GsonSquiggly extends BaseSquiggly {
         }
 
         @Override
-        protected GsonSquiggly newInstance() {
-            return new GsonSquiggly(this);
+        protected Squiggly newInstance() {
+            return new Squiggly(this);
         }
 
     }
@@ -110,7 +110,7 @@ public class GsonSquiggly extends BaseSquiggly {
         Person person = new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie");
         Gson gson = new Gson();
         JsonElement element = gson.toJsonTree(person);
-        JsonElement transformed = GsonSquiggly.init()
+        JsonElement transformed = Squiggly.init()
                 .apply(element, "nickNames[name.reverse()]");
 
         System.out.println(gson.toJson(transformed));
