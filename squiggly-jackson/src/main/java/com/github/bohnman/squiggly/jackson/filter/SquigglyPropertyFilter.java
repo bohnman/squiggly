@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ser.std.MapProperty;
 import com.github.bohnman.core.json.path.CoreJsonPath;
 import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
+import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
 import com.github.bohnman.squiggly.core.function.invoke.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
 import com.github.bohnman.squiggly.core.parse.node.SquigglyNode;
@@ -73,14 +74,20 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     public static final String FILTER_ID = "squigglyFilter";
 
     private final Squiggly squiggly;
+    private final SquigglyContextProvider contextProvider;
+
+    public SquigglyPropertyFilter(Squiggly squiggly) {
+        this(squiggly, squiggly.getContextProvider());
+    }
 
     /**
      * Constructor.
      *
      * @param squiggly squiggly
      */
-    public SquigglyPropertyFilter(Squiggly squiggly) {
+    public SquigglyPropertyFilter(Squiggly squiggly, SquigglyContextProvider contextProvider) {
         this.squiggly = notNull(squiggly);
+        this.contextProvider = notNull(contextProvider);
     }
 
     @Override
@@ -130,12 +137,12 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             return SquigglyNodeMatcher.ALWAYS_MATCH;
         }
 
-        if (!squiggly.getContextProvider().isFilteringEnabled()) {
+        if (!contextProvider.isFilteringEnabled()) {
             return SquigglyNodeMatcher.ALWAYS_MATCH;
         }
 
         CoreJsonPath path = getPath(writer, streamContext);
-        SquigglyContext context = squiggly.getContextProvider().getContext(path.getFirst().getBeanClass(), squiggly);
+        SquigglyContext context = contextProvider.getContext(path.getFirst().getBeanClass(), squiggly);
 
         return squiggly.getNodeMatcher().match(path, context);
     }
