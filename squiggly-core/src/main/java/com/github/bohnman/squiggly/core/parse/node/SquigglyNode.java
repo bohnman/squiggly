@@ -28,6 +28,7 @@ public class SquigglyNode {
             false,
             false,
             false,
+            null,
             null);
 
     private final ParseContext context;
@@ -39,9 +40,10 @@ public class SquigglyNode {
     private final boolean negated;
     private final boolean emptyNested;
     private final boolean recursive;
-    private final IntRangeNode depthRange;
+    private final Integer startDepth;
+    private final Integer endDepth;
 
-    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean squiggly, boolean negated, boolean emptyNested, boolean recursive, IntRangeNode depthRange) {
+    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean squiggly, boolean negated, boolean emptyNested, boolean recursive, Integer startDepth, Integer endDepth) {
         this.context = context;
         this.name = name;
         this.children = children;
@@ -51,7 +53,8 @@ public class SquigglyNode {
         this.negated = negated;
         this.emptyNested = emptyNested;
         this.recursive = recursive;
-        this.depthRange = depthRange;
+        this.startDepth = startDepth;
+        this.endDepth = endDepth;
     }
 
 
@@ -167,6 +170,19 @@ public class SquigglyNode {
         return name instanceof VariableName;
     }
 
+
+    public boolean isRecursive() {
+        return recursive;
+    }
+
+    public Integer getStartDepth() {
+        return startDepth;
+    }
+
+    public Integer getEndDepth() {
+        return endDepth;
+    }
+
     /**
      * Create a squiggly node with the specified name.
      *
@@ -174,7 +190,7 @@ public class SquigglyNode {
      * @return ndoe
      */
     public SquigglyNode withName(SquigglyName newName) {
-        return new SquigglyNode(context, newName, children, keyFunctions, valueFunctions, squiggly, negated, emptyNested, recursive, depthRange);
+        return new SquigglyNode(context, newName, children, keyFunctions, valueFunctions, squiggly, negated, emptyNested, recursive, startDepth, endDepth);
     }
 
     /**
@@ -184,6 +200,6 @@ public class SquigglyNode {
      * @return children
      */
     public SquigglyNode withChildren(List<SquigglyNode> newChildren) {
-        return new SquigglyNode(context, name, newChildren, keyFunctions, valueFunctions, squiggly, negated, emptyNested, recursive, depthRange);
+        return new SquigglyNode(context, name, newChildren, keyFunctions, valueFunctions, squiggly, negated, emptyNested, recursive, startDepth, endDepth);
     }
 }

@@ -1289,7 +1289,8 @@ public class SquigglyParser {
         private List<FunctionNode> keyFunctions = new ArrayList<>();
         private List<FunctionNode> valueFunctions = new ArrayList<>();
         private boolean recursive;
-        private IntRangeNode depthRange;
+        private Integer startDepth;
+        private Integer endDepth;
 
         MutableNode(ParseContext context, SquigglyName name) {
             this.context = context;
@@ -1313,7 +1314,7 @@ public class SquigglyParser {
                 }
             }
 
-            return new SquigglyNode(context, name, childNodes, keyFunctions, valueFunctions, squiggly, negated, emptyNested, recursive, depthRange);
+            return new SquigglyNode(context, name, childNodes, keyFunctions, valueFunctions, squiggly, negated, emptyNested, recursive, startDepth, endDepth);
         }
 
         public ParseContext getContext() {
@@ -1355,7 +1356,21 @@ public class SquigglyParser {
         @Nullable
         public MutableNode recursive(IntRangeNode depthRange) {
             this.recursive = true;
-            this.depthRange = depthRange;
+
+            if (depthRange != null) {
+                if (depthRange.getStart() != null && depthRange.getStart().getType() != ArgumentNodeType.INTEGER) {
+                    throw new SquigglyParseException(context, "Only integers are currently support for start depth");
+                }
+
+                if (depthRange.getEnd() != null && depthRange.getEnd().getType() != ArgumentNodeType.INTEGER) {
+                    throw new SquigglyParseException(context, "Only integers are currently support for start depth");
+                }
+
+                this.startDepth = (Integer) depthRange.getStart().getValue();
+                this.endDepth = (Integer) depthRange.getEnd().getValue();
+            }
+
+
             return this;
         }
 
