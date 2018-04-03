@@ -171,7 +171,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static void main(String[] args) throws IOException {
 
-        String filter = "$.transform(key == 'name', '***')";
+        String filter = "base,**{-name}";
         ObjectMapper mapper = new ObjectMapper();
         Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");
         mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
