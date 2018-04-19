@@ -16,8 +16,11 @@
 
 package sample.data.jpa.web;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import sample.data.jpa.domain.City;
 import sample.data.jpa.domain.Hotel;
+import sample.data.jpa.domain.Review;
 import sample.data.jpa.service.CityService;
 import sample.data.jpa.service.HotelService;
 
@@ -53,5 +56,13 @@ public class SampleController {
 //		hotel.getReviews().size();
 		return hotel;
 	}
-	
+
+
+	@GetMapping("/reviews")
+	@ResponseBody
+	@Transactional(readOnly = true)
+	public Page<Review> reviews() {
+		return hotelService.getReviews(hotel(), new PageRequest(0, 10));
+	}
+
 }
