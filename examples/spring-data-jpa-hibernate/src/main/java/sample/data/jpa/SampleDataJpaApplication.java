@@ -31,7 +31,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.domain.Page;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+
+import javax.servlet.http.HttpServletRequest;
 
 @SpringBootApplication
 public class SampleDataJpaApplication {
@@ -64,6 +67,16 @@ public class SampleDataJpaApplication {
                 }
 
                 super.serializeAsIncludedField(pojo, jgen, provider, writer);
+            }
+
+            @Override
+            protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
+
+                if (filter != null && Page.class.isAssignableFrom(beanClass)) {
+                    filter = "**,content[" + filter + "]";
+                }
+
+                return filter;
             }
         });
 
