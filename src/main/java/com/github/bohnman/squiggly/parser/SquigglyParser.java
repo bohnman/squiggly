@@ -206,13 +206,8 @@ public class SquigglyParser {
                 nodesToAdd.put(node, new MutableNode(newBaseViewName()).dotPathed(node.dotPathed));
                 MutableNode parent = node.parent;
 
-                while (parent != null) {
+                while (parent != null && parent.dotPathed) {
                     nodesToAdd.put(parent, new MutableNode(newBaseViewName()).dotPathed(parent.dotPathed));
-
-                    if (!parent.dotPathed) {
-                        break;
-                    }
-
                     parent = parent.parent;
                 }
             } else {
@@ -313,6 +308,4 @@ public class SquigglyParser {
     private ExactName newBaseViewName() {
         return new ExactName(PropertyView.BASE_VIEW);
     }
-
-
 }
