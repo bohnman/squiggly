@@ -1136,12 +1136,18 @@ public class SquigglyParser {
             if (ctx.field() != null) {
                 parent.addChild(new MutableNode(parseContext(ctx.field()), createName(ctx.field())).negated(true));
             } else if (ctx.dottedField() != null) {
-                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.dottedField().field()) {
+                for (int i = 0; i < ctx.dottedField().field().size(); i++) {
+                    SquigglyExpressionParser.FieldContext fieldContext = ctx.dottedField().field(i);
                     parent.squiggly = true;
-                    parent = parent.addChild(new MutableNode(parseContext(ctx.dottedField()), createName(fieldContext)).dotPathed(true));
+
+                    MutableNode mutableNode = new MutableNode(parseContext(ctx.dottedField()), createName(fieldContext));
+                    mutableNode.negativeParent = true;
+
+                    parent = parent.addChild(mutableNode.dotPathed(true));
                 }
 
                 parent.negated(true);
+                parent.negativeParent = false;
             }
         }
 
@@ -1163,7 +1169,7 @@ public class SquigglyParser {
             boolean allNegated = true;
 
             for (MutableNode child : node.children.values()) {
-                if (!child.negated) {
+                if (!child.negated && !child.negativeParent) {
                     allNegated = false;
                     break;
                 }
@@ -1171,29 +1177,18 @@ public class SquigglyParser {
 
             if (allNegated) {
                 nodesToAdd.put(node, new MutableNode(node.getContext(), newBaseViewName()).dotPathed(node.dotPathed));
-                MutableNode parent = node.parent;
-
-                while (parent != null) {
-                    nodesToAdd.put(parent, new MutableNode(parent.getContext(), newBaseViewName()).dotPathed(parent.dotPathed));
-
-                    if (!parent.dotPathed) {
-                        break;
-                    }
-
-                    parent = parent.parent;
-                }
-            } else {
-                for (MutableNode child : node.children.values()) {
-                    analyze(child, nodesToAdd);
-                }
             }
 
+            for (MutableNode child : node.children.values()) {
+                analyze(child, nodesToAdd);
+            }
         }
 
         return node;
     }
 
     private class MutableNode {
+        private boolean negativeParent;
         private final ParseContext context;
         private SquigglyName name;
         private boolean negated;
@@ -1293,6 +1288,7 @@ public class SquigglyParser {
                 existingChild.squiggly = existingChild.squiggly || childToAdd.squiggly;
                 existingChild.emptyNested = existingChild.emptyNested && childToAdd.emptyNested;
                 existingChild.dotPathed = existingChild.dotPathed && childToAdd.dotPathed;
+                existingChild.negativeParent = existingChild.negativeParent && childToAdd.negativeParent;
                 childToAdd = existingChild;
             }
 

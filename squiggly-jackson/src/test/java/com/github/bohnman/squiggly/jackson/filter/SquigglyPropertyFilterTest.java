@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.jackson.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.jackson.model.Issue;
 import com.github.bohnman.squiggly.jackson.model.IssueAction;
@@ -12,8 +13,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +33,8 @@ import static org.junit.Assert.assertEquals;
 @SuppressWarnings("Duplicates")
 public class SquigglyPropertyFilterTest {
 
+    public static final String BASE_PATH = "com/github/bohnman/squiggly/jackson/filter/SquigglyPropertyFilterTest";
+
     @Nullable
     private Issue issue;
     @Nullable
@@ -32,11 +42,17 @@ public class SquigglyPropertyFilterTest {
     private boolean init = false;
     @Nullable
     private Squiggly squiggly;
+    private ObjectMapper rawObjectMapper = new ObjectMapper();
+
+    public SquigglyPropertyFilterTest() {
+        rawObjectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    }
 
     @Before
     public void beforeEachTest() {
         issue = buildIssue();
         objectMapper = new ObjectMapper();
+        objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
     }
 
     private Issue buildIssue() {
@@ -163,7 +179,7 @@ public class SquigglyPropertyFilterTest {
     @Test
     public void testNegativeDotPath() {
         filter("id,-actions.user.firstName");
-        assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\",\"reporter\":{\"firstName\":\"Daenerys\",\"lastName\":\"Targaryen\"},\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"},\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"lastName\":\"Mormont\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"lastName\":\"Naharis\"}}]}", stringify());
+        assertEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"lastName\":\"Mormont\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"lastName\":\"Naharis\"}}]}", stringify());
     }
 
     @Test
@@ -193,7 +209,11 @@ public class SquigglyPropertyFilterTest {
         assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"name\":\"Milkshake\",\"items\":[{\"name\":\"Hoverboard\",\"items\":[{\"id\":\"ITEM-5\",\"name\":\"Binoculars\",\"items\":[]}]}]}]}]}", stringify(Item.testItem()));
 
         filter("id,items.items[items[-id,-name],id]");
-        assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"name\":\"Milkshake\",\"items\":[{\"items\":[{\"id\":\"ITEM-5\",\"name\":\"Binoculars\",\"items\":[]}]}]}]}]}", stringify(Item.testItem()));
+        assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"items\":[{\"items\":[{\"id\":\"ITEM-5\",\"name\":\"Binoculars\",\"items\":[]}]}]}]}]}", stringify(Item.testItem()));
+
+        fileTest("company-list.json", "deep-nested-01-filter.txt", "deep-nested-01-expected.json");
+        fileTest("task-list.json", "deep-nested-02-filter.txt", "deep-nested-02-expected.json");
+        fileTest("task-list.json", "deep-nested-03-filter.txt", "deep-nested-03-expected.json");
     }
 
     @Test
@@ -320,7 +340,7 @@ public class SquigglyPropertyFilterTest {
     @Test
     public void testFilterExclusion() {
         filter("**,reporter[-firstName]");
-        assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\",\"reporter\":{\"lastName\":\"Targaryen\"},\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"},\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\",\"entityType\":\"User\"}}],\"properties\":{\"priority\":\"1\",\"email\":\"motherofdragons@got.com\"}}", stringify());
+        assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\",\"reporter\":{\"lastName\":\"Targaryen\"},\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"},\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\",\"entityType\":\"User\"}}],\"properties\":{\"email\":\"motherofdragons@got.com\",\"priority\":\"1\"}}", stringify());
     }
 
     @Test
@@ -402,7 +422,53 @@ public class SquigglyPropertyFilterTest {
     }
 
     private String stringifyRaw(Object object) {
-        return CoreObjectMappers.stringify(new ObjectMapper(), object);
+        return CoreObjectMappers.stringify(rawObjectMapper, object);
     }
 
+    private void fileTest(String inputFile, String filterFile, String expectedFile) {
+        String input = readFile(BASE_PATH + "/input/" + inputFile);
+        String filter = readFile(BASE_PATH + "/tests/" + filterFile);
+        String expected = readFile(BASE_PATH + "/tests/" + expectedFile);
+
+        try {
+            Object inputObject = rawObjectMapper.readValue(input, Object.class);
+            Object expectedObject = rawObjectMapper.readValue(expected, Object.class);
+
+            filter(sanitizeFilter(filter));
+            assertEquals(stringifyRaw(expectedObject), stringify(inputObject));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private String readFile(String path) {
+        URL resource = Thread.currentThread().getContextClassLoader().getResource(path);
+
+        if (resource == null) {
+            throw new IllegalArgumentException("path " + path + " does not exist");
+        }
+
+        try {
+            return new String(Files.readAllBytes(Paths.get(resource.toURI())), Charset.forName("UTF-8"));
+        } catch (IOException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String sanitizeFilter(String filter) {
+        String[] lines = filter.split("\n");
+        StringBuilder builder = new StringBuilder(filter.length());
+
+        for (String line : lines) {
+            line = line.trim();
+
+            if (line.startsWith("#")) {
+                continue;
+            }
+
+            builder.append(line.replaceAll("\\s", ""));
+        }
+
+        return builder.toString();
+    }
 }

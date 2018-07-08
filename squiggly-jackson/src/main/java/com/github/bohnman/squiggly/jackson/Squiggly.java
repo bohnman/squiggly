@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.jackson;
 
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
@@ -20,6 +21,8 @@ import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
@@ -266,5 +269,18 @@ public class Squiggly extends BaseSquiggly {
             return serializer;
         }
 
+    }
+
+    public static void main(String[] args) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        String include = "companyList.companySubGroupNames.companySubGrpGivenNames,companyList.directorsDetails,companyList.type,";
+        String exclude = "-companyList.companySubGroupNames.companySubGrpGivenNames.createdDate,-companyList.directorsDetails.qualifications";
+        String filter;
+
+        filter = "companyList[companySubGroupNames[companySubGrpGivenNames[-createdDate]],directorsDetails[-qualifications],type]";
+
+        Squiggly.init(mapper, filter);
+        Object value = mapper.readValue(new File("/Users/rbohn/Downloads/test.txt"), Object.class);
+        mapper.writer(new DefaultPrettyPrinter()).writeValue(System.out, value);
     }
 }

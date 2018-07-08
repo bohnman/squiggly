@@ -1,3 +1,7 @@
+# 1.3.11 (2018-04-26)
+
+* Fixed #39
+
 # 1.3.10 (2018-03-15)
 
 * Fixed ConcurrentModificationException as specified in issue #36
