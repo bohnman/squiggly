@@ -3,12 +3,7 @@ package com.github.bohnman.squiggly.parser;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.metric.source.GuavaCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.metric.source.SquigglyMetricsSource;
-import com.github.bohnman.squiggly.name.AnyDeepName;
-import com.github.bohnman.squiggly.name.AnyShallowName;
-import com.github.bohnman.squiggly.name.ExactName;
-import com.github.bohnman.squiggly.name.RegexName;
-import com.github.bohnman.squiggly.name.SquigglyName;
-import com.github.bohnman.squiggly.name.WildcardName;
+import com.github.bohnman.squiggly.name.*;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionBaseVisitor;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionLexer;
 import com.github.bohnman.squiggly.parser.antlr4.SquigglyExpressionParser;
@@ -21,14 +16,7 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The parser takes a filter expression and compiles it to an Abstract Syntax Tree (AST).  In this parser's case, the
@@ -210,12 +198,6 @@ public class SquigglyParser {
 
             if (allNegated) {
                 nodesToAdd.put(node, new MutableNode(newBaseViewName()).dotPathed(node.dotPathed));
-                MutableNode parent = node.parent;
-
-                while (parent != null && parent.dotPathed) {
-                    nodesToAdd.put(parent, new MutableNode(newBaseViewName()).dotPathed(parent.dotPathed));
-                    parent = parent.parent;
-                }
             }
 
             for (MutableNode child : node.children.values()) {
