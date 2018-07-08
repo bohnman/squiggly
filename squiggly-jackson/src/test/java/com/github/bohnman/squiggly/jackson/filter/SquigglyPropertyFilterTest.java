@@ -20,6 +20,7 @@ import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -449,7 +450,7 @@ public class SquigglyPropertyFilterTest {
         }
 
         try {
-            return new String(Files.readAllBytes(Paths.get(resource.toURI())), Charset.forName("UTF-8"));
+            return new String(Files.readAllBytes(Paths.get(resource.toURI())), StandardCharsets.UTF_8);
         } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
