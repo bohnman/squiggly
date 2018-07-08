@@ -20,6 +20,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+/**
+ * Configuration used by the CLI runner.
+ */
 @SuppressWarnings("FieldCanBeLocal")
 public class RunnerConfig {
 
@@ -29,67 +32,137 @@ public class RunnerConfig {
 
     private final JCommander commander;
 
+    /**
+     * Force colored output regardless of piping. Default is false.
+     */
     @Parameter(names = {"-C", "--color-output"}, description = "Force colored output")
     private boolean coloredOutput;
 
+    /**
+     * Force monochrome color output. Default is false.
+     */
     @Parameter(names = {"-M", "--monochrome-output"}, description = "Force monochrome output")
     private boolean monochromeOutput;
 
+    /**
+     * Output result on a single line. Default is false.
+     */
     @Parameter(names = {"-c", "--compact"}, description = "compact instead of pretty output")
     private boolean compact = false;
 
+    /**
+     * Expand arrays into separate lines of output.  This makes the behavior similar to jq. Default is false.
+     */
     @Parameter(names = {"-E", "--expand"}, description = "expand arrays into separate output")
     private boolean expand = false;
 
     private SquigglyConfigSource configSource;
 
+    /**
+     * The files containing json input.
+     */
     @Parameter(description = "<squiggly-filter> [file...]")
     private List<String> files;
 
     private String filter;
 
+    /**
+     * Read filter from file instead of directly from the terminal.
+     */
     @Parameter(names = {"-f", "--from-file"}, description = "Read filter from the file rather than from a command line. You can also use '#' to make comments.")
     private File filterFile;
+
 
     @Parameter(names = {"--F", "--flatten"}, description = "Flatten nested arrays")
     private boolean flatten;
 
+    /**
+     * Max depth to flatten.  Default is no max.
+     *
+     * @see #flatten
+     */
     @Parameter(names = {"--flatten-depth"}, description = "Max depth to flatten")
     private int flattenDepth;
 
+    /**
+     * Print Usage.
+     */
     @Parameter(names = {"-h", "--help"}, description = "Print Help", help = true)
     private boolean help = false;
 
+    /**
+     * Number of spaces or tabs to use.  There is a hard limit of {@value MAX_INDENT}.
+     *
+     * @see #tab
+     */
     @Parameter(names = "--indent", description = "number of spaces/tabs to use (no more than 10)")
     private Integer indent = null;
 
+    /**
+     * Don't print a newline after each record.  Default is false.
+     */
     @Parameter(names = {"-j", "--join-output"}, description = "don't print a newline after each record")
     private boolean joinOutput;
 
+    /**
+     * Use a null value instead of reading json input.  Useful for testing.  Default is false.
+     */
     @Parameter(names = {"-n", "--null-input"}, description = "use null instead of reading input")
     private boolean nullInput;
 
+    /**
+     * If the result is a string, don't print the quotes. This can be useful for making jq filters talk to
+     * non-json-based systems. Default is false.
+     */
     @Parameter(names = {"-r", "--raw-output"}, description = "if result is a string, don't print quotes")
     private boolean rawOutput;
 
+    /**
+     * Reads all json into an array. Default is false.
+     */
     @Parameter(names = {"-s", "--slurp"}, description = "read all input into an array")
     private boolean slurp;
 
+    /**
+     * Sorts map keys on all output.  Default is false.
+     */
     @Parameter(names = {"-S", "--sort-keys"}, description = "sort keys")
     private boolean sortKeys;
 
-    @Parameter(names = "--tab", description = "indent output with tab instead of spaces")
+    /**
+     * Indent output with tabs instead of spaces. Default is false.
+     */
+    @Parameter(names = "--tab", description = "indent output with tabs instead of spaces")
     private boolean tab;
 
+    /**
+     * Indicates stdin is not being piped.  Default is false.  This is usually passed in from a shell script because
+     * java cannot determine this by itself.
+     */
     @Parameter(names = "--tty-in", description = "indicates input is not being piped", hidden = true)
     private boolean ttyIn;
 
+    /**
+     * Indicates stout is not being piped.  Default is false.  This is usually passed in from a shell script because
+     * java cannot determine this by itself.
+     */
     @Parameter(names = "--tty-out", description = "indicates output is not being piped", hidden = true)
     private boolean ttyOut;
 
+    /**
+     * Sets variables that can be used in squiggly filter expressions.
+     *
+     * For example:
+     * <pre>
+     *     -Vfoo=bar  // sets a variable called foo to the value bar which can be used in a squiggly filter.
+     * </pre>
+     */
     @DynamicParameter(names = "-V", description = "sets a variable (eg. -Vfoo=bar)")
     private Map<String, Object> variables = new HashMap<>();
 
+    /**
+     * Prints squiggly version.
+     */
     @Parameter(names = "--version", description = "print version")
     private boolean version;
 
@@ -299,12 +372,6 @@ public class RunnerConfig {
 
     public void printUsage() {
         commander.usage();
-    }
-
-    public static void main(String[] args) {
-        System.out.println(Pattern.compile("^\\s+#.*$", Pattern.MULTILINE)
-                .matcher(" # foo \n bar")
-                .replaceAll(""));
     }
 
     @Override

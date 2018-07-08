@@ -9,6 +9,9 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * Custom JsonGenerator that implements syntax highlighting.
+ */
 public class SyntaxHighlightingJsonGenerator extends JsonGeneratorDelegate {
 
     private final SyntaxHighlighter syntaxHighlighter;

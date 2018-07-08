@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Colorizes output on the command line.
+ */
 public class SyntaxHighlighter {
 
     private final String booleanColor;
@@ -22,26 +25,56 @@ public class SyntaxHighlighter {
         this.stringColor = parseColor(config, "string");
     }
 
+    /**
+     * Gets the color for boolean literals.
+     *
+     * @return color
+     */
     public String getBooleanColor() {
         return booleanColor;
     }
 
+    /**
+     * Gets the color for field names.
+     *
+     * @return color
+     */
     public String getFieldNameColor() {
         return fieldNameColor;
     }
 
+    /**
+     * Gets the color for null keyword.
+     *
+     * @return color
+     */
     public String getNullColor() {
         return nullColor;
     }
 
+    /**
+     * Gets the color for number literals.
+     *
+     * @return color
+     */
     public String getNumberColor() {
         return numberColor;
     }
 
+    /**
+     * Gets the color for string literals.
+     *
+     * @return color
+     */
     public String getStringColor() {
         return stringColor;
     }
 
+    /**
+     * Gets the ansi reset code.
+     *
+     * @return code
+     */
     public String getReset() {
         return Ansi.RESET.getCode();
     }

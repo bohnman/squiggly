@@ -1,5 +1,10 @@
 package com.github.bohnman.squiggly.cli.printer;
 
+/**
+ * Represents Ansi colors and styles safe for command line output.
+ *
+ * @see <a href="http://www.topmudsites.com/forums/mud-coding/413-java-ansi.html">http://www.topmudsites.com/forums/mud-coding/413-java-ansi.html</a>
+ */
 public enum Ansi {
 
     // Color code strings from:

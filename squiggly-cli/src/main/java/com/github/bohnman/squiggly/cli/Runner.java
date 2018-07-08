@@ -14,24 +14,18 @@ import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.cli.config.RunnerConfig;
 import com.github.bohnman.squiggly.cli.printer.SyntaxHighlighter;
 import com.github.bohnman.squiggly.cli.printer.SyntaxHighlightingJsonGenerator;
-import com.github.bohnman.squiggly.cli.printer.SyntaxHighlightingPrettyPrinter;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.function.functions.CoreJsonNodeFunctions;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.jackson.json.JacksonJsonNode;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.Reader;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Main program that runs the Squiggly CLI.
+ */
 public class Runner implements Runnable {
 
     private final ObjectMapper mapper;
@@ -55,7 +49,7 @@ public class Runner implements Runnable {
             char indentCh = config.isTab() ? '\t' : ' ';
             String indent = CoreStrings.repeat(indentCh, config.getIndent());
             DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter(indent, DefaultIndenter.SYS_LF);
-            DefaultPrettyPrinter printer = syntaxHighlighter == null ? new DefaultPrettyPrinter() : new SyntaxHighlightingPrettyPrinter(syntaxHighlighter);
+            DefaultPrettyPrinter printer = new DefaultPrettyPrinter();
             mapper.setDefaultPrettyPrinter(printer);
         }
 
