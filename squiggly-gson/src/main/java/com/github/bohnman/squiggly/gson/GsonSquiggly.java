@@ -6,9 +6,9 @@ import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
 import com.github.bohnman.squiggly.gson.function.GsonFunctions;
+import com.github.bohnman.squiggly.gson.json.GsonJsonNode;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.github.bohnman.squiggly.gson.json.GsonJsonNode;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;

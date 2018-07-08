@@ -176,7 +176,6 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
     }
 
 
-
     public static class NickName implements Comparable<NickName> {
         private static final AtomicInteger SEQUENCE = new AtomicInteger();
         private final String name;
@@ -200,7 +199,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
 
         public int[] getNumbers() {
-            return new int[] { 1, 5, 9, 14, 9 };
+            return new int[]{1, 5, 9, 14, 9};
         }
 
         public int getPriority() {
@@ -247,7 +246,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
 
         public int[] getNumbers() {
-            return new int[] { 1, 1, 5, 9, 14, 9 };
+            return new int[]{1, 1, 5, 9, 14, 9};
         }
     }
 }

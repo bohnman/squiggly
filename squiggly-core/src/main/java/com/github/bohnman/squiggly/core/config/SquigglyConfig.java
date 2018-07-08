@@ -12,11 +12,7 @@ import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -319,6 +315,7 @@ public class SquigglyConfig {
 
     /**
      * Determins whether to use the SquigglyContext in the node filter as last filter.
+     *
      * @return true if use, false if not, or null if defer
      */
     public Boolean getAppendContextInNodeFilter() {

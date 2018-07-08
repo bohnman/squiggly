@@ -9,12 +9,7 @@ import com.github.bohnman.core.library.CoreLibraries;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;

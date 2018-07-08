@@ -1,10 +1,6 @@
 package com.github.bohnman.squiggly.core.function.value;
 
-import com.github.bohnman.core.collect.CoreArrayWrapper;
-import com.github.bohnman.core.collect.CoreArrays;
-import com.github.bohnman.core.collect.CoreIndexedIterableWrapper;
-import com.github.bohnman.core.collect.CoreListWrapper;
-import com.github.bohnman.core.collect.CoreLists;
+import com.github.bohnman.core.collect.*;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.range.CoreIntRange;

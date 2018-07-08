@@ -19,25 +19,13 @@ import com.github.bohnman.squiggly.core.function.FunctionExecutionRequest;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyParameter;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
-import com.github.bohnman.squiggly.core.parser.ArgumentNode;
-import com.github.bohnman.squiggly.core.parser.ArgumentNodeType;
-import com.github.bohnman.squiggly.core.parser.FunctionNode;
-import com.github.bohnman.squiggly.core.parser.FunctionNodeType;
-import com.github.bohnman.squiggly.core.parser.IfNode;
-import com.github.bohnman.squiggly.core.parser.IntRangeNode;
-import com.github.bohnman.squiggly.core.parser.LambdaNode;
-import com.github.bohnman.squiggly.core.parser.SquigglyParseException;
-import com.github.bohnman.squiggly.core.parser.SquigglyParser;
+import com.github.bohnman.squiggly.core.parser.*;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

@@ -8,7 +8,6 @@ import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMeth
 
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 public class NumberFunctions {

@@ -3,11 +3,7 @@ package com.github.bohnman.squiggly.examples.servlet.model;
 import com.github.bohnman.squiggly.core.view.FullView;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Issue extends BaseIssue {
 

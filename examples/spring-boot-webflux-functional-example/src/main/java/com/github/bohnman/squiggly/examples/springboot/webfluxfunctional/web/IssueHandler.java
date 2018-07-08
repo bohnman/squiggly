@@ -3,8 +3,6 @@ package com.github.bohnman.squiggly.examples.springboot.webfluxfunctional.web;
 import com.github.bohnman.squiggly.examples.springboot.webfluxfunctional.model.Issue;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;

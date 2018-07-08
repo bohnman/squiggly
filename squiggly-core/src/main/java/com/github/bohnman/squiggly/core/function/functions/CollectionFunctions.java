@@ -15,14 +15,7 @@ import com.github.bohnman.squiggly.core.function.value.BaseStreamingCollectionVa
 import com.github.bohnman.squiggly.core.function.value.CollectionReturningValueHandler;
 import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
@@ -192,7 +185,7 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    @SquigglyFunctionMethod(aliases = { "diff"})
+    @SquigglyFunctionMethod(aliases = {"diff"})
     public static Object difference(Object value1, Object value2) {
         return differenceBy(value1, value2, CoreLambda.identity());
     }

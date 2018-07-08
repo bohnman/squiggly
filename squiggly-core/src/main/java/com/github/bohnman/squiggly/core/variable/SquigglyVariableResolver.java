@@ -8,7 +8,7 @@ public interface SquigglyVariableResolver {
     Object resolveVariable(String name);
 
     @Nullable
-   default Object resolveVariable(String name, @Nullable Object defaultValue) {
+    default Object resolveVariable(String name, @Nullable Object defaultValue) {
         Object value = resolveVariable(name);
 
         if (value == null) {

@@ -15,11 +15,7 @@ import com.github.bohnman.squiggly.core.parser.ParseContext;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 

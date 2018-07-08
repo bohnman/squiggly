@@ -18,14 +18,14 @@ package sample.data.jpa.domain;
 
 public interface HotelSummary {
 
-	City getCity();
+    City getCity();
 
-	String getName();
+    String getName();
 
-	Double getAverageRating();
+    Double getAverageRating();
 
-	default Integer getAverageRatingRounded() {
-		return getAverageRating() == null ? null : (int) Math.round(getAverageRating());
-	}
+    default Integer getAverageRatingRounded() {
+        return getAverageRating() == null ? null : (int) Math.round(getAverageRating());
+    }
 
 }

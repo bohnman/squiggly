@@ -100,7 +100,7 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
         int varargsIndex = -1;
 
         if (function.getParameters().get(end - 1).isVarArgs()) {
-            varargsIndex = end -1;
+            varargsIndex = end - 1;
         }
 
         for (int i = 0; i < end; i++) {
@@ -138,7 +138,7 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
 
         if (requestedParameter == null) {
             score.undefined(computeDistance(configuredType, Object.class));
-            return  score;
+            return score;
         }
 
         Class<?> requestedType = requestedParameter.getClass();
@@ -158,7 +158,7 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
 
     private Score applyNormalScore(Score score, FunctionMatchRequest request, FunctionMatchResult result, Class<?> configuredType, int index, Class<?> requestedType) {
         if (CoreJsonNode.class.isAssignableFrom(requestedType) && !CoreJsonNode.class.isAssignableFrom(configuredType)) {
-            requestedType =  ((CoreJsonNode)request.getParameters().get(index)).getValue().getClass();
+            requestedType = ((CoreJsonNode) request.getParameters().get(index)).getValue().getClass();
         }
 
         if (configuredType.isAssignableFrom(requestedType)) {

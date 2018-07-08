@@ -1,11 +1,7 @@
 package com.github.bohnman.squiggly.core.function.functions;
 
 import com.github.bohnman.core.bean.CoreBeans;
-import com.github.bohnman.core.collect.CoreArrayWrapper;
-import com.github.bohnman.core.collect.CoreArrays;
-import com.github.bohnman.core.collect.CoreIndexedIterableWrapper;
-import com.github.bohnman.core.collect.CoreIterables;
-import com.github.bohnman.core.collect.CoreLists;
+import com.github.bohnman.core.collect.*;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
@@ -21,14 +17,7 @@ import com.github.bohnman.squiggly.core.function.value.ValueHandler;
 
 import javax.annotation.Nullable;
 import java.beans.PropertyDescriptor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;

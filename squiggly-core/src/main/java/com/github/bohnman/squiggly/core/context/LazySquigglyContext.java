@@ -2,15 +2,10 @@ package com.github.bohnman.squiggly.core.context;
 
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
-import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.parser.SquigglyNode;
-import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 

@@ -13,11 +13,7 @@ import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -151,7 +147,7 @@ public class RunnerConfig {
 
     /**
      * Sets variables that can be used in squiggly filter expressions.
-     *
+     * <p>
      * For example:
      * <pre>
      *     -Vfoo=bar  // sets a variable called foo to the value bar which can be used in a squiggly filter.

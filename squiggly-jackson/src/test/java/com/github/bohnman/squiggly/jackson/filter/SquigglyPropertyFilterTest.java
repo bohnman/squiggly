@@ -2,13 +2,9 @@ package com.github.bohnman.squiggly.jackson.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.github.bohnman.squiggly.jackson.Squiggly;
-import com.github.bohnman.squiggly.jackson.model.Issue;
-import com.github.bohnman.squiggly.jackson.model.IssueAction;
-import com.github.bohnman.squiggly.jackson.model.Item;
-import com.github.bohnman.squiggly.jackson.model.Outer;
-import com.github.bohnman.squiggly.jackson.model.User;
 import com.github.bohnman.core.json.jackson.CoreObjectMappers;
+import com.github.bohnman.squiggly.jackson.Squiggly;
+import com.github.bohnman.squiggly.jackson.model.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,7 +15,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;

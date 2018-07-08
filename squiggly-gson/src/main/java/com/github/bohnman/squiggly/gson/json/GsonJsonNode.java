@@ -10,11 +10,7 @@ import com.github.bohnman.core.json.node.CoreJsonNodeType;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreMethods;
 import com.github.bohnman.core.tuple.CorePair;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

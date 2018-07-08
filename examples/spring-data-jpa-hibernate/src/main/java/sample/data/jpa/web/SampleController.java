@@ -16,53 +16,52 @@
 
 package sample.data.jpa.web;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import sample.data.jpa.domain.City;
 import sample.data.jpa.domain.Hotel;
 import sample.data.jpa.domain.Review;
 import sample.data.jpa.service.CityService;
 import sample.data.jpa.service.HotelService;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
 @RestController
 public class SampleController {
 
-	@Autowired
-	private CityService cityService;
+    @Autowired
+    private CityService cityService;
 
-	@Autowired
-	private HotelService hotelService;
+    @Autowired
+    private HotelService hotelService;
 
-	@GetMapping("/")
-	@ResponseBody
-	@Transactional(readOnly = true)
-	public String helloWorld() {
-		return this.cityService.getCity("Bath", "UK").getName();
-	}
+    @GetMapping("/")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    public String helloWorld() {
+        return this.cityService.getCity("Bath", "UK").getName();
+    }
 
-	@GetMapping("/hotel")
-	@ResponseBody
-	@Transactional(readOnly = true)
-	public Hotel hotel() {
-		City city = this.cityService.getCity("Bath", "UK");
-		String name = "The Bath Priory Hotel";
-		Hotel hotel = this.hotelService.getHotel(city, name);
+    @GetMapping("/hotel")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    public Hotel hotel() {
+        City city = this.cityService.getCity("Bath", "UK");
+        String name = "The Bath Priory Hotel";
+        Hotel hotel = this.hotelService.getHotel(city, name);
 //		hotel.getReviews().size();
-		return hotel;
-	}
+        return hotel;
+    }
 
 
-	@GetMapping("/reviews")
-	@ResponseBody
-	@Transactional(readOnly = true)
-	public Page<Review> reviews() {
-		return hotelService.getReviews(hotel(), new PageRequest(0, 10));
-	}
+    @GetMapping("/reviews")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    public Page<Review> reviews() {
+        return hotelService.getReviews(hotel(), new PageRequest(0, 10));
+    }
 
 }

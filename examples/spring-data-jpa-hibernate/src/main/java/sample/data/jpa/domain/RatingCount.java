@@ -18,8 +18,8 @@ package sample.data.jpa.domain;
 
 public interface RatingCount {
 
-	Rating getRating();
+    Rating getRating();
 
-	long getCount();
+    long getCount();
 
 }
