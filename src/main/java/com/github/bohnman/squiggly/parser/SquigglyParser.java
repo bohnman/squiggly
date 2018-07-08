@@ -169,12 +169,18 @@ public class SquigglyParser {
             if (ctx.field() != null) {
                 parent.addChild(new MutableNode(createName(ctx.field())).negated(true));
             } else if (ctx.dot_path() != null) {
-                for (SquigglyExpressionParser.FieldContext fieldContext : ctx.dot_path().field()) {
+                for (int i = 0; i < ctx.dot_path().field().size(); i++) {
+                    SquigglyExpressionParser.FieldContext fieldContext = ctx.dot_path().field(i);
                     parent.squiggly = true;
-                    parent = parent.addChild(new MutableNode(createName(fieldContext)).dotPathed(true));
+
+                    MutableNode mutableNode = new MutableNode(createName(fieldContext));
+                    mutableNode.negativeParent = true;
+
+                    parent = parent.addChild(mutableNode.dotPathed(true));
                 }
 
                 parent.negated(true);
+                parent.negativeParent = false;
             }
         }
 
@@ -196,7 +202,7 @@ public class SquigglyParser {
             boolean allNegated = true;
 
             for (MutableNode child : node.children.values()) {
-                if (!child.negated) {
+                if (!child.negated && !child.negativeParent) {
                     allNegated = false;
                     break;
                 }
@@ -210,18 +216,18 @@ public class SquigglyParser {
                     nodesToAdd.put(parent, new MutableNode(newBaseViewName()).dotPathed(parent.dotPathed));
                     parent = parent.parent;
                 }
-            } else {
-                for (MutableNode child : node.children.values()) {
-                    analyze(child, nodesToAdd);
-                }
             }
 
+            for (MutableNode child : node.children.values()) {
+                analyze(child, nodesToAdd);
+            }
         }
 
         return node;
     }
 
     private class MutableNode {
+        public boolean negativeParent;
         private SquigglyName name;
         private boolean negated;
         private boolean squiggly;
@@ -294,6 +300,7 @@ public class SquigglyParser {
                 existingChild.squiggly = existingChild.squiggly || childToAdd.squiggly;
                 existingChild.emptyNested = existingChild.emptyNested && childToAdd.emptyNested;
                 existingChild.dotPathed = existingChild.dotPathed && childToAdd.dotPathed;
+                existingChild.negativeParent = existingChild.negativeParent && childToAdd.negativeParent;
                 childToAdd = existingChild;
             }
 
