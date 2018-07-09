@@ -40,10 +40,23 @@ public class SquigglyConfig {
     private final String filterRequestParam;
     private final SquigglyEnvironment functionEnvironment;
 
+    /**
+     * Initialize the config with 0 or more config sources.
+     *
+     * @param sources the config sources
+     * @see SquigglyConfigSource
+     */
     public SquigglyConfig(SquigglyConfigSource... sources) {
         this(Arrays.asList(sources));
     }
 
+
+    /**
+     * Initialize the config with 0 or more config sources.
+     *
+     * @param sources the config sources
+     * @see SquigglyConfigSource
+     */
     public SquigglyConfig(Iterable<SquigglyConfigSource> sources) {
         Stream<SquigglyConfigSource> sourceStream = CoreStreams.of(sources);
 
@@ -80,11 +93,24 @@ public class SquigglyConfig {
         this.locationMap = Collections.unmodifiableSortedMap(locationMap);
     }
 
+    /**
+     * Retrieve the value of the specified key as a String or null if not found.
+     *
+     * @param key the key
+     * @return value or null
+     */
     @Nullable
     public String getString(String key) {
         return getString(key, null);
     }
 
+    /**
+     * Retrieve the value of the specified key as a String or defaultValue if not found.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return value or defaultValue
+     */
     @Nullable
     public String getString(String key, @Nullable String defaultValue) {
 
@@ -101,11 +127,24 @@ public class SquigglyConfig {
         return CoreObjects.firstNonNull(value, defaultValue);
     }
 
+    /**
+     * Retrieve the value of the specified key as a Boolean or null if not found.
+     *
+     * @param key the key
+     * @return value or null
+     */
     @Nullable
     public Boolean getBoolean(String key) {
         return getBoolean(key, null);
     }
 
+    /**
+     * Retrieve the value of the specified key as a Boolean or defaultValue if not found.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return value or defaultValue
+     */
     @Nullable
     public Boolean getBoolean(String key, @Nullable Boolean defaultValue) {
         String value = propsMap.get(key);
@@ -117,11 +156,24 @@ public class SquigglyConfig {
         return CoreConversions.toBoolean(value);
     }
 
+    /**
+     * Retrieve the value of the specified key as an Integer or null if not found.
+     *
+     * @param key the key
+     * @return value or null
+     */
     @Nullable
     public Integer getInt(String key) {
         return getInt(key, null);
     }
 
+    /**
+     * Retrieve the value of the specified key as an Integer or defaultValue if not found.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return value or defaultValue
+     */
     @Nullable
     public Integer getInt(String key, @Nullable Integer defaultValue) {
         String value = propsMap.get(key);
@@ -133,12 +185,24 @@ public class SquigglyConfig {
         return CoreConversions.toNumber(value, defaultValue).intValue();
     }
 
-
+    /**
+     * Retrieve the value of the specified key as a Long or null if not found.
+     *
+     * @param key the key
+     * @return value or null
+     */
     @Nullable
     public Long getLong(String key) {
         return getLong(key, null);
     }
 
+    /**
+     * Retrieve the value of the specified key as a Long or defaultValue if not found.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return value or defaultValue
+     */
     @Nullable
     public Long getLong(String key, @Nullable Long defaultValue) {
         String value = propsMap.get(key);
@@ -150,12 +214,24 @@ public class SquigglyConfig {
         return CoreConversions.toNumber(value, defaultValue).longValue();
     }
 
-
+    /**
+     * Retrieve the value of the specified key as a Float or null if not found.
+     *
+     * @param key the key
+     * @return value or null
+     */
     @Nullable
     public Float getFloat(String key) {
         return getFloat(key, null);
     }
 
+    /**
+     * Retrieve the value of the specified key as a Float or defaultValue if not found.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return value or defaultValue
+     */
     @Nullable
     public Float getFloat(String key, @Nullable Float defaultValue) {
         String value = propsMap.get(key);
@@ -167,12 +243,24 @@ public class SquigglyConfig {
         return CoreConversions.toNumber(value, defaultValue).floatValue();
     }
 
-
+    /**
+     * Retrieve the value of the specified key as a Double or null if not found.
+     *
+     * @param key the key
+     * @return value or null
+     */
     @Nullable
     public Double getDouble(String key) {
         return getDouble(key, null);
     }
 
+    /**
+     * Retrieve the value of the specified key as a Double or defaultValue if not found.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return value or defaultValue
+     */
     @Nullable
     public Double getDouble(String key, @Nullable Double defaultValue) {
         String value = propsMap.get(key);
@@ -182,45 +270,6 @@ public class SquigglyConfig {
         }
 
         return CoreConversions.toNumber(value, defaultValue).doubleValue();
-    }
-
-
-    private CoreCacheBuilderSpec getCacheSpec(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
-        String value = getString(source, props, locations, key);
-
-        if (value == null) {
-            value = "";
-        }
-
-        return CoreCacheBuilderSpec.parse(value);
-    }
-
-    private Boolean getBool(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
-        String value = getString(source, props, locations, key);
-
-        if (CoreStrings.isEmpty(value)) {
-            return null;
-        }
-
-        return "true".equals(value);
-    }
-
-    private String getString(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
-        String property = source.getProperty(key);
-        String location = source.getLocation(key);
-        props.put(key, property);
-        locations.put(key, location);
-        return property;
-    }
-
-    private int getInt(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
-        String value = getString(source, props, locations, key);
-
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Unable to convert " + value + " to int for key " + key);
-        }
     }
 
     /**
@@ -340,10 +389,42 @@ public class SquigglyConfig {
         return locationMap;
     }
 
+    private CoreCacheBuilderSpec getCacheSpec(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
+        String value = getString(source, props, locations, key);
 
-    public static void main(String[] args) {
-        SquigglyConfig config = new SquigglyConfig();
-        System.out.println(config.asMap());
-        System.out.println(config.asLocationMap());
+        if (value == null) {
+            value = "";
+        }
+
+        return CoreCacheBuilderSpec.parse(value);
     }
+
+    private Boolean getBool(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
+        String value = getString(source, props, locations, key);
+
+        if (CoreStrings.isEmpty(value)) {
+            return null;
+        }
+
+        return "true".equals(value);
+    }
+
+    private String getString(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
+        String property = source.getProperty(key);
+        String location = source.getOrigin(key);
+        props.put(key, property);
+        locations.put(key, location);
+        return property;
+    }
+
+    private int getInt(SquigglyConfigSource source, Map<String, String> props, Map<String, String> locations, String key) {
+        String value = getString(source, props, locations, key);
+
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Unable to convert " + value + " to int for key " + key);
+        }
+    }
+
 }

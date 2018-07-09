@@ -98,7 +98,7 @@ public class SquigglyAutoConfiguration {
 
             @Nullable
             @Override
-            public String getLocation(@Nullable String name) {
+            public String getOrigin(@Nullable String name) {
                 return "Spring Environment";
             }
         };

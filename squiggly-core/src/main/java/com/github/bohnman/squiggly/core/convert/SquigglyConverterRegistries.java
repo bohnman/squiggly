@@ -1,7 +1,4 @@
-package com.github.bohnman.squiggly.core.convert.joda;
-
-import com.github.bohnman.squiggly.core.convert.ListConverterRegistry;
-import com.github.bohnman.squiggly.core.convert.SquigglyConverterRegistry;
+package com.github.bohnman.squiggly.core.convert;
 
 import java.util.function.Consumer;
 

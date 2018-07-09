@@ -7,6 +7,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * A converter registry backed by a list.
+ */
 @NotThreadSafe
 public class ListConverterRegistry implements SquigglyConverterRegistry {
 

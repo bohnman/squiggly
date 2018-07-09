@@ -22,6 +22,13 @@ public class LazySquigglyContext implements SquigglyContext {
     @Nullable
     private SquigglyNode node;
 
+    /**
+     * Construct the context with base information.
+     *
+     * @param beanClass bean class
+     * @param squiggly squiggly configurator
+     * @param filter filter
+     */
     public LazySquigglyContext(Class beanClass, BaseSquiggly squiggly, String filter) {
         this.beanClass = notNull(beanClass);
         this.squiggly = notNull(squiggly);

@@ -5,14 +5,27 @@ import com.github.bohnman.squiggly.core.holder.SquigglyFilterHolder;
 
 import javax.annotation.Nullable;
 
+/**
+ * Retrieves a squiggly context via a thread local variable.
+ *
+ * @see SquigglyFilterHolder
+ */
 public class ThreadLocalSquigglyContextProvider extends AbstractSquigglyContextProvider {
 
     private final String defaultFilter;
 
+    /**
+     * Construct the provider with an empty default filter.
+     */
     public ThreadLocalSquigglyContextProvider() {
         defaultFilter = null;
     }
 
+    /**
+     * Construct the provider with the supplied default filter.
+     *
+     * @param defaultFilter the default filter if one is not set
+     */
     public ThreadLocalSquigglyContextProvider(String defaultFilter) {
         this.defaultFilter = defaultFilter;
     }

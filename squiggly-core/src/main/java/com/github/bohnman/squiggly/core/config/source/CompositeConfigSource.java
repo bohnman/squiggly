@@ -5,14 +5,27 @@ import java.util.Arrays;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
+/**
+ * A config source that wraps other config sources in the order provided.
+ */
 public class CompositeConfigSource implements SquigglyConfigSource {
 
     private final Iterable<SquigglyConfigSource> sources;
 
+    /**
+     * Construct the composite with the provided sources.
+     *
+     * @param sources the config sources
+     */
     public CompositeConfigSource(SquigglyConfigSource... sources) {
         this(Arrays.asList(sources));
     }
 
+    /**
+     * Construct the composide with the provided sources.
+     *
+     * @param sources the config sources
+     */
     public CompositeConfigSource(Iterable<SquigglyConfigSource> sources) {
         this.sources = notNull(sources);
     }
@@ -39,11 +52,11 @@ public class CompositeConfigSource implements SquigglyConfigSource {
 
     @Nullable
     @Override
-    public String getLocation(String name) {
+    public String getOrigin(String name) {
         String location = null;
 
         for (SquigglyConfigSource source : sources) {
-            location = source.getLocation(name);
+            location = source.getOrigin(name);
 
             if (location != null) {
                 break;

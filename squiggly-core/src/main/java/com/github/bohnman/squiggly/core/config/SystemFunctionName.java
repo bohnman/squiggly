@@ -2,6 +2,9 @@ package com.github.bohnman.squiggly.core.config;
 
 import com.github.bohnman.core.lang.CoreStrings;
 
+/**
+ * Built-in function catalog.
+ */
 @SuppressWarnings("unchecked")
 public enum SystemFunctionName {
 

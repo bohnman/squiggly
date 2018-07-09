@@ -572,11 +572,11 @@ public abstract class BaseSquiggly {
             registry.addAll(converterRecords);
 
             if (registerDefaultConverters) {
-                DefaultConverters.add(registry);
+                SystemConverters.add(registry);
             }
 
             if (this.conversionService == null) {
-                return new DefaultConversionService(config, registry);
+                return new PrimaryConversionService(config, registry);
             }
 
             return this.conversionService.apply(registry);
