@@ -21,12 +21,20 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * Custom CoreJsonNode implementation that works with Gson nodes.
+ */
 @SuppressWarnings("unchecked")
 public class GsonJsonNode extends BaseCoreJsonNode<JsonElement> {
 
     private final JsonElement rawNode;
     private final CoreJsonNodeType type;
 
+    /**
+     * Construct the CoreNode wrapper with the raw Gson node.
+     *
+     * @param rawNode raw Gson node
+     */
     public GsonJsonNode(JsonElement rawNode) {
         this.rawNode = CoreAssert.notNull(rawNode);
         this.type = introspectType(rawNode);

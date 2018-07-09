@@ -7,17 +7,16 @@ import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
 import com.github.bohnman.squiggly.gson.function.GsonFunctions;
 import com.github.bohnman.squiggly.gson.json.GsonJsonNode;
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
-import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * Entry point for apply Squiggly to the Gson library.
+ */
 public class GsonSquiggly extends BaseSquiggly {
 
-    public GsonSquiggly(BaseBuilder builder) {
+    private GsonSquiggly(BaseBuilder builder) {
         super(builder);
     }
 
@@ -90,6 +89,9 @@ public class GsonSquiggly extends BaseSquiggly {
         return builder().context(contextProvider);
     }
 
+    /**
+     * Custom builder class.
+     */
     public static class Builder extends BaseBuilder<Builder, GsonSquiggly> {
 
         @Override
@@ -103,72 +105,5 @@ public class GsonSquiggly extends BaseSquiggly {
             return new GsonSquiggly(this);
         }
 
-    }
-
-
-    public static void main(String[] args) {
-        Person person = new Person("Ryan", "Bohn", "rbohn", "bohnman", "doogie");
-        Gson gson = new Gson();
-        JsonElement element = gson.toJsonTree(person);
-        JsonElement transformed = GsonSquiggly.init()
-                .apply(element, "nickNames[name.reverse()]");
-
-        System.out.println(gson.toJson(transformed));
-
-    }
-
-
-    public static class NickName implements Comparable<NickName> {
-        private final String name;
-
-        public NickName(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-
-        public String getChuck() {
-            return "chuck";
-        }
-
-        @Override
-        public int compareTo(@Nullable NickName o) {
-            return (o == null) ? -1 : name.compareTo(o.name);
-        }
-    }
-
-    private static class Person {
-        private final String firstName;
-        private final String lastName;
-        private List<NickName> nickNames;
-
-        public Person(String firstName, String lastName, String... nickNames) {
-            this.firstName = firstName;
-            this.lastName = lastName;
-            this.nickNames = Arrays.stream(nickNames).map(NickName::new).collect(Collectors.toList());
-        }
-
-        public String getFirstName() {
-            return firstName;
-        }
-
-        public String getLastName() {
-            return lastName;
-        }
-
-        public List<NickName> getNickNames() {
-            return nickNames;
-        }
-
-        public String getNullProperty() {
-            return null;
-        }
     }
 }
