@@ -25,12 +25,22 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
+/**
+ * Functions that accept mixed types as arguments.
+ */
 @SuppressWarnings("unchecked")
 public class MixedFunctions {
 
     public MixedFunctions() {
     }
 
+    /**
+     * Concatenate strings and collections together.
+     *
+     * @param o1 string or collection
+     * @param o2 string or collection
+     * @return concatenated value
+     */
     public static Object concat(Object o1, Object o2) {
         if (o1 instanceof String || o2 instanceof String) {
             return CoreStrings.defaultIfEmpty(CoreConversions.safeToString(o1), "") + CoreStrings.defaultIfEmpty(CoreConversions.safeToString(o2), "");
@@ -45,6 +55,13 @@ public class MixedFunctions {
         return w1.collect(Stream.concat(w1.stream(), w2.stream()));
     }
 
+    /**
+     * See if the haystack object contains a needle.
+     *
+     * @param haystack collection/string
+     * @param needle   item
+     * @return true/false
+     */
     public static boolean contains(Object haystack, Object needle) {
         return new ValueHandler<Boolean>() {
 
@@ -70,6 +87,14 @@ public class MixedFunctions {
         }.handle(haystack);
     }
 
+    /**
+     * Retrieve the item at key.  For strings/collections, the key should be the index.  For maps, it should be the
+     * map key.  For pojos, this is the property of the bean.
+     *
+     * @param value an object
+     * @param key   the key
+     * @return value at the key or null
+     */
     public static Object get(Object value, Object key) {
         if (key == null) {
             return null;
@@ -108,6 +133,13 @@ public class MixedFunctions {
 
     }
 
+    /**
+     * Determines if the object has the key.
+     *
+     * @param value string/map/collection/pojo
+     * @param key   map key or index
+     * @return true if has
+     */
     public static boolean has(Object value, Object key) {
         if (value == null || key == null) {
             return false;
@@ -144,6 +176,13 @@ public class MixedFunctions {
         }.handle(value);
     }
 
+    /**
+     * Returns index of the first occurrence item in a collection/string.
+     *
+     * @param haystack collection/string
+     * @param needle   item to search
+     * @return index or -1 if not found
+     */
     public static int indexOf(Object haystack, Object needle) {
         if (haystack == null || needle == null) {
             return -1;
@@ -171,6 +210,13 @@ public class MixedFunctions {
         }.handle(haystack);
     }
 
+    /**
+     * Retrieve all the keys of the value.  For collections, this will be all of the index.  For maps, this will be
+     * all the map keys.  For pojos, this will be all the properties.
+     *
+     * @param value collection/map/pojo
+     * @return keys
+     */
     public static Object keys(Object value) {
         return new BaseCollectionValueHandler<Object>() {
             @Override
@@ -195,6 +241,13 @@ public class MixedFunctions {
         }.handle(value);
     }
 
+    /**
+     * Returns index of the last occurrence item in a collection/string.
+     *
+     * @param haystack collection/string
+     * @param needle   item to search
+     * @return index or -1 if not found
+     */
     public static int lastIndexOf(Object haystack, Object needle) {
         if (haystack == null || needle == null) {
             return -1;
@@ -224,6 +277,14 @@ public class MixedFunctions {
         }.handle(haystack);
     }
 
+    /**
+     * Return the first/last max items from the value.  If max is negative, the last abs(max) items are returned,
+     * otherwise the first max items are returned.
+     *
+     * @param value string/collection
+     * @param max   limit
+     * @return items
+     */
     public static Object limit(Object value, Number max) {
         if (max == null) {
             return value;
@@ -238,6 +299,13 @@ public class MixedFunctions {
         }
     }
 
+    /**
+     * Determines whether the value contains the given pattern.
+     *
+     * @param value   collection/string/pojo
+     * @param pattern regex
+     * @return true if match
+     */
     public static boolean match(Object value, Pattern pattern) {
         return new ValueHandler<Boolean>(pattern) {
             @Override
@@ -264,50 +332,26 @@ public class MixedFunctions {
         }.handle(value);
     }
 
-    private static OrderByComparable newComparable(Object value, List<OrderBy> orderBys) {
-        return new OrderByComparable(value, orderBys);
-    }
-
-    private static Integer normalizeIndex(int len, Object index) {
-        if (index instanceof String) {
-            try {
-                index = Double.parseDouble((String) index);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-
-        if (index instanceof Number) {
-            int actualIndex = CoreArrays.normalizeIndex(((Number) index).intValue(), len, -1, len);
-            return actualIndex < 0 ? null : actualIndex;
-        }
-
-        return null;
-    }
-
-    private static List<Integer> normalizeIndexes(int len, Object... indexes) {
-        return Stream.of(indexes)
-                .flatMap(index -> {
-
-                    if (index instanceof CoreIntRange) {
-                        CoreIntRange range = (CoreIntRange) index;
-                        int start = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getStart(), 0), len);
-                        int end = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getEnd(), len), len);
-                        return (start >= end) ? Stream.empty() : IntStream.range(start, end).boxed();
-                    }
-
-                    Integer normalized = normalizeIndex(len, index);
-                    return normalized == null ? Stream.empty() : Stream.of(normalized);
-                })
-                .distinct()
-                .collect(toList());
-    }
-
+    /**
+     * Determines whether the value does not contain the given pattern.
+     *
+     * @param value   collection/string/pojo
+     * @param pattern regex
+     * @return true if no match
+     */
     @SquigglyFunctionMethod(aliases = "nmatch")
-    public static boolean notMatch(Object o, Pattern pattern) {
-        return !match(o, pattern);
+    public static boolean notMatch(Object value, Pattern pattern) {
+        return !match(value, pattern);
     }
 
+    /**
+     * Retrieve the specified keys from the value.  If the key is an int range, it will expand the range to all the
+     * keys within that range.
+     *
+     * @param value collection/string/pojo
+     * @param keys  int/string/intrange
+     * @return all items that match the keys
+     */
     public static Object pick(Object value, Object... keys) {
 
         if (keys.length == 0) {
@@ -353,6 +397,14 @@ public class MixedFunctions {
 
     }
 
+    /**
+     * Retrieve all items except those associated with the specified keys.  If the key is an int range,
+     * it will expand the range to all the keys within that range.
+     *
+     * @param value collection/string/pojo
+     * @param keys  int/string/intrange
+     * @return all items that do not match the keys
+     */
     public static Object pickExcept(Object value, Object... keys) {
         if (keys.length == 0) {
             return value;
@@ -408,6 +460,12 @@ public class MixedFunctions {
 
     }
 
+    /**
+     * Reverse the collection/string.
+     *
+     * @param value collection/string
+     * @return reversed value
+     */
     public static Object reverse(Object value) {
         return new ValueHandler<Object>() {
 
@@ -435,6 +493,12 @@ public class MixedFunctions {
         }.handle(value);
     }
 
+    /**
+     * Return the size of the collection/map/string/pojo.
+     *
+     * @param value collection/map/string/pojo
+     * @return size
+     */
     @SquigglyFunctionMethod(aliases = {"length", "count", "countBy"})
     public static int size(Object value) {
         return new ValueHandler<Integer>() {
@@ -470,6 +534,13 @@ public class MixedFunctions {
         }.handle(value);
     }
 
+    /**
+     * Retrieve a subset of items in value.
+     *
+     * @param value collection/string
+     * @param range int range
+     * @return slice
+     */
     public static Object slice(Object value, CoreIntRange range) {
         if (range == null) {
             return value;
@@ -490,6 +561,13 @@ public class MixedFunctions {
         return slice(value, start, range.getEnd());
     }
 
+    /**
+     * Retrieve a subset of items in value, starting with startIndex until the end.
+     *
+     * @param value      collection/string
+     * @param startIndex inclusive start
+     * @return slice
+     */
     public static Object slice(Object value, Number startIndex) {
         if (startIndex == null) {
             return value;
@@ -514,6 +592,14 @@ public class MixedFunctions {
         }.handle(value);
     }
 
+    /**
+     * Retrieve a subset of items in value, starting with startIndex until endIndex.
+     *
+     * @param value      collection/string
+     * @param startIndex inclusive start
+     * @param endIndex   exclusive start
+     * @return slice
+     */
     public static Object slice(Object value, Number startIndex, Number endIndex) {
         if (startIndex == null || endIndex == null) {
             return value;
@@ -538,6 +624,13 @@ public class MixedFunctions {
         }.handle(value);
     }
 
+    /**
+     * Sort the value by the specified properties.
+     *
+     * @param value      collection
+     * @param properties list of properties
+     * @return sorted collection
+     */
     public static Object sort(Object value, CoreProperty... properties) {
         List<OrderBy> orderBys = Arrays.stream(properties)
                 .map(PropertyOrderBy::new)
@@ -569,6 +662,13 @@ public class MixedFunctions {
         }.handle(value);
     }
 
+    /**
+     * Sort items in value using a mapping function to retrieve the sort key.
+     *
+     * @param value  collection like object
+     * @param lambda mapping function
+     * @return sorted items
+     */
     public static Object sortBy(Object value, CoreLambda lambda) {
         return new CollectionReturningValueHandler() {
             @Override
@@ -579,6 +679,36 @@ public class MixedFunctions {
                         .map(CorePair::getLeft);
             }
         };
+    }
+
+    /**
+     * Retrieve all the values of a collection/map/pojo.
+     *
+     * @param value collection/map/pojo
+     * @return values
+     */
+    public static Object values(Object value) {
+        return new BaseCollectionValueHandler<Object>() {
+            @Override
+            protected Object handleArray(Object array) {
+                return array;
+            }
+
+            @Override
+            protected Object handleIterable(Iterable<Object> iterable) {
+                return iterable;
+            }
+
+            @Override
+            protected Object handleObject(Object value) {
+                return CoreLists.of(toMap(value).values());
+            }
+
+            @Override
+            protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
+                return handleObject(wrapper.getValue());
+            }
+        }.handle(value);
     }
 
     @SuppressWarnings("unchecked")
@@ -600,23 +730,44 @@ public class MixedFunctions {
         }
     }
 
-    public static Object values(Object value) {
-        return new BaseCollectionValueHandler<Object>() {
-            @Override
-            protected Object handleArray(Object array) {
-                return array;
-            }
 
-            @Override
-            protected Object handleIterable(Iterable<Object> iterable) {
-                return iterable;
-            }
+    private static OrderByComparable newComparable(Object value, List<OrderBy> orderBys) {
+        return new OrderByComparable(value, orderBys);
+    }
 
-            @Override
-            protected Object handleObject(Object value) {
-                return CoreLists.of(toMap(value).values());
+    private static Integer normalizeIndex(int len, Object index) {
+        if (index instanceof String) {
+            try {
+                index = Double.parseDouble((String) index);
+            } catch (NumberFormatException e) {
+                return null;
             }
-        }.handle(value);
+        }
+
+        if (index instanceof Number) {
+            int actualIndex = CoreArrays.normalizeIndex(((Number) index).intValue(), len, -1, len);
+            return actualIndex < 0 ? null : actualIndex;
+        }
+
+        return null;
+    }
+
+    private static List<Integer> normalizeIndexes(int len, Object... indexes) {
+        return Stream.of(indexes)
+                .flatMap(index -> {
+
+                    if (index instanceof CoreIntRange) {
+                        CoreIntRange range = (CoreIntRange) index;
+                        int start = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getStart(), 0), len);
+                        int end = CoreArrays.normalizeIndex(CoreObjects.firstNonNull(range.getEnd(), len), len);
+                        return (start >= end) ? Stream.empty() : IntStream.range(start, end).boxed();
+                    }
+
+                    Integer normalized = normalizeIndex(len, index);
+                    return normalized == null ? Stream.empty() : Stream.of(normalized);
+                })
+                .distinct()
+                .collect(toList());
     }
 
     private static class OrderByComparable implements Comparable<Object> {

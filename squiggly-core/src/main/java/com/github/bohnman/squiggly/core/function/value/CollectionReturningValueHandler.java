@@ -4,6 +4,9 @@ import com.github.bohnman.core.collect.CoreIndexedIterableWrapper;
 
 import java.util.stream.Stream;
 
+/**
+ * Base value handler that returns a collection from a stream.
+ */
 public abstract class CollectionReturningValueHandler extends BaseStreamingCollectionValueHandler<Object> {
 
     public CollectionReturningValueHandler(Object... arguments) {

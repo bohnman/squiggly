@@ -32,6 +32,9 @@ import java.util.stream.Collectors;
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * Contains logic for executing a function.
+ */
 @SuppressWarnings("unchecked")
 public class SquigglyFunctionInvoker {
 
@@ -41,6 +44,14 @@ public class SquigglyFunctionInvoker {
     private final SquigglyConfig config;
     private final SquigglyFunctionMatcher matcher;
 
+    /**
+     * Constructor.
+     *
+     * @param config             config
+     * @param conversionService  converson service
+     * @param functionRepository function repo
+     * @param variableResolver   variable resolver
+     */
     public SquigglyFunctionInvoker(
             SquigglyConfig config,
             SquigglyConversionService conversionService,
@@ -53,10 +64,25 @@ public class SquigglyFunctionInvoker {
         this.matcher = new SquigglyFunctionMatcher(conversionService);
     }
 
+    /**
+     * Execute the supplied functions in order chaining the result.
+     *
+     * @param input         object to use as input
+     * @param functionNodes nodes
+     * @return result
+     */
     public Object invoke(@Nullable Object input, Iterable<FunctionNode> functionNodes) {
         return invoke(input, null, functionNodes);
     }
 
+    /**
+     * Execute the supplied functions in order chaining the result.
+     *
+     * @param input         object to use as input
+     * @param parent        input parent
+     * @param functionNodes nodes
+     * @return result
+     */
     public Object invoke(@Nullable Object input, @Nullable Object parent, Iterable<FunctionNode> functionNodes) {
         Object value = input;
 
@@ -71,23 +97,26 @@ public class SquigglyFunctionInvoker {
         return value;
     }
 
-    private boolean isNull(Object value) {
-        if (value == null) {
-            return true;
-        }
-
-        if (value instanceof CoreJsonNode) {
-            return ((CoreJsonNode) value).isNull();
-        }
-
-        return false;
-    }
-
+    /**
+     * Execute the supplied function.
+     *
+     * @param input         object to use as input
+     * @param functionNode node
+     * @return result
+     */
     public Object invoke(@Nullable Object input, FunctionNode functionNode) {
         return invoke(input, null, functionNode);
     }
 
 
+    /**
+     * Execute the supplied function.
+     *
+     * @param input         object to use as input
+     * @param parent        input parent
+     * @param functionNode node
+     * @return result
+     */
     public Object invoke(@Nullable Object input, @Nullable Object parent, FunctionNode functionNode) {
         if (functionNode.getType().equals(FunctionNodeType.PROPERTY)) {
             return invokeProperty(input, functionNode);
@@ -102,6 +131,18 @@ public class SquigglyFunctionInvoker {
         }
 
         return invokeNormalFunction(input, functionNode);
+    }
+
+    private boolean isNull(Object value) {
+        if (value == null) {
+            return true;
+        }
+
+        if (value instanceof CoreJsonNode) {
+            return ((CoreJsonNode) value).isNull();
+        }
+
+        return false;
     }
 
     private Object invokeNormalFunction(Object input, FunctionNode functionNode) {

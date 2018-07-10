@@ -2,6 +2,9 @@ package com.github.bohnman.squiggly.core.function.functions;
 
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionClass;
 
+/**
+ * Class that defines the default functions to include.
+ */
 @SquigglyFunctionClass(include = {
         CollectionFunctions.class,
         CoreJsonNodeFunctions.class,

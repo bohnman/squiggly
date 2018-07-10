@@ -6,14 +6,27 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * A function repo containing other function repos.
+ */
 public class CompositeFunctionRepository implements SquigglyFunctionRepository {
 
     private List<SquigglyFunctionRepository> repositories;
 
+    /**
+     * Construct with supplied repos.
+     *
+     * @param repositories the repos
+     */
     public CompositeFunctionRepository(SquigglyFunctionRepository... repositories) {
         this(Arrays.asList(repositories));
     }
 
+    /**
+     * Construct with supplied repos.
+     *
+     * @param repositories the repos
+     */
     public CompositeFunctionRepository(List<SquigglyFunctionRepository> repositories) {
         this.repositories = Collections.unmodifiableList(repositories);
     }

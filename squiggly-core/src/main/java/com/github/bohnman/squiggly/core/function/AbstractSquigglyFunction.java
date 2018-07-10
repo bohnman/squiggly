@@ -9,6 +9,11 @@ import java.util.List;
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 import static java.lang.String.format;
 
+/**
+ * Base class that provides default logic for functions.
+ *
+ * @param <T> result type
+ */
 public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T> {
 
     private final String name;
@@ -16,14 +21,37 @@ public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T>
     private final List<SquigglyParameter> parameters;
     private final List<String> aliases;
 
+    /**
+     * Constructor.
+     *
+     * @param name       function name
+     * @param returnType return type
+     * @param parameters function params
+     */
     public AbstractSquigglyFunction(String name, Class<?> returnType, List<SquigglyParameter> parameters) {
         this(name, returnType, parameters, Collections.emptyList());
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name       function name
+     * @param returnType return type
+     * @param parameters function params
+     * @param aliases    function aliases
+     */
     public AbstractSquigglyFunction(String name, Class<?> returnType, List<SquigglyParameter> parameters, String... aliases) {
         this(name, returnType, parameters, Arrays.asList(aliases));
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name       function name
+     * @param returnType return type
+     * @param parameters function params
+     * @param aliases    function aliases
+     */
     public AbstractSquigglyFunction(String name, Class<?> returnType, List<SquigglyParameter> parameters, Iterable<String> aliases) {
         this.name = notNull(name);
         this.returnType = notNull(returnType);

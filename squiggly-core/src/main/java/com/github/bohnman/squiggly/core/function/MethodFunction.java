@@ -15,24 +15,56 @@ import static com.github.bohnman.core.lang.CoreAssert.isTrue;
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 import static java.lang.String.format;
 
+/**
+ * Function implementation that wraps a Java {@link Method}.
+ */
 public class MethodFunction extends AbstractSquigglyFunction<Object> {
 
     private final List<SquigglyEnvironment> environments;
     private final Method method;
     private final Object owner;
 
+    /**
+     * Constructor that uses the method name as the function name.
+     *
+     * @param method the method
+     * @param owner the method owner object
+     */
     public MethodFunction(Method method, Object owner) {
         this(method, owner, method.getName());
     }
 
+    /**
+     * Constructor.
+     *
+     * @param method the method
+     * @param owner the method owner object
+     * @param name the function name
+     */
     public MethodFunction(Method method, Object owner, String name) {
         this(method, owner, name, Collections.emptyList());
     }
 
+    /**
+     * Constructor.
+     *
+     * @param method the method
+     * @param owner the method owner object
+     * @param name the function name
+     * @param aliases function aliases
+     */
     public MethodFunction(Method method, Object owner, String name, String... aliases) {
         this(method, owner, name, Arrays.asList(aliases));
     }
 
+    /**
+     * Constructor.
+     *
+     * @param method the method
+     * @param owner the method owner object
+     * @param name the function name
+     * @param aliases function aliases
+     */
     public MethodFunction(Method method, Object owner, String name, Iterable<String> aliases) {
         super(name, method.getReturnType(),
                 Arrays.stream(method.getParameters())

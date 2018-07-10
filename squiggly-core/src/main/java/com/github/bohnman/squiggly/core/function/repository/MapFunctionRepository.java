@@ -13,6 +13,9 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.*;
 
+/**
+ * Function repo backed by a map.
+ */
 @SuppressWarnings("unchecked")
 public class MapFunctionRepository implements SquigglyFunctionRepository {
 
@@ -22,6 +25,7 @@ public class MapFunctionRepository implements SquigglyFunctionRepository {
         this(Arrays.asList(functions));
     }
 
+    @SuppressWarnings("RedundantCast")
     public <T> MapFunctionRepository(Iterable<SquigglyFunction<?>> functions) {
         Map<String, List<SquigglyFunction<Object>>> functionMap = (Map) CoreStreams.of(functions)
                 .flatMap(f -> Stream.concat(Stream.of(toPair(f.getName().toLowerCase(), f)), f.getAliases().stream().map(a -> toPair(a.toLowerCase(), f))))
