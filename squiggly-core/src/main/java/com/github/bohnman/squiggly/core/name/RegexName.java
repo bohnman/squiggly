@@ -2,12 +2,21 @@ package com.github.bohnman.squiggly.core.name;
 
 import java.util.regex.Pattern;
 
+/**
+ * Represents a regex name match.
+ */
 public class RegexName implements SquigglyName {
 
     private final String name;
     private final String rawName;
     private final Pattern pattern;
 
+    /**
+     * Constructor.
+     *
+     * @param name the raw pattern string
+     * @param pattern the compiled regex
+     */
     public RegexName(String name, Pattern pattern) {
         this.name = name;
         this.rawName = name;

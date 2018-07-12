@@ -14,7 +14,7 @@ import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.function.invoke.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
-import com.github.bohnman.squiggly.core.parser.SquigglyNode;
+import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 
 import javax.annotation.Nullable;

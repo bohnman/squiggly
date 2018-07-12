@@ -13,6 +13,11 @@ public class CompositeSquigglyMetricsSource implements SquigglyMetricsSource {
 
     private final List<SquigglyMetricsSource> sources = new CopyOnWriteArrayList<>();
 
+    /**
+     * Register a source with this composite.
+     *
+     * @param source a source
+     */
     public void add(SquigglyMetricsSource source) {
         sources.add(source);
     }

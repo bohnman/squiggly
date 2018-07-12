@@ -20,6 +20,7 @@ import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyParameter;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.core.parser.*;
+import com.github.bohnman.squiggly.core.parser.node.*;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
