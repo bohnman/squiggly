@@ -18,7 +18,7 @@ public class ParseContext {
     /**
      * Construct with given position.
      *
-     * @param line line number
+     * @param line   line number
      * @param column column number
      */
     public ParseContext(int line, int column) {

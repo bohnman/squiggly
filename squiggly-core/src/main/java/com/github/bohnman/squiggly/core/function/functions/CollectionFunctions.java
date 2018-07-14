@@ -1139,7 +1139,7 @@ public class CollectionFunctions {
     /**
      * Retrive all the unique items in value, using lambda as a mapper function.
      *
-     * @param value collection-like object
+     * @param value  collection-like object
      * @param lambda mapper function
      * @return unique items
      */

@@ -3,8 +3,6 @@ package com.github.bohnman.squiggly.core.function.repository;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
 
-import java.util.List;
-
 /**
  * Function repo utilities.
  */
@@ -43,10 +41,11 @@ public class SquigglyFunctionRepositories {
     public static SquigglyFunctionRepository ofClasses(Class<?>... classes) {
         return ofClasses(SquigglyFunction.RegistrationStrategy.AUTO, classes);
     }
+
     /**
      * Create a function repository using all supplied classes and registration strategy.
      *
-     * @param classes the classes containing the functions
+     * @param classes              the classes containing the functions
      * @param registrationStrategy strategy
      * @return repo
      */

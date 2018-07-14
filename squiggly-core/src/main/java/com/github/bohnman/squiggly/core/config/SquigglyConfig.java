@@ -107,7 +107,7 @@ public class SquigglyConfig {
     /**
      * Retrieve the value of the specified key as a String or defaultValue if not found.
      *
-     * @param key the key
+     * @param key          the key
      * @param defaultValue the default value
      * @return value or defaultValue
      */
@@ -141,7 +141,7 @@ public class SquigglyConfig {
     /**
      * Retrieve the value of the specified key as a Boolean or defaultValue if not found.
      *
-     * @param key the key
+     * @param key          the key
      * @param defaultValue the default value
      * @return value or defaultValue
      */
@@ -170,7 +170,7 @@ public class SquigglyConfig {
     /**
      * Retrieve the value of the specified key as an Integer or defaultValue if not found.
      *
-     * @param key the key
+     * @param key          the key
      * @param defaultValue the default value
      * @return value or defaultValue
      */
@@ -199,7 +199,7 @@ public class SquigglyConfig {
     /**
      * Retrieve the value of the specified key as a Long or defaultValue if not found.
      *
-     * @param key the key
+     * @param key          the key
      * @param defaultValue the default value
      * @return value or defaultValue
      */
@@ -228,7 +228,7 @@ public class SquigglyConfig {
     /**
      * Retrieve the value of the specified key as a Float or defaultValue if not found.
      *
-     * @param key the key
+     * @param key          the key
      * @param defaultValue the default value
      * @return value or defaultValue
      */
@@ -257,7 +257,7 @@ public class SquigglyConfig {
     /**
      * Retrieve the value of the specified key as a Double or defaultValue if not found.
      *
-     * @param key the key
+     * @param key          the key
      * @param defaultValue the default value
      * @return value or defaultValue
      */

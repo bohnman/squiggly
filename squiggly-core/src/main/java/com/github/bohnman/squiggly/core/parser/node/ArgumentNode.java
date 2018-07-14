@@ -21,9 +21,9 @@ public class ArgumentNode {
      * Constructor.
      *
      * @param context parse context
-     * @param index argument index
-     * @param value argument value
-     * @param type argument type
+     * @param index   argument index
+     * @param value   argument value
+     * @param type    argument type
      */
     public ArgumentNode(ParseContext context, int index, Object value, ArgumentNodeType type) {
         this.context = notNull(context);
@@ -132,7 +132,7 @@ public class ArgumentNode {
          * @param value value
          * @return builder
          */
-        public Builder value(Object value) {
+        public Builder value(@Nullable Object value) {
             this.value = value;
             return this;
         }

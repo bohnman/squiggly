@@ -32,7 +32,7 @@ public abstract class BaseStreamingCollectionValueHandler<T> extends BaseCollect
      * Handle the stream.
      *
      * @param wrapper the indexed collection wrapper
-     * @param stream the stream
+     * @param stream  the stream
      * @return type
      */
     protected abstract T handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream);

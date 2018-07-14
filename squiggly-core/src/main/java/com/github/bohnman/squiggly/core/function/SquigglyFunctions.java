@@ -95,7 +95,7 @@ public class SquigglyFunctions {
      * Create a function from a method.
      *
      * @param method java method
-     * @param name function name
+     * @param name   function name
      * @return squiggly function
      */
     public static SquigglyFunction<?> create(Method method, String name) {
@@ -105,8 +105,8 @@ public class SquigglyFunctions {
     /**
      * Create a function from a method.
      *
-     * @param method java method
-     * @param name function name
+     * @param method  java method
+     * @param name    function name
      * @param aliases function aliases
      * @return squiggly function
      */
@@ -117,8 +117,8 @@ public class SquigglyFunctions {
     /**
      * Create a function from a method.
      *
-     * @param method java method
-     * @param name function name
+     * @param method  java method
+     * @param name    function name
      * @param aliases function aliases
      * @return squiggly function
      */
@@ -130,7 +130,7 @@ public class SquigglyFunctions {
      * Create a function from a method.
      *
      * @param method java method
-     * @param owner method owner
+     * @param owner  method owner
      * @return squiggly function
      */
     public static SquigglyFunction<?> create(Method method, Object owner) {
@@ -141,8 +141,8 @@ public class SquigglyFunctions {
      * Create a function from a method.
      *
      * @param method java method
-     * @param owner method owner
-     * @param name function name
+     * @param owner  method owner
+     * @param name   function name
      * @return squiggly function
      */
     public static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name) {
@@ -152,9 +152,9 @@ public class SquigglyFunctions {
     /**
      * Create a function from a method.
      *
-     * @param method java method
-     * @param owner method owner
-     * @param name function name
+     * @param method  java method
+     * @param owner   method owner
+     * @param name    function name
      * @param aliases function aliases
      * @return squiggly function
      */
@@ -165,9 +165,9 @@ public class SquigglyFunctions {
     /**
      * Create a function from a method.
      *
-     * @param method java method
-     * @param owner method owner
-     * @param name function name
+     * @param method  java method
+     * @param owner   method owner
+     * @param name    function name
      * @param aliases function aliases
      * @return squiggly function
      */

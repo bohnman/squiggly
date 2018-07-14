@@ -17,9 +17,9 @@ public class LambdaNode {
     /**
      * Constructor.
      *
-     * @param context parse context
+     * @param context   parse context
      * @param arguments lambda arguments
-     * @param body execution logic
+     * @param body      execution logic
      */
     public LambdaNode(ParseContext context, List<String> arguments, FunctionNode body) {
         this.context = context;

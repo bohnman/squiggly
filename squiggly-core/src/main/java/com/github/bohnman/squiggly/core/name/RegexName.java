@@ -14,7 +14,7 @@ public class RegexName implements SquigglyName {
     /**
      * Constructor.
      *
-     * @param name the raw pattern string
+     * @param name    the raw pattern string
      * @param pattern the compiled regex
      */
     public RegexName(String name, Pattern pattern) {

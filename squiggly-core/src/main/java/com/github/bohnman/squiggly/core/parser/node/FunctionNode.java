@@ -24,12 +24,12 @@ public class FunctionNode {
     /**
      * Constuctor.
      *
-     * @param context  parse context
-     * @param name name of the function
-     * @param arguments function arguments
+     * @param context     parse context
+     * @param name        name of the function
+     * @param arguments   function arguments
      * @param ignoreNulls ignore function if input is null
-     * @param type function type
-     * @param ascending is sorted ascending
+     * @param type        function type
+     * @param ascending   is sorted ascending
      */
     public FunctionNode(
             ParseContext context,

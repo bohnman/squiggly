@@ -39,7 +39,7 @@ public abstract class AbstractSquigglyContextProvider<S extends BaseSquiggly> im
     /**
      * Hook method to customize the filte.  For example, wrap the filter in a nested filter.
      *
-     * @param filter the filter
+     * @param filter    the filter
      * @param beanClass the bean class
      * @return filte or null
      */

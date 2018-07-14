@@ -20,6 +20,7 @@ public class CompositeFilterRepository implements SquigglyFilterRepository {
     public CompositeFilterRepository(SquigglyFilterRepository... repositories) {
         this(Arrays.asList(repositories));
     }
+
     /**
      * Constructor.
      *

@@ -19,7 +19,8 @@ import com.github.bohnman.squiggly.core.function.FunctionExecutionRequest;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyParameter;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
-import com.github.bohnman.squiggly.core.parser.*;
+import com.github.bohnman.squiggly.core.parser.SquigglyParseException;
+import com.github.bohnman.squiggly.core.parser.SquigglyParser;
 import com.github.bohnman.squiggly.core.parser.node.*;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
@@ -101,7 +102,7 @@ public class SquigglyFunctionInvoker {
     /**
      * Execute the supplied function.
      *
-     * @param input         object to use as input
+     * @param input        object to use as input
      * @param functionNode node
      * @return result
      */
@@ -113,8 +114,8 @@ public class SquigglyFunctionInvoker {
     /**
      * Execute the supplied function.
      *
-     * @param input         object to use as input
-     * @param parent        input parent
+     * @param input        object to use as input
+     * @param parent       input parent
      * @param functionNode node
      * @return result
      */

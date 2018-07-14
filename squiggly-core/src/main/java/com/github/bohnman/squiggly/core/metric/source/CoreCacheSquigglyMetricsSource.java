@@ -20,7 +20,7 @@ public class CoreCacheSquigglyMetricsSource implements SquigglyMetricsSource {
      * Constructor.
      *
      * @param prefix the prefix the use with each stats key.
-     * @param cache the cache to hold the metrics
+     * @param cache  the cache to hold the metrics
      */
     public CoreCacheSquigglyMetricsSource(String prefix, CoreCache cache) {
         notNull(prefix);

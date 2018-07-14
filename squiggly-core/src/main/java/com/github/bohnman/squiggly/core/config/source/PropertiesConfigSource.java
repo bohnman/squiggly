@@ -29,7 +29,7 @@ public class PropertiesConfigSource implements SquigglyConfigSource {
     /**
      * Construct the source with the supplied properties.
      *
-     * @param location a location name
+     * @param location   a location name
      * @param properties the proprerties
      */
     public PropertiesConfigSource(String location, Properties properties) {

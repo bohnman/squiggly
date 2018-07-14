@@ -38,7 +38,7 @@ public enum Ansi {
     BACKGROUND_BLUE("\u001B[44m"),
     BACKGROUND_MAGENTA("\u001B[45m"),
     BACKGROUND_CYAN("\u001B[46m"),
-    BACKGROUND_WHITE("\u001B[47m"),;
+    BACKGROUND_WHITE("\u001B[47m");
 
     private final String code;
 

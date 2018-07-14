@@ -405,8 +405,8 @@ public class NumberFunctions {
     /**
      * Convert a string to a number using the given pattern2.
      *
-     * @param value   string
-     * @param pattern pattern
+     * @param value         string
+     * @param pattern       pattern
      * @param otherPatterns more patterns
      * @return number or null
      * @see DecimalFormat

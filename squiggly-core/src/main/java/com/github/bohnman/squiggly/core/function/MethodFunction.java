@@ -28,7 +28,7 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
      * Constructor that uses the method name as the function name.
      *
      * @param method the method
-     * @param owner the method owner object
+     * @param owner  the method owner object
      */
     public MethodFunction(Method method, Object owner) {
         this(method, owner, method.getName());
@@ -38,8 +38,8 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
      * Constructor.
      *
      * @param method the method
-     * @param owner the method owner object
-     * @param name the function name
+     * @param owner  the method owner object
+     * @param name   the function name
      */
     public MethodFunction(Method method, Object owner, String name) {
         this(method, owner, name, Collections.emptyList());
@@ -48,9 +48,9 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
     /**
      * Constructor.
      *
-     * @param method the method
-     * @param owner the method owner object
-     * @param name the function name
+     * @param method  the method
+     * @param owner   the method owner object
+     * @param name    the function name
      * @param aliases function aliases
      */
     public MethodFunction(Method method, Object owner, String name, String... aliases) {
@@ -60,9 +60,9 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
     /**
      * Constructor.
      *
-     * @param method the method
-     * @param owner the method owner object
-     * @param name the function name
+     * @param method  the method
+     * @param owner   the method owner object
+     * @param name    the function name
      * @param aliases function aliases
      */
     public MethodFunction(Method method, Object owner, String name, Iterable<String> aliases) {

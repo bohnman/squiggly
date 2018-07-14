@@ -29,9 +29,9 @@ public interface SquigglyConversionService {
     /**
      * Attempt to convert an object to the target type.
      *
-     * @param value any object
+     * @param value  any object
      * @param target target type
-     * @param <T> target
+     * @param <T>    target
      * @return converted value
      * @throws IllegalArgumentException if it cannot be converter
      */

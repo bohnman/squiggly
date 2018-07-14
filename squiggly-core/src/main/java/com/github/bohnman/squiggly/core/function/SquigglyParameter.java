@@ -15,7 +15,7 @@ public class SquigglyParameter {
     /**
      * Constructor.
      *
-     * @param type parameter type
+     * @param type    parameter type
      * @param varArgs is the parameter a var args type
      */
     public SquigglyParameter(Class<?> type, boolean varArgs) {

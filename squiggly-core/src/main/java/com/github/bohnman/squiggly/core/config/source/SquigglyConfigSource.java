@@ -21,7 +21,7 @@ public interface SquigglyConfigSource {
     /**
      * Retrieve the property associated with the supplied name or the supplied default value if not found.
      *
-     * @param name the property name
+     * @param name         the property name
      * @param defaultValue default value
      * @return value or defaultValue
      */

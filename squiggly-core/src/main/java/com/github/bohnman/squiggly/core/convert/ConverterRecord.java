@@ -21,8 +21,8 @@ public class ConverterRecord implements Function<Object, Object>, Comparable<Con
     /**
      * Construct with using an order of {@value NORMAL_ORDER}.
      *
-     * @param source source type
-     * @param target target type
+     * @param source    source type
+     * @param target    target type
      * @param converter converter function
      */
     public ConverterRecord(Class<?> source, Class<?> target, Function<?, ?> converter) {
@@ -32,10 +32,10 @@ public class ConverterRecord implements Function<Object, Object>, Comparable<Con
     /**
      * Construct with the supplied order.
      *
-     * @param source source type
-     * @param target target type
+     * @param source    source type
+     * @param target    target type
      * @param converter converter function
-     * @param order the order
+     * @param order     the order
      */
     public ConverterRecord(Class<?> source, Class<?> target, Function<?, ?> converter, int order) {
         this.source = notNull(source);

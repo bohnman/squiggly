@@ -33,7 +33,7 @@ public class SquigglyRequest {
     /**
      * Create a filter with the provided filterParam and defaultFilter.
      *
-     * @param filterParam query string parameter
+     * @param filterParam   query string parameter
      * @param defaultFilter default filter
      * @return provider
      */
@@ -60,7 +60,7 @@ public class SquigglyRequest {
      * Create a filter with the provided filterParam and customizer.
      *
      * @param filterParam query string parameter
-     * @param customizer filter customizer
+     * @param customizer  filter customizer
      * @return provider
      */
     public static RequestSquigglyContextProvider context(String filterParam, SquigglyFilterCustomizer customizer) {
@@ -75,7 +75,7 @@ public class SquigglyRequest {
     /**
      * Create a filter with the provided filterParam and defaultFilter.
      *
-     * @param filterParam query string parameter
+     * @param filterParam   query string parameter
      * @param defaultFilter default filter
      * @return provider
      */

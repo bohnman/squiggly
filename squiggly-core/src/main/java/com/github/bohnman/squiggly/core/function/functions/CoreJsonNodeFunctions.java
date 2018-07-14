@@ -115,7 +115,7 @@ public class CoreJsonNodeFunctions {
      * Recursively flatten array nodes into a single array.
      *
      * @param node base node
-     * @param <T> type
+     * @param <T>  type
      * @return flattened nodes
      */
     public static <T> CoreJsonNode<T> flatten(CoreJsonNode<T> node) {
@@ -126,7 +126,7 @@ public class CoreJsonNodeFunctions {
      * Recursively flatten array nodes into a single array, up to maxDepth.
      *
      * @param node base node
-     * @param <T> type
+     * @param <T>  type
      * @return flattened nodes
      */
     public static <T> CoreJsonNode<T> flatten(CoreJsonNode<T> node, Number maxDepth) {
