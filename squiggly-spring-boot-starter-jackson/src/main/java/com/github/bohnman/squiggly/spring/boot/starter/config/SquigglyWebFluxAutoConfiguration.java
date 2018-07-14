@@ -30,6 +30,7 @@ import org.springframework.util.MimeType;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.reactive.config.WebFluxConfigurationSupport;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -126,7 +127,13 @@ public class SquigglyWebFluxAutoConfiguration {
         }
 
         @Override
-        public Map<String, Object> getEncodeHints(ResolvableType actualType, ResolvableType elementType, MediaType mediaType, ServerHttpRequest request, ServerHttpResponse response) {
+        @Nonnull
+        public Map<String, Object> getEncodeHints(
+                @Nullable ResolvableType actualType,
+                @Nonnull ResolvableType elementType,
+                @Nullable MediaType mediaType,
+                @Nonnull ServerHttpRequest request,
+                @Nonnull ServerHttpResponse response) {
             Map<String, String> queryParams = request.getQueryParams().toSingleValueMap();
 
             Map<String, Object> hints = new HashMap<>(super.getEncodeHints(actualType, elementType, mediaType, request, response));
@@ -136,7 +143,11 @@ public class SquigglyWebFluxAutoConfiguration {
         }
 
         @Override
-        protected ObjectWriter customizeWriter(ObjectWriter writer, MimeType mimeType, ResolvableType elementType, Map<String, Object> hints) {
+        @Nonnull
+        protected ObjectWriter customizeWriter(@Nonnull ObjectWriter writer,
+                                               @Nullable MimeType mimeType,
+                                               @Nonnull ResolvableType elementType,
+                                               @Nullable Map<String, Object> hints) {
             String filter = (String) hints.get(FILTER_HINT);
 
             if (filter == null) {

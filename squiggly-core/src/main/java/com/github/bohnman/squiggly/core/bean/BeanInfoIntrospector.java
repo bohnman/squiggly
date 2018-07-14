@@ -8,6 +8,7 @@ import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.beans.IntrospectionException;
@@ -101,11 +102,11 @@ public class BeanInfoIntrospector {
     }
 
     @Nullable
-    protected String getPropertyName(String propertyName, Annotation[] annotations) {
+    protected String getPropertyName(@Nullable String propertyName, @Nonnull Annotation[] annotations) {
         return propertyName;
     }
 
-    protected boolean isUnwrapped(PropertyDescriptor propertyDescriptor, Field field) {
+    protected boolean isUnwrapped(@Nonnull PropertyDescriptor propertyDescriptor, @Nullable Field field) {
         return false;
     }
 

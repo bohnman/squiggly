@@ -7,6 +7,7 @@ import com.github.bohnman.squiggly.core.bean.BeanInfoIntrospector;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
@@ -21,7 +22,7 @@ public class JacksonBeanInfoIntrospector extends BeanInfoIntrospector {
 
     @Nullable
     @Override
-    protected String getPropertyName(String propertyName, Annotation[] annotations) {
+    protected String getPropertyName(String propertyName, @Nonnull Annotation[] annotations) {
         if (propertyName != null) {
             return propertyName;
         }
@@ -56,7 +57,7 @@ public class JacksonBeanInfoIntrospector extends BeanInfoIntrospector {
 
 
     @Override
-    protected boolean isUnwrapped(PropertyDescriptor propertyDescriptor, Field field) {
+    protected boolean isUnwrapped(@Nonnull PropertyDescriptor propertyDescriptor, @Nullable Field field) {
         if (field != null && field.isAnnotationPresent(JsonUnwrapped.class)) {
             return true;
         }

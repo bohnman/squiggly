@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.core.function.invoke;
 
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
  */
 public class FunctionMatchResult {
     private Object input;
+    @Nullable
     private SquigglyFunction<Object> winner;
     private Score score = Score.EMPTY;
     private final List<Object> parameters;
@@ -42,6 +44,7 @@ public class FunctionMatchResult {
      *
      * @return winner
      */
+    @Nullable
     public SquigglyFunction<Object> getWinner() {
         return winner;
     }

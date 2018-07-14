@@ -17,6 +17,7 @@ public class SquilggyFilterCustomizers {
      * @return customizer
      */
     public static SquigglyFilterCustomizer create(BiFunction<String, Class<?>, String> function) {
+        //noinspection NullableProblems
         return function::apply;
     }
 
