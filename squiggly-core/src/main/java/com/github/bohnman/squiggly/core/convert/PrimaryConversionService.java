@@ -11,7 +11,10 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Function;
 
-public class DefaultConversionService implements SquigglyConversionService {
+/**
+ * Implementation of a conversion service that is backed by a map.
+ */
+public class PrimaryConversionService implements SquigglyConversionService {
 
     private static final ConverterRecord IDENTITY = new ConverterRecord(Object.class, Object.class, Function.identity());
     private static final ConverterRecord NO_MATCH = new ConverterRecord(Object.class, Object.class, Function.identity());
@@ -19,7 +22,13 @@ public class DefaultConversionService implements SquigglyConversionService {
     private final CoreCache<Key, ConverterRecord> cache;
     private final Map<Key, ConverterRecord> registeredConverters;
 
-    public DefaultConversionService(SquigglyConfig config, SquigglyConverterRegistry converterRegistry) {
+    /**
+     * Constructor.
+     *
+     * @param config            the config
+     * @param converterRegistry the registry
+     */
+    public PrimaryConversionService(SquigglyConfig config, SquigglyConverterRegistry converterRegistry) {
         this.cache = CoreCacheBuilder.from(config.getConvertCacheSpec()).build();
 
         List<ConverterRecord> records = converterRegistry.findAll();
@@ -82,7 +91,7 @@ public class DefaultConversionService implements SquigglyConversionService {
         return record == NO_MATCH ? null : record;
     }
 
-    public ConverterRecord getRecord(Class<?> sourceType, Class<?> targetType) {
+    private ConverterRecord getRecord(Class<?> sourceType, Class<?> targetType) {
         return cache.computeIfAbsent(new Key(sourceType, targetType), this::load);
     }
 

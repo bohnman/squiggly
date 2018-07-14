@@ -20,35 +20,66 @@ import kotlin.reflect.jvm.javaType
 
 // Builders
 
+/**
+ * Create Squiggly using a builder and a filter.
+ *
+ * @param filter the filter string
+ */
 fun squiggly(filter: String, init: Squiggly.Builder.() -> Unit): Squiggly =
         squigglyBuilder(init).context(SimpleSquigglyContextProvider(filter)).build()
 
+/**
+ * Create Squiggly using a builder.
+ */
 fun squiggly(init: Squiggly.Builder.() -> Unit): Squiggly =
         squigglyBuilder(init).build()
 
+/**
+ * Create and return a builder.
+ */
 fun squigglyBuilder(init: Squiggly.Builder.() -> Unit): Squiggly.Builder {
     val builder = Squiggly.builder()
     builder.init()
     return builder
 }
 
-fun squigglyCustomer(init: Squiggly.Builder.() -> Unit): SquigglyCustomizer {
-    return squigglyCustomer(init)
+/**
+ * Create a customizer using a builder.
+ */
+fun squigglyCustomizer(init: Squiggly.Builder.() -> Unit): SquigglyCustomizer {
+    return squigglyCustomizer(init)
 }
 
 // Extensions
 
+/**
+ * Register a converter.
+ *
+ * @param source source class
+ * @param target target class
+ * @param function converter function
+ */
 fun <S : Any, T: Any> Squiggly.Builder.converter(source: KClass<S>, target: KClass<T>, function: (S) -> T): Squiggly.Builder {
     return converter(source.java, target.java, function)
 }
 
+/**
+ * Register a converter.
+ *
+ * @param function converter function
+ */
 inline fun <reified S : Any, reified T: Any> Squiggly.Builder.converter(noinline function: (S) -> T): Squiggly.Builder {
     return converter(S::class.java, T::class.java, function)
 }
 
+/**
+ * Register a converter.
+ *
+ * @param callable a callable
+ */
 fun Squiggly.Builder.converter(callable: KCallable<*>): Squiggly.Builder {
     check(callable.valueParameters.size == 1){ "${callable.name} must have a single parameter"}
-    check(!callable.valueParameters[0].isVararg, { "${callable.name} is varags, which is not supported"})
+    check(!callable.valueParameters[0].isVararg) { "${callable.name} is varags, which is not supported"}
 
     val sourceType = inferJavaClass(callable.valueParameters[0].type)
     val targetType = inferJavaClass(callable.returnType)
@@ -57,24 +88,49 @@ fun Squiggly.Builder.converter(callable: KCallable<*>): Squiggly.Builder {
     return converter(record)
 }
 
-
+/**
+ * Register a function.
+ *
+ * @param callable function
+ */
 fun Squiggly.Builder.function(callable: KCallable<*>): Squiggly.Builder {
     return function(callable, null)
 }
 
+/**
+ * Register functions.
+ *
+ * @param callables functions
+ */
 fun Squiggly.Builder.functions(vararg callables: KCallable<*>): Squiggly.Builder {
     callables.forEach { function(it) }
     return this
 }
 
+/**
+ * Register a function.
+ *
+ * @param callable function
+ * @param owner owner object
+ */
 fun Squiggly.Builder.function(callable: KCallable<*>, owner: Any?): Squiggly.Builder {
     return function(CallableSquigglyFunction(callable, owner))
 }
 
+/**
+ * Register class functions.
+ *
+ * @param kclass class whose functions will be registered.
+ */
 fun Squiggly.Builder.function(kclass: KClass<*>): Squiggly.Builder {
     return function(kclass, mutableSetOf())
 }
 
+/**
+ * Register functions of all classses provided.
+ *
+ * @param kclasses classes
+ */
 fun Squiggly.Builder.functions(vararg kclasses: KClass<*>): Squiggly.Builder {
     kclasses.forEach { function(it) }
     return this

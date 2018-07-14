@@ -26,6 +26,9 @@ import org.springframework.core.env.Environment;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
+/**
+ * Base configuration class for Squiggly.
+ */
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Configuration
 public class SquigglyAutoConfiguration {
@@ -48,6 +51,14 @@ public class SquigglyAutoConfiguration {
     SquigglyVariableResolver variableResolver;
 
 
+    /**
+     * Register a jackson Squiggly object.
+     *
+     * @param config          configuration
+     * @param contextProvider context provider
+     * @param serializer      serialize
+     * @return Squiggly
+     */
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Bean
     @ConditionalOnMissingBean
@@ -86,6 +97,12 @@ public class SquigglyAutoConfiguration {
         return builder.build();
     }
 
+    /**
+     * Register a squiggly configuration object.
+     *
+     * @param environment spring boot environment
+     * @return config
+     */
     @Bean
     @ConditionalOnMissingBean
     public SquigglyConfig squigglyConfig(Environment environment) {
@@ -98,7 +115,7 @@ public class SquigglyAutoConfiguration {
 
             @Nullable
             @Override
-            public String getLocation(@Nullable String name) {
+            public String getOrigin(@Nullable String name) {
                 return "Spring Environment";
             }
         };
@@ -106,7 +123,12 @@ public class SquigglyAutoConfiguration {
         return new SquigglyConfig(configSource);
     }
 
-
+    /**
+     * Register a simple context provider with the application is not a web application.
+     *
+     * @param config configuration
+     * @return context provider
+     */
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnNotWebApplication
@@ -120,6 +142,11 @@ public class SquigglyAutoConfiguration {
         };
     }
 
+    /**
+     * Register a serializer.
+     *
+     * @return serializer
+     */
     @Bean
     @ConditionalOnMissingBean
     public SquigglyJacksonSerializer squigglySerializer() {
@@ -127,6 +154,12 @@ public class SquigglyAutoConfiguration {
         };
     }
 
+    /**
+     * Register an application listener when not a web application.
+     *
+     * @param squiggly squiggly object
+     * @return listener
+     */
     @Bean
     @ConditionalOnNotWebApplication
     public static SquigglyApplicationListener squigglyApplicationListener(Squiggly squiggly) {
@@ -134,6 +167,9 @@ public class SquigglyAutoConfiguration {
     }
 
 
+    /**
+     * A spring listener that initializes squiggly with object mappers.
+     */
     public static class SquigglyApplicationListener implements ApplicationListener<ContextRefreshedEvent> {
         private final Squiggly squiggly;
         private final Boolean autoRegister;

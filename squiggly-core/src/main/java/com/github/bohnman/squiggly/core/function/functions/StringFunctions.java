@@ -14,6 +14,9 @@ import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * String related functions.
+ */
 @SuppressWarnings("SameParameterValue")
 public class StringFunctions {
 
@@ -23,11 +26,24 @@ public class StringFunctions {
     private StringFunctions() {
     }
 
+    /**
+     * Capitalize the first letter of a string.
+     *
+     * @param value string
+     * @return capitalized string
+     */
     @SquigglyFunctionMethod(aliases = "capitalise")
     public static String capitalize(String value) {
         return CoreStrings.capitalize(value);
     }
 
+    /**
+     * Determine if the string contains the search string, ignoring case.
+     *
+     * @param value  string
+     * @param search the search string
+     * @return true if contains
+     */
     public static boolean containsIgnoreCase(String value, String search) {
         if (value == null || search == null) {
             return false;
@@ -36,6 +52,13 @@ public class StringFunctions {
         return value.toLowerCase().contains(search.toLowerCase());
     }
 
+    /**
+     * Determines if the string ends with the search string.
+     *
+     * @param value  string
+     * @param search search string
+     * @return true if ends with
+     */
     public static boolean endsWith(String value, String search) {
         if (value == null || search == null) {
             return false;
@@ -44,6 +67,14 @@ public class StringFunctions {
         return value.endsWith(search);
     }
 
+    /**
+     * Format a string.
+     *
+     * @param value string
+     * @param args  arguments
+     * @return formatted string
+     * @see String#format(String, Object...)
+     */
     public static String format(String value, Object... args) {
         if (value == null) {
             return null;
@@ -56,6 +87,13 @@ public class StringFunctions {
         }
     }
 
+    /**
+     * Join items in value together using a separator.
+     *
+     * @param value     collection like object
+     * @param separator the item separator
+     * @return joined string
+     */
     @SquigglyFunctionMethod
     public static String join(Object value, String separator) {
         if (value == null) {
@@ -100,22 +138,62 @@ public class StringFunctions {
         return CoreConversions.safeToString(value);
     }
 
+    /**
+     * Lowercase a string.
+     *
+     * @param value string
+     * @return lowercased string
+     */
     public static String lower(String value) {
         return CoreStrings.lower(value);
     }
 
+    /**
+     * Left pad a string up to size using a space.
+     * <p>
+     * Please note that the size may be restricted to prevent memory attacks.
+     *
+     * @param value string
+     * @param size  max padding
+     * @return padded string
+     */
     public static String lpad(String value, int size) {
         return lpad(value, size, " ");
     }
 
+    /**
+     * Left pad a string up to size using the given pad string.
+     * <p>
+     * Please note that the size may be restricted to prevent memory attacks.
+     *
+     * @param value string
+     * @param size  max padding
+     * @param pad   the padding string
+     * @return padded string
+     */
     public static String lpad(String value, int size, String pad) {
         return CoreStrings.leftPad(value, restrictPadSize(size, pad), pad);
     }
 
+    /**
+     * Left trim a string.
+     *
+     * @param value string
+     * @return trimmed string
+     */
     public static String ltrim(String value) {
         return CoreStrings.ltrim(value);
     }
 
+    /**
+     * Repeat a string a given number of times.
+     * <p>
+     * Please note that the number of times might be restricted to prevent memory attacks.
+     *
+     * @param value a string
+     * @param times number of times to repeat.
+     * @return repeated string
+     */
     public static String repeat(String value, Number times) {
         if (value == null) {
             return null;
@@ -141,6 +219,14 @@ public class StringFunctions {
         return builder.toString();
     }
 
+    /**
+     * Replace the search within the input string with another string.
+     *
+     * @param value   input string
+     * @param search  search string
+     * @param replace replacement string
+     * @return replaced string
+     */
     public static String replace(String value, Object search, String replace) {
         if (value == null) {
             return null;
@@ -161,6 +247,14 @@ public class StringFunctions {
         return value;
     }
 
+    /**
+     * Replace only the first occurrence of search within the input string with another string.
+     *
+     * @param value   input string
+     * @param search  search string
+     * @param replace replacement string
+     * @return replaced string
+     */
     public static String replaceFirst(String value, Object search, String replace) {
         if (value == null) {
             return null;
@@ -181,32 +275,50 @@ public class StringFunctions {
         return value;
     }
 
-    private static int restrictPadSize(int size, String pad) {
-        int maxSize = MAX_PAD_MEMORY / (CoreObjects.firstNonNull(pad, "").length() * 2);
-        return Math.min(size, maxSize);
-    }
-
-    private static int restrictRepeatSize(String repeat, int size) {
-        if (size == 1) {
-            return size;
-        }
-
-        int maxSize = MAX_REPEAT_MEMORY / (CoreObjects.firstNonNull(repeat, "").length() * 2);
-        return Math.max(1, Math.min(size, maxSize));
-    }
-
+    /**
+     * Right pad a string up to size using a space.
+     * <p>
+     * Please note that the size may be restricted to prevent memory attacks.
+     *
+     * @param value string
+     * @param size  max padding
+     * @return padded string
+     */
     public static String rpad(String value, int size) {
         return rpad(value, size, " ");
     }
 
+    /**
+     * Right pad a string up to size using the given pad string.
+     * <p>
+     * Please note that the size may be restricted to prevent memory attacks.
+     *
+     * @param value string
+     * @param size  max padding
+     * @param pad   the padding string
+     * @return padded string
+     */
     public static String rpad(String value, int size, String pad) {
         return CoreStrings.rightPad(value, restrictPadSize(size, pad), pad);
     }
 
+    /**
+     * Right trim a string.
+     *
+     * @param value string
+     * @return trimmed string
+     */
     public static String rtrim(String value) {
         return CoreStrings.rtrim(value);
     }
 
+    /**
+     * Split a string into a list.
+     *
+     * @param value     string
+     * @param separator value separator
+     * @return list
+     */
     public static List<String> split(String value, Object separator) {
         if (value == null) {
             return Collections.emptyList();
@@ -227,6 +339,13 @@ public class StringFunctions {
         return Collections.singletonList(value);
     }
 
+    /**
+     * Determine if the string starts with the search string.
+     *
+     * @param value  string
+     * @param search search string
+     * @return true if starts with, otherwise false
+     */
     public static boolean startsWith(String value, String search) {
         if (value == null || search == null) {
             return false;
@@ -235,14 +354,35 @@ public class StringFunctions {
         return value.startsWith(search);
     }
 
+    /**
+     * Trim a string.
+     *
+     * @param value string
+     * @return trimmed string
+     */
     public static String trim(String value) {
         return CoreStrings.trim(value);
     }
 
+    /**
+     * Truncate a string longer than maxSize
+     *
+     * @param value   a string
+     * @param maxSize max string size
+     * @return truncated string
+     */
     public static String truncate(String value, Number maxSize) {
         return truncate(value, maxSize, "");
     }
 
+    /**
+     * Truncate a string long than maxSize appending the given value if longer than maxSize.
+     *
+     * @param value   a string
+     * @param maxSize max string size
+     * @param append  string to append if greater than max size
+     * @return truncated string
+     */
     public static String truncate(String value, Number maxSize, String append) {
         if (value == null) {
             return null;
@@ -261,8 +401,28 @@ public class StringFunctions {
         return value.substring(0, maxSizeInt) + append;
     }
 
+    /**
+     * Uppercase a string
+     *
+     * @param value string
+     * @return uppercased string
+     */
     @SquigglyFunctionMethod(aliases = {"uppercase"})
     public static String upper(String value) {
         return CoreStrings.upper(value);
+    }
+
+    private static int restrictPadSize(int size, String pad) {
+        int maxSize = MAX_PAD_MEMORY / (CoreObjects.firstNonNull(pad, "").length() * 2);
+        return Math.min(size, maxSize);
+    }
+
+    private static int restrictRepeatSize(String repeat, int size) {
+        if (size == 1) {
+            return size;
+        }
+
+        int maxSize = MAX_REPEAT_MEMORY / (CoreObjects.firstNonNull(repeat, "").length() * 2);
+        return Math.max(1, Math.min(size, maxSize));
     }
 }

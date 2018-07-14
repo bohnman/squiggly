@@ -4,12 +4,20 @@ import com.github.bohnman.core.lang.CoreStrings;
 
 import java.util.regex.Pattern;
 
+/**
+ * Represents a wildcard match.  For example: foo*
+ */
 public class WildcardName implements SquigglyName {
 
     private final String name;
     private final String rawName;
     private final Pattern pattern;
 
+    /**
+     * Constructor.
+     *
+     * @param name wildcard string
+     */
     public WildcardName(String name) {
         this.name = name;
         this.rawName = CoreStrings.remove(this.name, "*");

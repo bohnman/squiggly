@@ -19,14 +19,28 @@ import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
 
+/**
+ * Main class containing the logic for matching functions.
+ */
 public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, FunctionMatchResult> {
 
     private final SquigglyConversionService conversionService;
 
+    /**
+     * Constructor.
+     *
+     * @param conversionService conversion service
+     */
     public SquigglyFunctionMatcher(SquigglyConversionService conversionService) {
         this.conversionService = CoreAssert.notNull(conversionService);
     }
 
+    /**
+     * Perform the matching.
+     *
+     * @param request request
+     * @return result
+     */
     @Override
     public FunctionMatchResult apply(FunctionMatchRequest request) {
         List<SquigglyFunction<Object>> functions = filterForNumberOfArguments(request);

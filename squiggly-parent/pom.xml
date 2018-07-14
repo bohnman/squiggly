@@ -21,7 +21,7 @@
         <jackson.version>2.6.4</jackson.version>
         <joda-time.version>2.9.9</joda-time.version>
         <junit.version>4.12</junit.version>
-        <kotlin.version>1.2.10</kotlin.version>
+        <kotlin.version>1.2.51</kotlin.version>
         <generated.sources.directory>${project.basedir}/src/generated/java</generated.sources.directory>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>

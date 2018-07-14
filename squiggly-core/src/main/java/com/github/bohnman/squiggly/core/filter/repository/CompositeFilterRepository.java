@@ -5,14 +5,26 @@ import java.util.Arrays;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
+/**
+ * A filter repository that finds the first repository containing the filter name.
+ */
 public class CompositeFilterRepository implements SquigglyFilterRepository {
 
     private final Iterable<SquigglyFilterRepository> repositories;
 
+    /**
+     * Constructor.
+     *
+     * @param repositories the filter repositories to use
+     */
     public CompositeFilterRepository(SquigglyFilterRepository... repositories) {
         this(Arrays.asList(repositories));
     }
-
+    /**
+     * Constructor.
+     *
+     * @param repositories the filter repositories to use
+     */
     public CompositeFilterRepository(Iterable<SquigglyFilterRepository> repositories) {
         this.repositories = notNull(repositories);
     }

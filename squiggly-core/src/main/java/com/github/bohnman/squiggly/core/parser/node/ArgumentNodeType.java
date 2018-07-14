@@ -1,5 +1,8 @@
-package com.github.bohnman.squiggly.core.parser;
+package com.github.bohnman.squiggly.core.parser.node;
 
+/**
+ * Indicates what the an argument represents.
+ */
 public enum ArgumentNodeType {
     ARRAY_DECLARATION,
     BOOLEAN,

@@ -15,11 +15,23 @@ import static com.github.bohnman.core.lang.CoreAssert.isTrue;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
+/**
+ * Function utility methods.
+ */
 public class SquigglyFunctions {
 
     private SquigglyFunctions() {
     }
 
+    /**
+     * Create a function.
+     *
+     * @param name       function name
+     * @param returnType return type class
+     * @param function   java function
+     * @param <T>        return type
+     * @return squiggly function
+     */
     public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionExecutionRequest, T> function) {
         return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionExecutionRequest.class).build())) {
             @Override
@@ -29,6 +41,16 @@ public class SquigglyFunctions {
         };
     }
 
+    /**
+     * Create a function.
+     *
+     * @param name       function name
+     * @param returnType return type class
+     * @param function   java function
+     * @param aliases    function aliases
+     * @param <T>        return type
+     * @return squiggly function
+     */
     public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionExecutionRequest, T> function, String... aliases) {
         return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionExecutionRequest.class).build()), aliases) {
 
@@ -39,6 +61,16 @@ public class SquigglyFunctions {
         };
     }
 
+    /**
+     * Create a function.
+     *
+     * @param name       function name
+     * @param returnType return type class
+     * @param function   java function
+     * @param aliases    function aliases
+     * @param <T>        return type
+     * @return squiggly function
+     */
     public static <T> SquigglyFunction<T> create(String name, Class<T> returnType, Function<FunctionExecutionRequest, T> function, Iterable<String> aliases) {
         return new AbstractSquigglyFunction<T>(name, returnType, Collections.singletonList(SquigglyParameter.builder(FunctionExecutionRequest.class).build()), aliases) {
             @Override
@@ -48,35 +80,97 @@ public class SquigglyFunctions {
         };
     }
 
+    /**
+     * Create a function from a method.
+     *
+     * @param method java method
+     * @return squiggly function
+     */
     public static SquigglyFunction<?> create(Method method) {
         return create(method, null, (Iterable<String>) null);
     }
 
 
+    /**
+     * Create a function from a method.
+     *
+     * @param method java method
+     * @param name function name
+     * @return squiggly function
+     */
     public static SquigglyFunction<?> create(Method method, String name) {
         return create(method, name, (Iterable<String>) null);
     }
 
+    /**
+     * Create a function from a method.
+     *
+     * @param method java method
+     * @param name function name
+     * @param aliases function aliases
+     * @return squiggly function
+     */
     public static SquigglyFunction<?> create(Method method, String name, String... aliases) {
         return create(method, name, Arrays.asList(aliases));
     }
 
+    /**
+     * Create a function from a method.
+     *
+     * @param method java method
+     * @param name function name
+     * @param aliases function aliases
+     * @return squiggly function
+     */
     public static SquigglyFunction<?> create(Method method, @Nullable String name, @Nullable Iterable<String> aliases) {
         return create(method, method.getDeclaringClass(), name, aliases);
     }
 
+    /**
+     * Create a function from a method.
+     *
+     * @param method java method
+     * @param owner method owner
+     * @return squiggly function
+     */
     public static SquigglyFunction<?> create(Method method, Object owner) {
         return create(method, owner, null);
     }
 
+    /**
+     * Create a function from a method.
+     *
+     * @param method java method
+     * @param owner method owner
+     * @param name function name
+     * @return squiggly function
+     */
     public static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name) {
         return create(method, owner, name, (Iterable<String>) null);
     }
 
+    /**
+     * Create a function from a method.
+     *
+     * @param method java method
+     * @param owner method owner
+     * @param name function name
+     * @param aliases function aliases
+     * @return squiggly function
+     */
     public static SquigglyFunction<?> create(Method method, Object owner, String name, String... aliases) {
         return create(method, owner, name, Arrays.asList(aliases));
     }
 
+    /**
+     * Create a function from a method.
+     *
+     * @param method java method
+     * @param owner method owner
+     * @param name function name
+     * @param aliases function aliases
+     * @return squiggly function
+     */
     public static SquigglyFunction<?> create(Method method, Object owner, @Nullable String name, @Nullable Iterable<String> aliases) {
         Class<?> ownerClass = (owner instanceof Class) ? (Class) owner : owner.getClass();
         return create(method, owner, name, aliases, ownerClass.getAnnotation(SquigglyFunctionClass.class));

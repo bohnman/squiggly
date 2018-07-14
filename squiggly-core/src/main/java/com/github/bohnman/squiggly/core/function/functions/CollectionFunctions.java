@@ -22,6 +22,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+/**
+ * Collection-type functions.
+ */
 @SuppressWarnings("unchecked")
 public class CollectionFunctions {
 
@@ -31,6 +34,13 @@ public class CollectionFunctions {
     private CollectionFunctions() {
     }
 
+    /**
+     * Returns true if lambda returns true for all items in value, otherwise false.
+     *
+     * @param value  collection-like value
+     * @param lambda the test logic
+     * @return true/false
+     */
     @SquigglyFunctionMethod(aliases = "every")
     public static boolean all(Object value, CoreLambda lambda) {
         if (lambda == null) {
@@ -52,6 +62,13 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Returns true if lambda returns true for any items in value, otherwise false.
+     *
+     * @param value  collection-like value
+     * @param lambda the test logic
+     * @return true/false
+     */
     @SquigglyFunctionMethod(aliases = "some")
     public static boolean any(Object value, CoreLambda lambda) {
         if (lambda == null) {
@@ -73,11 +90,24 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Returns the mean of the items in value.
+     *
+     * @param value collection-like value
+     * @return average
+     */
     @SquigglyFunctionMethod(aliases = {"average", "mean"})
     public static Number avg(Object value) {
         return avgBy(value, CoreLambda.identity());
     }
 
+    /**
+     * Returns the mean of the items in value.  The lambda param is used as a mapper function to retrieve the number.
+     *
+     * @param value  collection-like value
+     * @param lambda the test logic
+     * @return average
+     */
     @SquigglyFunctionMethod(aliases = {"averageBy", "meanBy"})
     public static Number avgBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Number>() {
@@ -97,6 +127,13 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Partition a collection into chunks of size.
+     *
+     * @param value collection like object
+     * @param size  number of chunks
+     * @return collection
+     */
     @SquigglyFunctionMethod(aliases = {"partition"})
     public static Object chunk(Object value, Number size) {
         int chunkSize = size == null ? 0 : Math.max(0, size.intValue());
@@ -144,6 +181,13 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Partition a collection into chunks using lambda as a grouping function.
+     *
+     * @param value  collection like object
+     * @param lambda lambda used to group the function
+     * @return collection
+     */
     @SquigglyFunctionMethod(aliases = {"partitionBy"})
     public static Object chunkBy(Object value, CoreLambda lambda) {
 
@@ -168,6 +212,13 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Count the number of items in value using lambda as a predicate.
+     *
+     * @param value  collection like value
+     * @param lambda predicate function
+     * @return count
+     */
     public static Number countBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Number>() {
             @Override
@@ -185,11 +236,25 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Return the items in value1 and that are not in value2 and vice versa.
+     *
+     * @param value1 collection 1
+     * @param value2 collection 2
+     * @return items
+     */
     @SquigglyFunctionMethod(aliases = {"diff"})
     public static Object difference(Object value1, Object value2) {
         return differenceBy(value1, value2, CoreLambda.identity());
     }
 
+    /**
+     * Return the items in value1 and that are not in value2 and vice versa, using lambda as a mapping function.
+     *
+     * @param value1 collection 1
+     * @param value2 collection 2
+     * @return items
+     */
     @SquigglyFunctionMethod(aliases = {"diffBy"})
     public static Object differenceBy(Object value1, Object value2, CoreLambda lambda) {
 
@@ -219,34 +284,48 @@ public class CollectionFunctions {
                 .mapToObj(wrapper1::get));
     }
 
-    public static Object filter(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
+    /**
+     * Retain all items in value using lambda as a predicate.
+     *
+     * @param value  collection like object
+     * @param lambda predicate
+     * @return collection
+     */
+    public static Object filter(Object value, CoreLambda lambda) {
+        if (lambda == null) {
             return Collections.emptyList();
         }
 
-        return new CollectionReturningValueHandler(coreLambda) {
+        return new CollectionReturningValueHandler(lambda) {
 
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .filter(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
                         .mapToObj(wrapper::get);
             }
 
         }.handle(value);
     }
 
-    public static Object findFirst(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
+    /**
+     * Find the first item in value matching the lambda predicate or null if not found.
+     *
+     * @param value  collection like object
+     * @param lambda lambda predicate
+     * @return found item or null
+     */
+    public static Object findFirst(Object value, CoreLambda lambda) {
+        if (lambda == null) {
             return null;
         }
 
-        return new BaseStreamingCollectionValueHandler<Object>(coreLambda) {
+        return new BaseStreamingCollectionValueHandler<Object>(lambda) {
 
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .filter(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
                         .mapToObj(wrapper::get);
             }
 
@@ -257,17 +336,24 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static int findIndex(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
+    /**
+     * Find the index of the first item in value matching the lambda predicate or -1 if not found.
+     *
+     * @param value  collection like object
+     * @param lambda lambda predicate
+     * @return found index or -1
+     */
+    public static int findIndex(Object value, CoreLambda lambda) {
+        if (lambda == null) {
             return -1;
         }
 
-        return new BaseStreamingCollectionValueHandler<Integer>(coreLambda) {
+        return new BaseStreamingCollectionValueHandler<Integer>(lambda) {
 
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .filter(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
                         .mapToObj(i -> i);
             }
 
@@ -278,17 +364,24 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static Object findLast(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
+    /**
+     * Find the last item in value matching the lambda predicate or null if not found
+     *
+     * @param value  collection like object
+     * @param lambda lambda predicate
+     * @return found item or null
+     */
+    public static Object findLast(Object value, CoreLambda lambda) {
+        if (lambda == null) {
             return null;
         }
 
-        return new BaseStreamingCollectionValueHandler<Object>(coreLambda) {
+        return new BaseStreamingCollectionValueHandler<Object>(lambda) {
 
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .filter(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
                         .mapToObj(wrapper::get);
             }
 
@@ -300,17 +393,24 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static int findLastIndex(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
+    /**
+     * Find the index of the last item in value matching the lambda predicate or -1 if not found.
+     *
+     * @param value  collection like object
+     * @param lambda lambda predicate
+     * @return found index or -1
+     */
+    public static int findLastIndex(Object value, CoreLambda lambda) {
+        if (lambda == null) {
             return -1;
         }
 
-        return new BaseStreamingCollectionValueHandler<Integer>(coreLambda) {
+        return new BaseStreamingCollectionValueHandler<Integer>(lambda) {
 
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .filter(i -> CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .filter(i -> CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
                         .mapToObj(i -> i);
             }
 
@@ -322,6 +422,12 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Return the first item in the collection or null if empty.
+     *
+     * @param value collection type object
+     * @return item or null
+     */
     @SquigglyFunctionMethod(aliases = "head")
     public static Object first(Object value) {
         return new ValueHandler<Object>() {
@@ -348,8 +454,15 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static Object flatMap(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
+    /**
+     * Take a collection of collections and convert it to a collection of items, using lambda as a mapper function.
+     *
+     * @param value  collection like object
+     * @param lambda lambda mapper
+     * @return flattened collection
+     */
+    public static Object flatMap(Object value, CoreLambda lambda) {
+        if (lambda == null) {
             return Collections.emptyList();
         }
 
@@ -357,20 +470,44 @@ public class CollectionFunctions {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> coreLambda.invoke(wrapper.get(i), i, wrapper.getValue()))
+                        .mapToObj(i -> lambda.invoke(wrapper.get(i), i, wrapper.getValue()))
                         .flatMap(result -> CoreIterables.wrap(result).stream());
             }
         }.handle(value);
     }
 
+    /**
+     * Group by items in value by the value returned by keyFunction.
+     *
+     * @param value       collection-like object
+     * @param keyFunction key mapper
+     * @return map
+     */
     public static Map groupBy(Object value, CoreLambda keyFunction) {
         return groupBy(value, keyFunction, CoreLambda.identity());
     }
 
+    /**
+     * Group by items in value by the value returned by keyFunction, converting values using valueFunction.
+     *
+     * @param value         collection-like object
+     * @param keyFunction   key mapper
+     * @param valueFunction value converter
+     * @return map
+     */
     public static Map groupBy(Object value, CoreLambda keyFunction, CoreLambda valueFunction) {
         return groupBy(value, keyFunction, valueFunction, CoreLambda.identity());
     }
 
+    /**
+     * Group by items in value by the value returned by keyFunction, converting values using valueFunction.
+     *
+     * @param value         collection-like object
+     * @param keyFunction   key mapper
+     * @param valueFunction value converter
+     * @param finisher      function to apply on the collection for each entry
+     * @return map
+     */
     public static Map groupBy(Object value, CoreLambda keyFunction, CoreLambda valueFunction, CoreLambda finisher) {
         return new BaseStreamingCollectionValueHandler<Map>() {
             @Override
@@ -393,6 +530,13 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Determines if value is in collection.
+     *
+     * @param value      any
+     * @param collection collection-like object
+     * @return true if contains
+     */
     public static boolean in(Object value, Object collection) {
         return new BaseStreamingCollectionValueHandler<Boolean>(collection) {
             @Override
@@ -407,6 +551,13 @@ public class CollectionFunctions {
         }.handle(collection);
     }
 
+    /**
+     * Determines if value is in collection.
+     *
+     * @param value      any
+     * @param candidates candidate objects
+     * @return true if contains
+     */
     public static boolean in(Object value, Object... candidates) {
         for (Object candidate : candidates) {
             if (CoreObjects.equals(value, candidate)) {
@@ -421,6 +572,14 @@ public class CollectionFunctions {
         return intersectionBy(value1, value2, CoreLambda.identity());
     }
 
+    /**
+     * Return all items contained in both value1 and value2 using lambda as a mapper.
+     *
+     * @param value1 collection-like object
+     * @param value2 collection-like object
+     * @param lambda mapper function
+     * @return collection
+     */
     public static Object intersectionBy(Object value1, Object value2, CoreLambda lambda) {
 
         CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
@@ -449,10 +608,25 @@ public class CollectionFunctions {
                 .mapToObj(wrapper1::get));
     }
 
+    /**
+     * Create a map using keyFunction to extract the key and whose value is the last item matched on that key.
+     *
+     * @param value       collection-like object
+     * @param keyFunction key mapper
+     * @return map
+     */
     public static Map keyBy(Object value, CoreLambda keyFunction) {
         return keyBy(value, keyFunction, CoreLambda.identity());
     }
 
+    /**
+     * Create a map using keyFunction to extract the key and whose value is the last item matched on that key, applying
+     * the valueMapper to convert the entry value.
+     *
+     * @param value       collection-like object
+     * @param keyFunction key mapper
+     * @return map
+     */
     public static Map keyBy(Object value, CoreLambda keyFunction, CoreLambda valueFunction) {
         return new BaseStreamingCollectionValueHandler<Map>() {
             @Override
@@ -469,6 +643,12 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Return the first item in the collection or null if empty.
+     *
+     * @param value collection type object
+     * @return item or null
+     */
     @SquigglyFunctionMethod(aliases = "tail")
     public static Object last(Object value) {
         return new ValueHandler<Object>() {
@@ -495,12 +675,15 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static void main(String[] args) {
-        System.out.println(Arrays.toString(range(0, -5)));
-    }
-
-    public static Object map(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
+    /**
+     * Convert the items in the collection using lambda as a mapper function.
+     *
+     * @param value  collection-like object
+     * @param lambda mapper function
+     * @return collection
+     */
+    public static Object map(Object value, CoreLambda lambda) {
+        if (lambda == null) {
             return Collections.emptyList();
         }
 
@@ -508,15 +691,27 @@ public class CollectionFunctions {
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> coreLambda.invoke(wrapper.get(i), i, wrapper.getValue()));
+                        .mapToObj(i -> lambda.invoke(wrapper.get(i), i, wrapper.getValue()));
             }
         }.handle(value);
     }
 
+    /**
+     * Return the max item in value or null if collection is empty.
+     *
+     * @param value collection-like object
+     * @return max or null
+     */
     public static Object max(Object value) {
         return maxBy(value, CoreLambda.identity());
     }
 
+    /**
+     * Return the max item in value or null if collection is empty, using the lambda as a mapper function
+     *
+     * @param value collection-like object
+     * @return max or null
+     */
     public static Object maxBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Object>() {
             @SuppressWarnings("RedundantCast")
@@ -538,29 +733,22 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-
-    public static Object maxWith(Object value, CoreLambda lambda) {
-        return new BaseStreamingCollectionValueHandler<Object>() {
-            @SuppressWarnings("RedundantCast")
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> CorePair.of(wrapper.get(i), lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
-                        .sorted((o1, o2) -> -1 * CoreObjects.compare(o1.getRight(), o2.getRight(), -1))
-                        .map(CorePair::getLeft);
-            }
-
-            @Override
-            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.findFirst().orElse(null);
-            }
-        }.handle(value);
-    }
-
+    /**
+     * Return the min item in value or null if collection is empty.
+     *
+     * @param value collection-like object
+     * @return min or null
+     */
     public static Object min(Object value) {
         return minBy(value, CoreLambda.identity());
     }
 
+    /**
+     * Return the min item in value or null if collection is empty, using the lambda as a mapper function
+     *
+     * @param value collection-like object
+     * @return min or null
+     */
     public static Object minBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Object>() {
             @SuppressWarnings({"RedundantCast", "ComparatorCombinators"})
@@ -582,24 +770,13 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static Object minWith(Object value, CoreLambda lambda) {
-        return new BaseStreamingCollectionValueHandler<Object>() {
-            @SuppressWarnings({"RedundantCast", "ComparatorCombinators"})
-            @Override
-            protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return IntStream.range(0, wrapper.size())
-                        .mapToObj(i -> CorePair.of(wrapper.get(i), lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
-                        .sorted((o1, o2) -> CoreObjects.compare(o1.getRight(), o2.getRight(), -1))
-                        .map(CorePair::getLeft);
-            }
-
-            @Override
-            protected Object handleStream(CoreIndexedIterableWrapper<Object, ?> wrapper, Stream<Object> stream) {
-                return stream.findFirst().orElse(null);
-            }
-        }.handle(value);
-    }
-
+    /**
+     * Return true if no items in value match the lambda predicate.
+     *
+     * @param value  collection-like object
+     * @param lambda lambda predicate
+     * @return true if no item matches
+     */
     public static boolean none(Object value, CoreLambda lambda) {
         if (lambda == null) {
             return false;
@@ -620,25 +797,59 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Create a range of integers constrained by range.
+     *
+     * @param range core int range
+     * @return range of int
+     */
     public static int[] range(CoreIntRange range) {
         CoreIntRange exclusive = range.toExclusive();
         return range(exclusive.getStart(), exclusive.getEnd());
     }
 
+    /**
+     * Create a range of integers constrained by range, using step is an increment value.
+     *
+     * @param range core int range
+     * @param step  number to increment by
+     * @return range of int
+     */
     public static int[] range(CoreIntRange range, Number step) {
         CoreIntRange exclusive = range.toExclusive();
         return range(exclusive.getStart(), exclusive.getEnd(), step);
     }
 
+    /**
+     * Create a range of integers constrained starting with 0 and ending with end - 1.
+     *
+     * @param end the end number exclusive
+     * @return range of int
+     */
     public static int[] range(Number end) {
         return range(0, end);
     }
 
+    /**
+     * Create a range of integers constrained starting with start and ending with end - 1.
+     *
+     * @param start the start number inclusive
+     * @param end   the end number exclusive
+     * @return range of int
+     */
     public static int[] range(Number start, Number end) {
         Number step = (start != null && end != null && start.intValue() > end.intValue()) ? -1 : 1;
         return range(start, end, step);
     }
 
+    /**
+     * Create a range of integers constrained starting with start and ending with end - 1, incrementing by step.
+     *
+     * @param start the start number inclusive
+     * @param end   the end number exclusive
+     * @param step  the number to increment by
+     * @return range of int
+     */
     public static int[] range(Number start, Number end, Number step) {
         if (end == null || step == null) {
             return new int[0];
@@ -669,12 +880,20 @@ public class CollectionFunctions {
         return range;
     }
 
-    public static Object reduce(Object value, Object initialValue, CoreLambda coreLambda) {
-        if (coreLambda == null) {
+    /**
+     * Convert the items in value into a single item, using an initial value and a reducer function.
+     *
+     * @param value        collection-like value
+     * @param initialValue initial value
+     * @param lambda       reducer function
+     * @return item or null
+     */
+    public static Object reduce(Object value, Object initialValue, CoreLambda lambda) {
+        if (lambda == null) {
             return initialValue;
         }
 
-        return new BaseCollectionValueHandler<Object>(coreLambda) {
+        return new BaseCollectionValueHandler<Object>(lambda) {
             @Override
             protected Object handleNull() {
                 return initialValue;
@@ -689,7 +908,7 @@ public class CollectionFunctions {
                 Object accumulator = initialValue;
 
                 for (int i = 0; i < wrapper.size(); i++) {
-                    accumulator = coreLambda.invoke(accumulator, wrapper.get(i), i, wrapper.getValue());
+                    accumulator = lambda.invoke(accumulator, wrapper.get(i), i, wrapper.getValue());
                 }
 
                 return accumulator;
@@ -697,27 +916,47 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-    public static Object reject(Object value, CoreLambda coreLambda) {
-        if (coreLambda == null) {
+    /**
+     * Retrieve all items in value that doesn't match lambda.
+     *
+     * @param value  collection-like object
+     * @param lambda predicate function
+     * @return items not matching predicate
+     */
+    public static Object reject(Object value, CoreLambda lambda) {
+        if (lambda == null) {
             return Collections.emptyList();
         }
 
-        return new CollectionReturningValueHandler(coreLambda) {
+        return new CollectionReturningValueHandler(lambda) {
 
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
-                        .filter(i -> !CoreConversions.toBoolean(coreLambda.invoke(wrapper.get(i), i, wrapper.getValue())))
+                        .filter(i -> !CoreConversions.toBoolean(lambda.invoke(wrapper.get(i), i, wrapper.getValue())))
                         .mapToObj(wrapper::get);
             }
 
         }.handle(value);
     }
 
+    /**
+     * Sum the items in value.
+     *
+     * @param value collection-like object
+     * @return sum
+     */
     public static Number sum(Object value) {
         return sumBy(value, CoreLambda.identity());
     }
 
+    /**
+     * Sum the items in value using lambda as a mapping function.
+     *
+     * @param value  collection-like object
+     * @param lambda mapping function
+     * @return sum
+     */
     public static Number sumBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Number>() {
             @Override
@@ -736,6 +975,12 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Convert the value to an array.
+     *
+     * @param value collection-like object
+     * @return array
+     */
     public static Object[] toArray(Object value) {
         return new ValueHandler<Object[]>() {
             @Override
@@ -760,7 +1005,12 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
-
+    /**
+     * Convert value to a list.
+     *
+     * @param value collection-like object
+     * @return list
+     */
     public static List<Object> toList(Object value) {
         return new ValueHandler<List<Object>>() {
             @Override
@@ -785,6 +1035,12 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Convert the value to a map.
+     *
+     * @param value collection-like object
+     * @return map
+     */
     public static Map<?, ?> toMap(Object value) {
         return new ValueHandler<Map<?, ?>>() {
             @Override
@@ -818,10 +1074,25 @@ public class CollectionFunctions {
         }.handle(value);
     }
 
+    /**
+     * Return all items in value1 and value2, removing duplicates.
+     *
+     * @param value1 collection-like object
+     * @param value2 collection-like object
+     * @return unition
+     */
     public static Object union(Object value1, Object value2) {
         return unionBy(value1, value2, CoreLambda.identity());
     }
 
+    /**
+     * Return all items in value1 and value2, removing duplicates using lambda as a mapper function.
+     *
+     * @param value1 collection-like object
+     * @param value2 collection-like object
+     * @param lambda mapper function
+     * @return unition
+     */
     public static Object unionBy(Object value1, Object value2, CoreLambda lambda) {
 
         CoreIndexedIterableWrapper<Object, ?> wrapper1 = new BaseCollectionValueHandler<CoreIndexedIterableWrapper<Object, ?>>() {
@@ -854,11 +1125,24 @@ public class CollectionFunctions {
                 .mapToObj(i -> i >= wrapper1.size() ? wrapper2.get(i - wrapper1.size()) : wrapper1.get(i)));
     }
 
+    /**
+     * Retrive all the unique items in value.
+     *
+     * @param value collection-like object
+     * @return unique items
+     */
     @SquigglyFunctionMethod(aliases = {"distinct", "uniq"})
     public static Object unique(Object value) {
         return uniqueBy(value, CoreLambda.identity());
     }
 
+    /**
+     * Retrive all the unique items in value, using lambda as a mapper function.
+     *
+     * @param value collection-like object
+     * @param lambda mapper function
+     * @return unique items
+     */
     @SquigglyFunctionMethod(aliases = {"distinctBy", "uniqBy"})
     public static Object uniqueBy(Object value, CoreLambda lambda) {
         return new CollectionReturningValueHandler() {

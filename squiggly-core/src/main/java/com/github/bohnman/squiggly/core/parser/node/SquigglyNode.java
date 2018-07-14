@@ -1,6 +1,7 @@
-package com.github.bohnman.squiggly.core.parser;
+package com.github.bohnman.squiggly.core.parser.node;
 
 import com.github.bohnman.squiggly.core.name.*;
+import com.github.bohnman.squiggly.core.parser.ParseContext;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collections;

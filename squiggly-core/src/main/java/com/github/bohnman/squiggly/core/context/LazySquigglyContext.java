@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.core.context;
 
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
-import com.github.bohnman.squiggly.core.parser.SquigglyNode;
+import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -22,6 +22,13 @@ public class LazySquigglyContext implements SquigglyContext {
     @Nullable
     private SquigglyNode node;
 
+    /**
+     * Construct the context with base information.
+     *
+     * @param beanClass bean class
+     * @param squiggly squiggly configurator
+     * @param filter filter
+     */
     public LazySquigglyContext(Class beanClass, BaseSquiggly squiggly, String filter) {
         this.beanClass = notNull(beanClass);
         this.squiggly = notNull(squiggly);

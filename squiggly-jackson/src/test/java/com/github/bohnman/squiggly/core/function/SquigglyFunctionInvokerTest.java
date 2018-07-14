@@ -2,17 +2,14 @@ package com.github.bohnman.squiggly.core.function;
 
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
-import com.github.bohnman.squiggly.core.convert.DefaultConversionService;
-import com.github.bohnman.squiggly.core.convert.DefaultConverters;
-import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
-import com.github.bohnman.squiggly.core.convert.SquigglyConverterRegistry;
-import com.github.bohnman.squiggly.core.convert.joda.SquigglyConverterRegistries;
+import com.github.bohnman.squiggly.core.convert.*;
+import com.github.bohnman.squiggly.core.convert.PrimaryConversionService;
 import com.github.bohnman.squiggly.core.function.invoke.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.core.function.repository.MapFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
-import com.github.bohnman.squiggly.core.parser.ArgumentNode;
-import com.github.bohnman.squiggly.core.parser.ArgumentNodeType;
-import com.github.bohnman.squiggly.core.parser.FunctionNode;
+import com.github.bohnman.squiggly.core.parser.node.ArgumentNode;
+import com.github.bohnman.squiggly.core.parser.node.ArgumentNodeType;
+import com.github.bohnman.squiggly.core.parser.node.FunctionNode;
 import com.github.bohnman.squiggly.core.parser.ParseContext;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
@@ -28,8 +25,8 @@ public class SquigglyFunctionInvokerTest {
 
     private final SquigglyVariableResolver variableResolver = new MapVariableResolver();
     private final SquigglyConfig config = new SquigglyConfig();
-    private final SquigglyConverterRegistry converterRegistry = SquigglyConverterRegistries.create(DefaultConverters::add);
-    private final SquigglyConversionService conversionService = new DefaultConversionService(config, converterRegistry);
+    private final SquigglyConverterRegistry converterRegistry = SquigglyConverterRegistries.create(SystemConverters::add);
+    private final SquigglyConversionService conversionService = new PrimaryConversionService(config, converterRegistry);
     private final ParseContext parseContext = new ParseContext(1, 1);
 
 

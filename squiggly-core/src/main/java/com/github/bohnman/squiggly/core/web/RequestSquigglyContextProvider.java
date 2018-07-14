@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.core.web;
 
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.context.provider.AbstractSquigglyContextProvider;
+import com.github.bohnman.squiggly.core.name.AnyDeepName;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -9,17 +10,36 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Custom context provider that gets the filter expression from the request.
+ * Custom context provider that gets the filter expression from a servlet request.
  */
 public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvider {
 
     private String filterParam;
     private final String defaultFilter;
 
+    /**
+     * Constructor that looks for the filter using a the "filter" query string parameters.  This constructor does not
+     * use a default filter.
+     */
     public RequestSquigglyContextProvider() {
         this("fields", null);
     }
 
+    /**
+     * Initialize with a given filter query string parameter.
+     *
+     * @param filterParam query string param name
+     */
+    public RequestSquigglyContextProvider(String filterParam) {
+        this(filterParam, null);
+    }
+
+    /**
+     * Initialize with a given filter query string parameter and a default filter.
+     *
+     * @param filterParam   query string param name
+     * @param defaultFilter default filter if no query string parameter is specified
+     */
     public RequestSquigglyContextProvider(String filterParam, @Nullable String defaultFilter) {
         this.filterParam = filterParam;
         this.defaultFilter = defaultFilter;
@@ -58,7 +78,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
 
         String filter = getFilter(request);
 
-        if ("**".equals(filter)) {
+        if (AnyDeepName.ID.equals(filter)) {
             return false;
         }
 
@@ -66,7 +86,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
             return true;
         }
 
-        if ("**".equals(defaultFilter)) {
+        if (AnyDeepName.ID.equals(defaultFilter)) {
             return false;
         }
 
@@ -76,6 +96,39 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
 
         return false;
     }
+
+    /**
+     * Hook method to get the filter from the request.  By default, this look for a query string parameter.
+     *
+     * @param request the request
+     * @return filter
+     */
+    protected String getFilter(HttpServletRequest request) {
+        return request.getParameter(filterParam);
+    }
+
+    /**
+     * Hook method to get the servlet request.  By default, this uses a thread local.
+     *
+     * @return request
+     * @see SquigglyRequestHolder#getRequest()
+     */
+    protected HttpServletRequest getRequest() {
+        return SquigglyRequestHolder.getRequest();
+    }
+
+    /**
+     * Hook method to change the filter.  For example, one could wrap the filter from the request in a nested filter.
+     *
+     * @param filter    filter string
+     * @param request   web request
+     * @param beanClass class of the root bean to which the filter is being applied
+     * @return customer filter
+     */
+    protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
+        return customizeFilter(filter, beanClass);
+    }
+
 
     private static class FilterCache {
         @SuppressWarnings("RedundantStringConstructorCall")
@@ -122,18 +175,4 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         }
 
     }
-
-    protected String getFilter(HttpServletRequest request) {
-        return request.getParameter(filterParam);
-    }
-
-    protected HttpServletRequest getRequest() {
-        return SquigglyRequestHolder.getRequest();
-    }
-
-    protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
-        return customizeFilter(filter, beanClass);
-    }
-
-
 }

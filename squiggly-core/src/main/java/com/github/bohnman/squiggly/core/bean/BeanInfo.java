@@ -4,6 +4,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Holds metadata about an introspected bean class.
+ */
 public class BeanInfo {
 
     private Map<String, Set<String>> viewNameToPropertiesNames;
@@ -14,6 +17,13 @@ public class BeanInfo {
         this.unwrappedProperties = unwrappedProperties;
     }
 
+    /**
+     * Get all the property names for the specified view name annotated with
+     * {@link com.github.bohnman.squiggly.core.view.PropertyView}.
+     *
+     * @param view the view name
+     * @return a set of properties.
+     */
     public Set<String> getPropertyNamesForView(String view) {
         Set<String> properties = viewNameToPropertiesNames.get(view);
 
@@ -24,6 +34,12 @@ public class BeanInfo {
         return properties;
     }
 
+    /**
+     * Indicates whether the specified property is "unwrapped".  Useful for the Jackson library.
+     *
+     * @param property property name
+     * @return true/false
+     */
     public boolean isUnwrapped(String property) {
         return unwrappedProperties.contains(property);
     }

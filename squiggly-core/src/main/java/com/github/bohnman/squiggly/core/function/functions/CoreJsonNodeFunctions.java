@@ -13,11 +13,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Functions that work with json node objects.
+ */
 public class CoreJsonNodeFunctions {
 
     private CoreJsonNodeFunctions() {
     }
 
+    /**
+     * Find all the nodes matching the predicate function.
+     *
+     * @param node   json node
+     * @param lambda predicate node
+     * @param <T>    type
+     * @return matches
+     */
     public static <T> CoreJsonNode<T> findAll(CoreJsonNode<T> node, CoreLambda lambda) {
         if (node == null) {
             return null;
@@ -47,10 +58,29 @@ public class CoreJsonNodeFunctions {
         return node.createArray(matches);
     }
 
+    /**
+     * Convert matching json nodes.
+     *
+     * @param node             the base node
+     * @param predicate        predicate function
+     * @param valueReplacement mapping function
+     * @param <T>              type
+     * @return result
+     */
     public static <T> CoreJsonNode transform(CoreJsonNode<T> node, CoreLambda predicate, CoreLambda valueReplacement) {
         return transform(node, predicate, valueReplacement, CoreLambda.identity());
     }
 
+    /**
+     * Convert matching json nodes.
+     *
+     * @param node             the base node
+     * @param predicate        predicate function
+     * @param valueReplacement mapping function
+     * @param keyReplacement   mapping function for keys if it is a hash
+     * @param <T>              type
+     * @return result
+     */
     @SuppressWarnings("unchecked")
     public static <T> CoreJsonNode transform(CoreJsonNode<T> node, CoreLambda predicate, CoreLambda valueReplacement, CoreLambda keyReplacement) {
         if (node == null) {
@@ -81,11 +111,24 @@ public class CoreJsonNodeFunctions {
         });
     }
 
-
+    /**
+     * Recursively flatten array nodes into a single array.
+     *
+     * @param node base node
+     * @param <T> type
+     * @return flattened nodes
+     */
     public static <T> CoreJsonNode<T> flatten(CoreJsonNode<T> node) {
         return flatten(node, -1);
     }
 
+    /**
+     * Recursively flatten array nodes into a single array, up to maxDepth.
+     *
+     * @param node base node
+     * @param <T> type
+     * @return flattened nodes
+     */
     public static <T> CoreJsonNode<T> flatten(CoreJsonNode<T> node, Number maxDepth) {
         if (node == null) {
             return null;

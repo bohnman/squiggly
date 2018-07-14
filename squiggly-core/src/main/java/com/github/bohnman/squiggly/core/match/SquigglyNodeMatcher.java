@@ -12,23 +12,39 @@ import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSo
 import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.parser.ParseContext;
-import com.github.bohnman.squiggly.core.parser.SquigglyNode;
+import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 
 import java.util.*;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
+/**
+ * Encapsulates the filter node matching logic.
+ */
 public class SquigglyNodeMatcher {
 
+    /**
+     * Indicate to never match the path.
+     */
     public static final SquigglyNode NEVER_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, false, false);
+
+    /**
+     * Indicate to always match the path.
+     */
     public static final SquigglyNode ALWAYS_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, false, false);
+
     private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(new SquigglyNode(new ParseContext(1, 1), new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, true, false));
 
     private final CoreCache<CorePair<CoreJsonPath, String>, SquigglyNode> matchCache;
     private final BaseSquiggly squiggly;
 
 
+    /**
+     * Constructor.
+     *
+     * @param squiggly configurator
+     */
     @SuppressWarnings("unchecked")
     public SquigglyNodeMatcher(BaseSquiggly squiggly) {
         this.squiggly = notNull(squiggly);
@@ -36,12 +52,26 @@ public class SquigglyNodeMatcher {
         squiggly.getMetrics().add(new CoreCacheSquigglyMetricsSource("squiggly.filter.pathCache.", matchCache));
     }
 
+    /**
+     * Perform the matching using a context.
+     *
+     * @param path    the path that is being matched
+     * @param context the context holding the root node
+     * @return matched node or {@link #ALWAYS_MATCH} or {@link #NEVER_MATCH}
+     */
     @SuppressWarnings("unchecked")
-
     public SquigglyNode match(CoreJsonPath path, SquigglyContext context) {
         return match(path, context.getFilter(), context.getNode());
     }
 
+    /**
+     * Perform the matching using the given node.
+     *
+     * @param path   that thst is beign matched
+     * @param filter the filter string
+     * @param node   the root node
+     * @return matched node or {@link #ALWAYS_MATCH} or {@link #NEVER_MATCH}
+     */
     public SquigglyNode match(CoreJsonPath path, String filter, SquigglyNode node) {
         if (AnyDeepName.ID.equals(filter)) {
             return ALWAYS_MATCH;

@@ -21,6 +21,10 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import javax.servlet.Filter;
 import java.util.Collection;
 
+/**
+ * Configuration used when the Servlet API exists in the project.
+ */
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
 @ConditionalOnWebApplication
 @ConditionalOnClass(Filter.class)
@@ -29,6 +33,12 @@ public class SquigglyWebAutoConfiguration {
     @Autowired(required = false)
     SquigglyFilterCustomizer filterCustomizer;
 
+    /**
+     * Register a servlet filter that sets the servlet request in a thread local.
+     *
+     * @param config squiggly config
+     * @return filter
+     */
     @Bean
     public FilterRegistrationBean squigglyRequestFilter(SquigglyConfig config) {
         FilterRegistrationBean registrationBean = new FilterRegistrationBean(new SquigglyRequestFilter());
@@ -36,6 +46,12 @@ public class SquigglyWebAutoConfiguration {
         return registrationBean;
     }
 
+    /**
+     * Register a context provider that looks for a filter in the servlet request.
+     *
+     * @param config squiggly config
+     * @return provider
+     */
     @Bean
     @ConditionalOnMissingBean
     public SquigglyContextProvider squigglyRequestContextProvider(SquigglyConfig config) {
@@ -44,11 +60,20 @@ public class SquigglyWebAutoConfiguration {
                 : SquigglyRequest.context(config.getFilterRequestParam(), filterCustomizer);
     }
 
+    /**
+     * Register an application listener.
+     *
+     * @param squiggly squiggly object
+     * @return listener
+     */
     @Bean
     public static SquigglyAutoConfiguration.SquigglyApplicationListener squigglyApplicationListener(Squiggly squiggly) {
         return new RequestSquigglyApplicationListener(squiggly);
     }
 
+    /**
+     * Application listener that sets an object mapper in the converters.
+     */
     public static class RequestSquigglyApplicationListener extends SquigglyAutoConfiguration.SquigglyApplicationListener {
         public RequestSquigglyApplicationListener(Squiggly squiggly) {
             super(squiggly);

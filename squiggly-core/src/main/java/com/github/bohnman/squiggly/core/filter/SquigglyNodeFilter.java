@@ -6,20 +6,36 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
-import com.github.bohnman.squiggly.core.parser.SquigglyNode;
+import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
 
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Base class for filtering json nodes.
+ */
 @SuppressWarnings("unchecked")
 public class SquigglyNodeFilter {
 
     private final BaseSquiggly squiggly;
 
+    /**
+     * Constructor.
+     *
+     * @param squiggly the squiggly configurator
+     */
     public SquigglyNodeFilter(BaseSquiggly squiggly) {
         this.squiggly = CoreAssert.notNull(squiggly);
     }
 
+    /**
+     * Apply the supplied filters to the node returning the filtered node.
+     *
+     * @param node    json node
+     * @param filters filters to apply
+     * @param <T>     node type
+     * @return filtered node
+     */
     public <T> CoreJsonNode<T> apply(CoreJsonNode<T> node, String... filters) {
         for (String filter : filters) {
             node = applyFilter(node, filter);
@@ -35,6 +51,11 @@ public class SquigglyNodeFilter {
         return node;
     }
 
+    /**
+     * Hook method to determine if the context filter should be applied.
+     *
+     * @return true if apply
+     */
     protected boolean appendContextFilter() {
         return CoreObjects.firstNonNull(squiggly.getConfig().getAppendContextInNodeFilter(), true);
     }

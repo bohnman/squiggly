@@ -1,5 +1,8 @@
 package com.github.bohnman.squiggly.core.name;
 
+/**
+ * Indicates that the node name matches any node at any nesting level.
+ */
 public class AnyDeepName implements SquigglyName {
 
     public static final String ID = "**";
@@ -21,6 +24,11 @@ public class AnyDeepName implements SquigglyName {
         return 0;
     }
 
+    /**
+     * Gets the singleton instance of the name.
+     *
+     * @return instance
+     */
     public static AnyDeepName get() {
         return INSTANCE;
     }

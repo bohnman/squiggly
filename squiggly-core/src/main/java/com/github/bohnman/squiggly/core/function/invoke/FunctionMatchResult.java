@@ -5,17 +5,30 @@ import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A result object returned from a function match execution.
+ */
 public class FunctionMatchResult {
     private Object input;
     private SquigglyFunction<Object> winner;
     private Score score = Score.EMPTY;
     private final List<Object> parameters;
 
+    /**
+     * Construct.
+     *
+     * @param request the request that this result was initiated from
+     */
     public FunctionMatchResult(FunctionMatchRequest request) {
         this.input = request.getInput();
         this.parameters = new ArrayList<>(request.getParameters());
     }
 
+    /**
+     * Get the input object.
+     *
+     * @return input
+     */
     public Object getInput() {
         return input;
     }
@@ -24,6 +37,11 @@ public class FunctionMatchResult {
         this.input = input;
     }
 
+    /**
+     * Get the winner or null if no winner.
+     *
+     * @return winner
+     */
     public SquigglyFunction<Object> getWinner() {
         return winner;
     }
@@ -32,10 +50,20 @@ public class FunctionMatchResult {
         this.winner = winner;
     }
 
+    /**
+     * Get the parameters to apply.
+     *
+     * @return params
+     */
     public List<Object> getParameters() {
         return parameters;
     }
 
+    /**
+     * Get the score of the match.
+     *
+     * @return score
+     */
     public Score getScore() {
         return score;
     }
@@ -44,7 +72,14 @@ public class FunctionMatchResult {
         this.score = score;
     }
 
+    /**
+     * A score helps pick the best match.
+     */
     public static class Score implements Comparable<Score> {
+
+        /**
+         * Indicate no score.
+         */
         public static final Score EMPTY = new Score();
 
         private int assignable;
@@ -54,32 +89,65 @@ public class FunctionMatchResult {
         private int undefined;
         private int undefinedDistance;
 
+        /**
+         * Indicate an exact match.
+         *
+         * @return score
+         */
         public Score exact() {
             return assignable(0);
         }
 
+        /**
+         * Indicate a match where the source type was assignable to the target type.
+         *
+         * @param distance hierarchy distance between the source and target type
+         * @return score
+         */
         public Score assignable(int distance) {
             this.assignable++;
             this.assignableDistance += distance;
             return this;
         }
 
+        /**
+         * Indicate a match where the source type could be converted to the target type.
+         *
+         * @param distance number of conversions taken to get to the target type
+         * @return score.
+         */
         public Score convertible(int distance) {
             this.convertible++;
             this.convertibleDistance += distance;
             return this;
         }
 
+        /**
+         * Indicate a match where the source is null.
+         *
+         * @param distance hierchary distance between the target type and Object
+         * @return score
+         */
         public Score undefined(int distance) {
             this.undefined++;
             this.undefinedDistance += distance;
             return this;
         }
 
+        /**
+         * Returns true if there are no assignable, convertible, or undefined matches.
+         *
+         * @return empty
+         */
         public boolean isEmpty() {
             return (assignable + convertible + undefined) == 0;
         }
 
+        /**
+         * Returns true if there is a least 1 assignable, convertible, or undefined match.
+         *
+         * @return not empty
+         */
         public boolean isNotEmpty() {
             return !isEmpty();
         }

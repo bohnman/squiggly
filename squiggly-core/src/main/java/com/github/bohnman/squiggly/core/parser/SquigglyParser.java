@@ -13,6 +13,7 @@ import com.github.bohnman.squiggly.core.name.*;
 import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionBaseVisitor;
 import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionLexer;
 import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionParser;
+import com.github.bohnman.squiggly.core.parser.node.*;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;

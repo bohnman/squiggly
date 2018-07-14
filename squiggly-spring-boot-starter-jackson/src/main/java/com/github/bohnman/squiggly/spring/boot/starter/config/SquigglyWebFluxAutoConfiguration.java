@@ -38,6 +38,10 @@ import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Configuration registered when the WebFlux api is in the project.
+ */
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
 @ConditionalOnWebApplication
 @ConditionalOnClass(DispatcherHandler.class)
@@ -50,6 +54,11 @@ public class SquigglyWebFluxAutoConfiguration {
     @Autowired(required = false)
     SquigglyFilterCustomizer filterCustomizer;
 
+    /**
+     * Register a provier that looks for a filter in the request.
+     *
+     * @return context provider.
+     */
     @Bean
     @ConditionalOnMissingBean
     public SquigglyContextProvider squigglyRequestContextProvider() {
@@ -62,11 +71,20 @@ public class SquigglyWebFluxAutoConfiguration {
         };
     }
 
+    /**
+     * Register an application listener.
+     *
+     * @param squiggly squiggly object
+     * @return listener
+     */
     @Bean
     public static SquigglyAutoConfiguration.SquigglyApplicationListener squigglyApplicationListener(Squiggly squiggly) {
         return new RequestSquigglyApplicationListener(squiggly);
     }
 
+    /**
+     * Application listener.
+     */
     public static class RequestSquigglyApplicationListener extends SquigglyAutoConfiguration.SquigglyApplicationListener {
         public RequestSquigglyApplicationListener(Squiggly squiggly) {
             super(squiggly);
@@ -74,7 +92,10 @@ public class SquigglyWebFluxAutoConfiguration {
     }
 
 
-    @SuppressWarnings("NullableProblems")
+    /**
+     * Registers a json encoder that can use squiggly.
+     */
+    @SuppressWarnings({"NullableProblems", "SpringJavaInjectionPointsAutowiringInspection"})
     @Configuration
     public static class WebFluxConfig extends WebFluxConfigurationSupport {
 
