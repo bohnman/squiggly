@@ -25,6 +25,7 @@ public enum SystemFunctionName {
     NOT,
     NOT_EQUALS,
     NOT_MATCH,
+    PICK,
     PROPERTY,
     OR,
     SELF,

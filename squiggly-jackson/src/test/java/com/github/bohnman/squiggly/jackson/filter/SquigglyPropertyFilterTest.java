@@ -341,7 +341,7 @@ public class SquigglyPropertyFilterTest {
 
     @Test
     public void testFunction() {
-        filter("id,actions.limit(2){firstName}");
+        filter("id,actions@limit(2){firstName}");
         System.out.println(stringify());
     }
 

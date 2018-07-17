@@ -346,10 +346,6 @@ public class SquigglyParser {
 
             List<FunctionNode> functionNodes = new ArrayList<>(size);
 
-            if (context.standaloneFieldArg() != null) {
-                functionNodes.add(buildStandaloneFieldArg(context.standaloneFieldArg(), null));
-            }
-
             if (context.function() != null) {
                 functionNodes.add(buildFunction(context.function(), null, true).build());
             }
@@ -381,37 +377,7 @@ public class SquigglyParser {
                 return buildFunction(context.function(), opContext, true).build();
             }
 
-            if (context.standaloneFieldArg() != null) {
-                return buildStandaloneFieldArg(context.standaloneFieldArg(), opContext);
-            }
-
             throw new SquigglyParseException(parseContext(context), "unknown field arg chain link [%s]", context.getText());
-        }
-
-        private FunctionNode buildStandaloneFieldArg(SquigglyExpressionParser.StandaloneFieldArgContext context, SquigglyExpressionParser.AccessOperatorContext opContext) {
-            if (context.intRange() != null) {
-                SquigglyExpressionParser.IntRangeContext intRange = context.intRange();
-                return buildIntRangeFunction(intRange);
-            }
-
-            if (context.arrayAccessor() != null) {
-                SquigglyExpressionParser.ArrayAccessorContext arrayAccessorContext = context.arrayAccessor();
-                return buildArrayAccessorFunction(arrayAccessorContext);
-            }
-
-            throw new SquigglyParseException(parseContext(context), "unknown standalone field arg [%s]", context.getText());
-        }
-
-        private FunctionNode buildArrayAccessorFunction(SquigglyExpressionParser.ArrayAccessorContext arrayAccessor) {
-            String integer = CoreStrings.substring(arrayAccessor.getText(), 1, -1);
-            ArgumentNode.Builder arg = baseArg(arrayAccessor, ArgumentNodeType.INTEGER).value(Integer.parseInt(integer));
-
-            return FunctionNode.builder()
-                    .context(parseContext(arrayAccessor))
-                    .name(SystemFunctionName.GET.getFunctionName())
-                    .argument(baseArg(arrayAccessor, ArgumentNodeType.INPUT).value(ArgumentNodeType.INPUT))
-                    .argument(arg)
-                    .build();
         }
 
         private FunctionNode.Builder buildFunction(SquigglyExpressionParser.ArgChainLinkContext context, boolean input) {
@@ -447,9 +413,6 @@ public class SquigglyParser {
             } else if (context.intRange() != null) {
                 value = Collections.singletonList(buildIntRangeFunction(context.intRange()));
                 type = ArgumentNodeType.FUNCTION_CHAIN;
-            } else if (context.arrayAccessor() != null) {
-                value = Collections.singletonList(buildArrayAccessorFunction(context.arrayAccessor()));
-                type = ArgumentNodeType.FUNCTION_CHAIN;
             } else {
                 throw new SquigglyParseException(parseContext(context), "Cannot find property name [%s]", context.getText());
             }
@@ -458,10 +421,10 @@ public class SquigglyParser {
 
             if (context.accessOperator() != null) {
                 op = context.accessOperator().getText();
-            } else if (context.BracketLeftSafe() != null) {
-                op = context.BracketLeft().getText();
-            } else if (context.BracketLeft() != null) {
-                op = context.BracketLeft().getText();
+            } else if (context.ParenLeftSafe() != null) {
+                op = context.ParenLeft().getText();
+            } else if (context.ParenLeftSafe() != null) {
+                op = context.ParenLeft().getText();
             }
 
             return buildBasePropertyFunction(context, op)
@@ -485,10 +448,9 @@ public class SquigglyParser {
                     op += context.Dot().getText();
                 }
 
-                if (context.BracketLeft() != null) {
-                    op += context.BracketLeft().getText();
+                if (context.ParenLeft() != null) {
+                    op += context.ParenLeft().getText();
                 }
-
             }
 
             if (context.Identifier() != null) {
@@ -543,11 +505,19 @@ public class SquigglyParser {
             return builder;
         }
 
-
         private FunctionNode.Builder buildBaseFunction(SquigglyExpressionParser.FunctionContext functionContext, ParseContext context) {
+            String text = functionContext.functionName().getText();
+            String name;
+
+            if (text.length() == 1) {
+                name = SystemFunctionName.PICK.getFunctionName();
+            } else {
+                name = text.substring(1).trim();
+            }
+
             return FunctionNode.builder()
                     .context(context)
-                    .name(functionContext.functionName().getText());
+                    .name(name);
         }
 
         private void applyParameters(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionContext functionContext) {

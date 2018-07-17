@@ -47,6 +47,7 @@ negatedExpression
 nestedExpression
     : SquigglyLeft expressionList? SquigglyRight
     | BracketLeft expressionList? BracketRight
+    | ParenLeft expressionList? ParenRight
     ;
 
 recursiveFieldExpression
@@ -88,8 +89,7 @@ recursiveField
     ;
 
 recursiveDepth
-    : SquigglyLeft recursiveDepthArg SquigglyRight
-    | SquigglyLeft recursiveDepthArg Colon recursiveDepth? SquigglyRight
+    : ParenLeft recursiveDepthArg? Colon recursiveDepthArg? ParenRight
     | QuestionMark
     | WildcardShallow
     ;
@@ -105,9 +105,6 @@ wildcardField
    | wildcard (Identifier wildcard)+ Identifier?
    ;
 
-wildcardDeepField
-    : WildcardDeep
-    ;
 //endregion
 
 //region Field Arguments
@@ -117,11 +114,10 @@ continuingFieldArgChain
 
 continuingFieldArgChainLink
     : accessOperator function
-    | standaloneFieldArg
     ;
 
 fieldArgChain
-    : (standaloneFieldArg | function) continuingFieldArgChain?
+    : (function) continuingFieldArgChain?
     ;
 
 keyValueFieldArgChain
@@ -129,23 +125,15 @@ keyValueFieldArgChain
     | Colon fieldArgChain
     | Colon assignment
     | assignment
+    | fieldArgChain
     | continuingFieldArgChain
     ;
 
-standaloneFieldArg
-    : intRange
-    | arrayAccessor
-    ;
 //endregion
 
-
 //region Arrays
-arrayAccessor
-    : BracketLeft (Add | Subtract)? IntegerLiteral BracketRight
-    ;
-
 arrayDeclaration
-    : BracketLeft (arg (Comma arg)*)? BracketRight
+    : At ParenLeft (arg (Comma arg)*)? ParenRight
     ;
 //endregion
 
@@ -171,8 +159,9 @@ function
     ;
 
 functionName
-    : Identifier
-    | namedSymbol
+    : At Identifier
+    | At namedSymbol
+    | At
     ;
 //endregion
 
@@ -231,7 +220,7 @@ elseClause
 
 //region Objects
 objectDeclaration
-    : SquigglyLeft (objectKeyValue (Comma objectKeyValue)*)? SquigglyRight
+    : Pound ParenLeft (objectKeyValue (Comma objectKeyValue)*)? ParenRight
     ;
 
 objectKeyValue
@@ -256,11 +245,11 @@ intRange
     ;
 
 inclusiveExclusiveIntRange
-    : BracketLeft intRangeArg? Colon intRangeArg? BracketRight
+    : intRangeArg? Colon intRangeArg?
     ;
 
 inclusiveInclusiveIntRange
-    : BracketLeft intRangeArg? DotDot intRangeArg? BracketRight
+    : intRangeArg? DotDot intRangeArg?
     ;
 
 intRangeArg
@@ -334,7 +323,7 @@ namedSymbol
 //region Properties
 initialPropertyAccessor
     : (Dollar QuestionMark? Dot)? Identifier
-    | (Dollar QuestionMark? BracketLeft) (StringLiteral | variable) BracketRight
+    | (Dollar QuestionMark? ParenLeft) (StringLiteral | variable) ParenRight
     | Dollar
     ;
 
@@ -345,8 +334,7 @@ propertySortDirection
 
 propertyAccessor
     : accessOperator Identifier
-    | (BracketLeft | BracketLeftSafe) (StringLiteral | variable) BracketRight
-    | arrayAccessor
+    | (ParenLeft | ParenLeftSafe) (StringLiteral | variable) ParenRight
     | intRange
     ;
 //endregion
@@ -427,7 +415,9 @@ MultiplyAssign: '*=';
 Not: '!';
 Null: 'null';
 ParenLeft: '(';
+ParenLeftSafe: '?(';
 ParenRight: ')';
+Pound: '#';
 Pipe: '|';
 QuestionMark: '?';
 QuoteSingle: '\'';
@@ -481,8 +471,8 @@ Identifier
 //region Variables
 Variable
     : Dollar Identifier
-    | Dollar SquigglyLeft Identifier SquigglyRight
-    | Dollar SquigglyLeft SquigglyString+ SquigglyRight
+    | Dollar ParenLeft Identifier ParenRight
+    | Dollar ParenLeft SquigglyString+ ParenRight
     ;
 //endregion
 
@@ -541,9 +531,9 @@ fragment RegexFlag
 
 //region Strings
 fragment SquigglyString
-    : (~[{}\\ \t\n\r] | StringEscape)
-    | (~[{}\\ \t\n\r] | StringEscape) (~[{}\\ \t\n\r] | StringEscape)
-    | (~[{}\\ \t\n\r] | StringEscape) (~[{}\\] | StringEscape)+ (~[{}\\ \t\n\r] | StringEscape)
+    : (~[()\\ \t\n\r] | StringEscape)
+    | (~[()\\ \t\n\r] | StringEscape) (~[()\\ \t\n\r] | StringEscape)
+    | (~[()\\ \t\n\r] | StringEscape) (~[()\\] | StringEscape)+ (~[()\\ \t\n\r] | StringEscape)
     ;
 
 fragment BacktickQuotedStringCharacters
