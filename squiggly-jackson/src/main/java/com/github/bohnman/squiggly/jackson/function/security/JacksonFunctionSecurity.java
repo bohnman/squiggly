@@ -10,61 +10,64 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/**
+ * Function security that uses Jackson to determine if properties are accessible.
+ */
 public class JacksonFunctionSecurity implements SquigglyFunctionSecurity {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public boolean isPropertyViewable(Object key, Class pojoClass) {
+    public boolean isPropertyViewable(Object key, Class type) {
         if (key == null) {
             return true;
         }
 
-        if (pojoClass.isPrimitive()) {
+        if (type.isPrimitive()) {
             return true;
         }
 
-        if (pojoClass.isArray()) {
+        if (type.isArray()) {
             return true;
         }
 
-        if (Iterable.class.isAssignableFrom(pojoClass)) {
+        if (Iterable.class.isAssignableFrom(type)) {
             return true;
         }
 
-        if (Boolean.class.isAssignableFrom(pojoClass)) {
+        if (Boolean.class.isAssignableFrom(type)) {
             return true;
         }
 
-        if (Character.class.isAssignableFrom(pojoClass)) {
+        if (Character.class.isAssignableFrom(type)) {
             return true;
         }
 
-        if (Function.class.isAssignableFrom(pojoClass)) {
+        if (Function.class.isAssignableFrom(type)) {
             return true;
         }
 
-        if (Predicate.class.isAssignableFrom(pojoClass)) {
+        if (Predicate.class.isAssignableFrom(type)) {
             return true;
         }
 
-        if (CoreIntRange.class.isAssignableFrom(pojoClass)) {
+        if (CoreIntRange.class.isAssignableFrom(type)) {
             return true;
         }
 
-        if (Map.class.isAssignableFrom(pojoClass)) {
+        if (Map.class.isAssignableFrom(type)) {
             return true;
         }
 
-        if (Number.class.isAssignableFrom(pojoClass)) {
+        if (Number.class.isAssignableFrom(type)) {
             return true;
         }
 
-        if (String.class.isAssignableFrom(pojoClass)) {
+        if (String.class.isAssignableFrom(type)) {
             return true;
         }
 
-        return objectMapper.getSerializationConfig().introspect(SimpleType.construct(pojoClass))
+        return objectMapper.getSerializationConfig().introspect(SimpleType.construct(type))
                 .findProperties()
                 .stream()
                 .map(BeanPropertyDefinition::getName)
