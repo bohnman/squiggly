@@ -14,6 +14,8 @@ import com.github.bohnman.squiggly.core.variable.ThreadLocalVariableResolver;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.jackson.config.SquigglyCustomizer;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnNotWebApplication;
@@ -32,6 +34,9 @@ import java.util.Collection;
 @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
 @Configuration
 public class SquigglyAutoConfiguration {
+    @Autowired
+    BeanFactory beanFactory;
+
     @Autowired(required = false)
     SquigglyConverterRegistry converterRegistry;
 
@@ -63,6 +68,7 @@ public class SquigglyAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public Squiggly squiggly(
+            BeanFactory beanFactory,
             SquigglyConfig config,
             SquigglyContextProvider contextProvider,
             SquigglyJacksonSerializer serializer
@@ -94,7 +100,27 @@ public class SquigglyAutoConfiguration {
             builder = customizer.apply(builder);
         }
 
+        builder.serviceLocator(this::findBean);
+
         return builder.build();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    private Object findBean(Object key) {
+        if (key == null) {
+            return null;
+        }
+
+        try {
+            if (Class.class.isAssignableFrom(key.getClass())) {
+                return beanFactory.getBean((Class) key);
+            }
+
+            return beanFactory.getBean(key.toString());
+        } catch (NoSuchBeanDefinitionException e) {
+            return null;
+        }
     }
 
     /**

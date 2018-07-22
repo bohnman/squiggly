@@ -3,14 +3,11 @@ package com.github.bohnman.squiggly.core.function;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.convert.*;
-import com.github.bohnman.squiggly.core.convert.PrimaryConversionService;
 import com.github.bohnman.squiggly.core.function.invoke.SquigglyFunctionInvoker;
-import com.github.bohnman.squiggly.core.function.repository.MapFunctionRepository;
-import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
+import com.github.bohnman.squiggly.core.parser.ParseContext;
 import com.github.bohnman.squiggly.core.parser.node.ArgumentNode;
 import com.github.bohnman.squiggly.core.parser.node.ArgumentNodeType;
 import com.github.bohnman.squiggly.core.parser.node.FunctionNode;
-import com.github.bohnman.squiggly.core.parser.ParseContext;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
 import org.junit.Test;
@@ -22,6 +19,7 @@ import java.util.function.Predicate;
 import static org.junit.Assert.assertEquals;
 
 public class SquigglyFunctionInvokerTest {
+
 
     private final SquigglyVariableResolver variableResolver = new MapVariableResolver();
     private final SquigglyConfig config = new SquigglyConfig();
@@ -105,8 +103,9 @@ public class SquigglyFunctionInvokerTest {
 
 
     private SquigglyFunctionInvoker invoker(Object... owners) {
-        SquigglyFunctionRepository functionRepository = new MapFunctionRepository(SquigglyFunctions.create(owners));
-        return new SquigglyFunctionInvoker(config, conversionService, functionRepository, variableResolver);
+        return null;
+//        SquigglyFunctionRepository functionRepository = new MapFunctionRepository(SquigglyFunctions.create(owners));
+//        return new SquigglyFunctionInvoker(config, conversionService, functionRepository, variableResolver);
     }
 
 

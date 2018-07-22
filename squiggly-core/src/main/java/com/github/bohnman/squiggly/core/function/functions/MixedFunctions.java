@@ -10,6 +10,7 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
+import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 import com.github.bohnman.squiggly.core.function.value.BaseCollectionValueHandler;
 import com.github.bohnman.squiggly.core.function.value.CollectionReturningValueHandler;
@@ -91,11 +92,12 @@ public class MixedFunctions {
      * Retrieve the item at key.  For strings/collections, the key should be the index.  For maps, it should be the
      * map key.  For pojos, this is the property of the bean.
      *
-     * @param value an object
-     * @param key   the key
+     * @param squiggly base squiggly
+     * @param value    an object
+     * @param key      the key
      * @return value at the key or null
      */
-    public static Object get(Object value, Object key) {
+    public static Object get(BaseSquiggly squiggly, Object value, Object key) {
         if (key == null) {
             return null;
         }
@@ -125,6 +127,7 @@ public class MixedFunctions {
             protected Object handleObject(Object value) {
                 return CoreBeans.getReadablePropertyDescriptors(value.getClass())
                         .filter(pd -> pd.getName().equals(CoreConversions.safeToString(key)))
+                        .filter(pd -> squiggly.getFunctionSecurity().isPropertyViewable(pd.getName(), value.getClass()))
                         .map(pd -> CoreMethods.invoke(pd.getReadMethod(), value))
                         .findFirst()
                         .orElse(null);
@@ -136,11 +139,12 @@ public class MixedFunctions {
     /**
      * Determines if the object has the key.
      *
-     * @param value string/map/collection/pojo
-     * @param key   map key or index
+     * @param squiggly squiggly object
+     * @param value    string/map/collection/pojo
+     * @param key      map key or index
      * @return true if has
      */
-    public static boolean has(Object value, Object key) {
+    public static boolean has(BaseSquiggly squiggly, Object value, Object key) {
         if (value == null || key == null) {
             return false;
         }
@@ -171,7 +175,8 @@ public class MixedFunctions {
             @Override
             protected Boolean handleObject(Object value) {
                 return CoreBeans.getReadablePropertyDescriptors(value.getClass())
-                        .anyMatch(pd -> pd.getName().equals(CoreConversions.safeToString(key)));
+                        .anyMatch(pd -> pd.getName().equals(CoreConversions.safeToString(key))
+                                && squiggly.getFunctionSecurity().isPropertyViewable(pd.getName(), value.getClass()));
             }
         }.handle(value);
     }
@@ -214,10 +219,11 @@ public class MixedFunctions {
      * Retrieve all the keys of the value.  For collections, this will be all of the index.  For maps, this will be
      * all the map keys.  For pojos, this will be all the properties.
      *
-     * @param value collection/map/pojo
+     * @param squiggly squiggly object
+     * @param value    collection/map/pojo
      * @return keys
      */
-    public static Object keys(Object value) {
+    public static Object keys(BaseSquiggly squiggly, Object value) {
         return new BaseCollectionValueHandler<Object>() {
             @Override
             protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -236,6 +242,7 @@ public class MixedFunctions {
             protected Object handleObject(Object value) {
                 return CoreBeans.getReadablePropertyDescriptors(value.getClass())
                         .map(PropertyDescriptor::getName)
+                        .filter(name -> squiggly.getFunctionSecurity().isPropertyViewable(name, value.getClass()))
                         .collect(toList());
             }
         }.handle(value);
@@ -302,11 +309,12 @@ public class MixedFunctions {
     /**
      * Determines whether the value contains the given pattern.
      *
-     * @param value   collection/string/pojo
-     * @param pattern regex
+     * @param squiggly squiggly object
+     * @param value    collection/string/pojo
+     * @param pattern  regex
      * @return true if match
      */
-    public static boolean match(Object value, Pattern pattern) {
+    public static boolean match(BaseSquiggly squiggly, Object value, Pattern pattern) {
         return new ValueHandler<Boolean>(pattern) {
             @Override
             protected Boolean handleNull() {
@@ -315,7 +323,7 @@ public class MixedFunctions {
 
             @Override
             protected Boolean handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
-                return wrapper.stream().anyMatch(e -> match(e, pattern));
+                return wrapper.stream().anyMatch(e -> match(squiggly, e, pattern));
             }
 
             @Override
@@ -327,6 +335,7 @@ public class MixedFunctions {
             protected Boolean handleObject(Object value) {
                 return handleList(CoreBeans.getReadablePropertyDescriptors(value.getClass())
                         .map(PropertyDescriptor::getName)
+                        .filter(name -> squiggly.getFunctionSecurity().isPropertyViewable(name, value.getClass()))
                         .collect(toList()));
             }
         }.handle(value);
@@ -335,24 +344,26 @@ public class MixedFunctions {
     /**
      * Determines whether the value does not contain the given pattern.
      *
-     * @param value   collection/string/pojo
-     * @param pattern regex
+     * @param squiggly squiggly object
+     * @param value    collection/string/pojo
+     * @param pattern  regex
      * @return true if no match
      */
     @SquigglyFunctionMethod(aliases = "nmatch")
-    public static boolean notMatch(Object value, Pattern pattern) {
-        return !match(value, pattern);
+    public static boolean notMatch(BaseSquiggly squiggly, Object value, Pattern pattern) {
+        return !match(squiggly, value, pattern);
     }
 
     /**
      * Retrieve the specified keys from the value.  If the key is an int range, it will expand the range to all the
      * keys within that range.
      *
-     * @param value collection/string/pojo
-     * @param keys  int/string/intrange
+     * @param squiggly squiggly object
+     * @param value    collection/string/pojo
+     * @param keys     int/string/intrange
      * @return all items that match the keys
      */
-    public static Object pick(Object value, Object... keys) {
+    public static Object pick(BaseSquiggly squiggly, Object value, Object... keys) {
 
         if (keys.length == 0) {
             return value;
@@ -385,7 +396,7 @@ public class MixedFunctions {
 
             @Override
             protected Object handleObject(Object value) {
-                Map<String, Object> map = toMap(value);
+                Map<String, Object> map = toMap(squiggly, value);
                 List<Object> keyList = Arrays.asList(keys);
 
                 return map.entrySet()
@@ -401,11 +412,12 @@ public class MixedFunctions {
      * Retrieve all items except those associated with the specified keys.  If the key is an int range,
      * it will expand the range to all the keys within that range.
      *
+     * @param squiggly  squiggly object
      * @param value collection/string/pojo
      * @param keys  int/string/intrange
      * @return all items that do not match the keys
      */
-    public static Object pickExcept(Object value, Object... keys) {
+    public static Object pickExcept(BaseSquiggly squiggly, Object value, Object... keys) {
         if (keys.length == 0) {
             return value;
         }
@@ -433,7 +445,7 @@ public class MixedFunctions {
 
             @Override
             protected Object handleObject(Object value) {
-                Map<String, Object> map = toMap(value);
+                Map<String, Object> map = toMap(squiggly, value);
                 List<Object> keyList = Arrays.asList(keys);
 
                 return map.entrySet()
@@ -496,11 +508,12 @@ public class MixedFunctions {
     /**
      * Return the size of the collection/map/string/pojo.
      *
+     * @param squiggly base squiggly
      * @param value collection/map/string/pojo
      * @return size
      */
     @SquigglyFunctionMethod(aliases = {"length", "count", "countBy"})
-    public static int size(Object value) {
+    public static int size(BaseSquiggly squiggly, Object value) {
         return new ValueHandler<Integer>() {
             @Override
             protected Integer handleArrayWrapper(CoreArrayWrapper wrapper) {
@@ -529,7 +542,9 @@ public class MixedFunctions {
 
             @Override
             protected Integer handleObject(Object value) {
-                return (int) CoreBeans.getReadablePropertyDescriptors(value.getClass()).count();
+                return (int) CoreBeans.getReadablePropertyDescriptors(value.getClass())
+                        .filter(pd -> squiggly.getFunctionSecurity().isPropertyViewable(pd.getName(), value.getClass()))
+                        .count();
             }
         }.handle(value);
     }
@@ -684,10 +699,11 @@ public class MixedFunctions {
     /**
      * Retrieve all the values of a collection/map/pojo.
      *
+     * @param squiggly squiggly object
      * @param value collection/map/pojo
      * @return values
      */
-    public static Object values(Object value) {
+    public static Object values(BaseSquiggly squiggly, Object value) {
         return new BaseCollectionValueHandler<Object>() {
             @Override
             protected Object handleArray(Object array) {
@@ -701,7 +717,7 @@ public class MixedFunctions {
 
             @Override
             protected Object handleObject(Object value) {
-                return CoreLists.of(toMap(value).values());
+                return CoreLists.of(toMap(squiggly, value).values());
             }
 
             @Override
@@ -712,7 +728,7 @@ public class MixedFunctions {
     }
 
     @SuppressWarnings("unchecked")
-    static Map<String, Object> toMap(Object value) {
+    static Map<String, Object> toMap(BaseSquiggly squiggly, Object value) {
         if (value == null || value instanceof String) {
             return Collections.emptyMap();
         }
@@ -723,6 +739,7 @@ public class MixedFunctions {
 
         try {
             return CoreBeans.getReadablePropertyDescriptors(value.getClass())
+                    .filter(pd -> squiggly.getFunctionSecurity().isPropertyViewable(pd.getName(), value.getClass()))
                     .collect(Collectors.toMap(PropertyDescriptor::getName,
                             pd -> CoreMethods.invoke(pd.getReadMethod(), value)));
         } catch (Exception e) {

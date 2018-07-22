@@ -20,6 +20,7 @@ import com.github.bohnman.squiggly.core.function.invoke.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.core.function.repository.CompositeFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.MapFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
+import com.github.bohnman.squiggly.core.function.security.SquigglyFunctionSecurity;
 import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.core.normalize.SquigglyNodeNormalizer;
@@ -45,17 +46,20 @@ public abstract class BaseSquiggly {
     private final SquigglyFilterRepository filterRepository;
     private final SquigglyFunctionInvoker functionInvoker;
     private final SquigglyFunctionRepository functionRepository;
+    private final SquigglyFunctionSecurity functionSecurity;
     private final SquigglyMetrics metrics;
     private final SquigglyNodeMatcher nodeMatcher;
     private final SquigglyNodeNormalizer nodeNormalizer;
     private final SquigglyNodeFilter nodeFilter;
     private final SquigglyParser parser;
     private final SquigglyVariableResolver variableResolver;
+    private final Function<Object, Object> serviceLocator;
 
     protected BaseSquiggly(BaseSquiggly.BaseBuilder builder) {
         this(builder, new BeanInfoIntrospector(builder.getBuiltConfig(), builder.getBuiltMetrics()));
     }
 
+    @SuppressWarnings("unchecked")
     protected BaseSquiggly(BaseSquiggly.BaseBuilder builder, BeanInfoIntrospector beanInfoIntrospector) {
         this.beanInfoIntrospector = notNull(beanInfoIntrospector);
         this.config = notNull(builder.builtConfig);
@@ -63,14 +67,15 @@ public abstract class BaseSquiggly {
         this.contextProvider = notNull(builder.builtContextProvider);
         this.filterRepository = notNull(builder.builtFilterRepository);
         this.functionRepository = notNull(builder.builtFunctionRepository);
+        this.functionSecurity = notNull(builder.builtFunctionSecurity);
         this.metrics = notNull(builder.builtMetrics);
         this.parser = notNull(builder.builtParser);
         this.variableResolver = notNull(builder.builtVariableResolver);
-
-        this.functionInvoker = new SquigglyFunctionInvoker(config, this.conversionService, this.functionRepository, this.variableResolver);
+        this.functionInvoker = new SquigglyFunctionInvoker(this);
         this.nodeMatcher = new SquigglyNodeMatcher(this);
         this.nodeNormalizer = new SquigglyNodeNormalizer(this);
         this.nodeFilter = createNodeFilter();
+        this.serviceLocator = notNull(builder.builtServiceLocator);
     }
 
     protected SquigglyNodeFilter createNodeFilter() {
@@ -80,6 +85,55 @@ public abstract class BaseSquiggly {
 
     public <T> CoreJsonNode<T> apply(CoreJsonNode<T> node, String... filters) {
         return nodeFilter.apply(node, filters);
+    }
+
+    /**
+     * Find an object by a class or null if not found.
+     *
+     * @param type class of the type expected
+     * @param <T>  return type expected
+     * @return object or null
+     */
+    @Nullable
+    public <T> T find(Class<T> type) {
+        return find(type, type);
+    }
+
+    /**
+     * Find an object by a key or null if not found.
+     *
+     * @param key  a key
+     * @param type class of the type expected
+     * @param <T>  return type expected
+     * @return object or null
+     */
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public <T> T find(Object key, Class<T> type) {
+        return (T) serviceLocator.apply(key);
+    }
+
+    /**
+     * Find an object by a class or throw an exception if null.
+     *
+     * @param type class of the type expected
+     * @param <T>  return type expected
+     * @return object or null
+     */
+    public <T> T get(Class<T> type) {
+        return get(type, type);
+    }
+
+    /**
+     * Find an object by a key or throw an exception if null.
+     *
+     * @param key  a key
+     * @param type class of the type expected
+     * @param <T>  return type expected
+     * @return object or null
+     */
+    public <T> T get(Object key, Class<T> type) {
+        return Objects.requireNonNull(find(key, type));
     }
 
     /**
@@ -145,6 +199,14 @@ public abstract class BaseSquiggly {
         return functionRepository;
     }
 
+    /**
+     * Get function security.
+     *
+     * @return security
+     */
+    public SquigglyFunctionSecurity getFunctionSecurity() {
+        return functionSecurity;
+    }
 
     /**
      * Get the metrics.
@@ -211,22 +273,25 @@ public abstract class BaseSquiggly {
     public abstract static class BaseBuilder<B extends BaseBuilder<B, S>, S extends BaseSquiggly> {
 
         @Nullable
-        private SquigglyConfig config;
+        protected SquigglyConfig config;
 
         @Nullable
-        private SquigglyContextProvider contextProvider;
+        protected SquigglyContextProvider contextProvider;
 
         @Nullable
-        private Function<SquigglyConverterRegistry, SquigglyConversionService> conversionService;
+        protected Function<SquigglyConverterRegistry, SquigglyConversionService> conversionService;
 
         @Nullable
-        private SquigglyConverterRegistry converterRegistry;
+        protected SquigglyConverterRegistry converterRegistry;
 
         @Nullable
-        private SquigglyFilterRepository filterRepository;
+        protected SquigglyFilterRepository filterRepository;
 
         @Nullable
-        private SquigglyFunctionRepository functionRepository;
+        protected SquigglyFunctionRepository functionRepository;
+
+        @Nullable
+        protected SquigglyFunctionSecurity functionSecurity;
 
         private final List<SquigglyFunction<?>> functions = new ArrayList<>();
 
@@ -242,6 +307,9 @@ public abstract class BaseSquiggly {
         private final Map<String, Object> variables = new HashMap<>();
 
         private List<ConverterRecord> converterRecords = new ArrayList<>();
+
+        @Nullable
+        private Function<Object, Object> serviceLocator;
 
         // Built Properties
         @Nullable
@@ -260,6 +328,9 @@ public abstract class BaseSquiggly {
         protected SquigglyFunctionRepository builtFunctionRepository;
 
         @Nullable
+        protected SquigglyFunctionSecurity builtFunctionSecurity;
+
+        @Nullable
         protected SquigglyMetrics builtMetrics;
 
         @Nullable
@@ -267,6 +338,9 @@ public abstract class BaseSquiggly {
 
         @Nullable
         protected SquigglyVariableResolver builtVariableResolver;
+
+        @Nullable
+        protected Function<Object, Object> builtServiceLocator;
 
         protected BaseBuilder() {
         }
@@ -381,6 +455,17 @@ public abstract class BaseSquiggly {
         }
 
         /**
+         * Sets the function security.
+         *
+         * @param functionSecurity function security
+         * @return builder
+         */
+        public B functionSecurity(SquigglyFunctionSecurity functionSecurity) {
+            this.functionSecurity = functionSecurity;
+            return getThis();
+        }
+
+        /**
          * Register a function.
          *
          * @param function a function
@@ -472,6 +557,17 @@ public abstract class BaseSquiggly {
         }
 
         /**
+         * Sets a service locator.
+         *
+         * @param serviceLocator service locator
+         * @return builder
+         */
+        public B serviceLocator(Function<Object, Object> serviceLocator) {
+            this.serviceLocator = serviceLocator;
+            return getThis();
+        }
+
+        /**
          * Sets the variable resolver.
          *
          * @param variableResolver variable resolver
@@ -506,9 +602,11 @@ public abstract class BaseSquiggly {
             this.builtConversionService = buildConversionService(builtConfig);
             this.builtFilterRepository = buildFilterRepository();
             this.builtFunctionRepository = buildFunctionRepository();
+            this.builtFunctionSecurity = buildFunctionSecurity();
             this.builtMetrics = new SquigglyMetrics();
             this.builtParser = new SquigglyParser(builtConfig, builtMetrics);
             this.builtVariableResolver = buildVariableResolver();
+            this.builtServiceLocator = serviceLocator == null ? (key) -> null : serviceLocator;
 
 
             return newInstance();
@@ -627,11 +725,14 @@ public abstract class BaseSquiggly {
             return new CompositeFunctionRepository(functionRepositories);
         }
 
+        protected SquigglyFunctionSecurity buildFunctionSecurity() {
+            return functionSecurity == null ? SquigglyFunctionSecurity.ALWAYS_ALLOW : functionSecurity;
+        }
+
         @SuppressWarnings("unchecked")
         private List<SquigglyFunction<?>> getDefaultFunctions() {
             List<SquigglyFunction<?>> defaultFunctions = new ArrayList<>();
             applyDefaultFunctions(defaultFunctions);
-
 
             if (!registerDefaultFunctions) {
                 Set<String> systemFunctionNames = Arrays.stream(SystemFunctionName.values())

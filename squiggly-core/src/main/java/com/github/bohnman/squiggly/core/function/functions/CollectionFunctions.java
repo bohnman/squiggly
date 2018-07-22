@@ -9,6 +9,7 @@ import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
+import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 import com.github.bohnman.squiggly.core.function.value.BaseCollectionValueHandler;
 import com.github.bohnman.squiggly.core.function.value.BaseStreamingCollectionValueHandler;
@@ -568,6 +569,13 @@ public class CollectionFunctions {
         return false;
     }
 
+    /**
+     * Return all items contained in both value1 and value2.
+     *
+     * @param value1 collection-like object
+     * @param value2 collection-like object
+     * @return collection
+     */
     public static Object intersection(Object value1, Object value2) {
         return intersectionBy(value1, value2, CoreLambda.identity());
     }
@@ -1038,10 +1046,11 @@ public class CollectionFunctions {
     /**
      * Convert the value to a map.
      *
+     * @param squiggly base squiggly
      * @param value collection-like object
      * @return map
      */
-    public static Map<?, ?> toMap(Object value) {
+    public static Map<?, ?> toMap(BaseSquiggly squiggly, Object value) {
         return new ValueHandler<Map<?, ?>>() {
             @Override
             protected Map<?, ?> handleNull() {
@@ -1069,7 +1078,7 @@ public class CollectionFunctions {
 
             @Override
             protected Map<?, ?> handleObject(Object value) {
-                return MixedFunctions.toMap(value);
+                return MixedFunctions.toMap(squiggly, value);
             }
         }.handle(value);
     }

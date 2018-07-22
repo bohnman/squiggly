@@ -47,7 +47,7 @@
 
 
     <modules>
-        <module>examples/spring-boot</module>
+        <!--<module>examples/spring-boot</module>-->
         <!--<module>examples/spring-boot-non-web</module>-->
         <!--<module>examples/spring-boot-webflux-annotation-example</module>-->
         <!--<module>examples/spring-boot-webflux-functional-example</module>-->

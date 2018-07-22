@@ -1,14 +1,16 @@
 package com.github.bohnman.squiggly.jackson.filter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.std.MapProperty;
+import com.fasterxml.jackson.databind.type.SimpleType;
 import com.github.bohnman.core.json.path.CoreJsonPath;
 import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
@@ -164,11 +166,12 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static void main(String[] args) throws IOException {
 
-        String filter = "$.transform(key == 'name', '***')";
+        String filter = "firstName=age";
         ObjectMapper mapper = new ObjectMapper();
+        BeanDescription introspect = mapper.getSerializationConfig().introspect(SimpleType.construct(Person.class));
         Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");
-        mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
-//        Squiggly.init(mapper, filter).writeValue(System.out, person);
+//        mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
+        Squiggly.init(mapper, filter).writeValue(System.out, person);
 
         System.out.println();
         System.out.println();
@@ -180,9 +183,11 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         private static final AtomicInteger SEQUENCE = new AtomicInteger();
         private final String name;
         private final int priority = SEQUENCE.incrementAndGet();
+        private final Person person;
 
         public NickName(String name) {
             this.name = name;
+            this.person = new Person(name, name, 0);
         }
 
         public String getName() {
@@ -206,16 +211,21 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             return priority;
         }
 
+        public Person getPerson() {
+            return person;
+        }
+
         @Override
         public int compareTo(@Nullable NickName o) {
             return (o == null) ? -1 : name.compareTo(o.name);
         }
     }
 
-    private static class Person {
+    public static class Person {
         private final String firstName;
         private final String lastName;
         private List<NickName> nickNames;
+//        @JsonIgnore
         private int age;
 
         public Person(String firstName, String lastName, int age, String... nickNames) {
@@ -248,5 +258,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         public int[] getNumbers() {
             return new int[]{1, 1, 5, 9, 14, 9};
         }
+
+
     }
 }

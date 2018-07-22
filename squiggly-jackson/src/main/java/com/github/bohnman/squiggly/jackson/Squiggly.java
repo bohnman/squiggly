@@ -12,10 +12,12 @@ import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider
 import com.github.bohnman.squiggly.core.filter.SquigglyNodeFilter;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
+import com.github.bohnman.squiggly.core.function.security.SquigglyFunctionSecurity;
 import com.github.bohnman.squiggly.jackson.bean.JacksonBeanInfoIntrospector;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilterMixin;
 import com.github.bohnman.squiggly.jackson.function.JacksonFunctions;
+import com.github.bohnman.squiggly.jackson.function.security.JacksonFunctionSecurity;
 import com.github.bohnman.squiggly.jackson.json.JacksonJsonNode;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
 
@@ -256,6 +258,7 @@ public class Squiggly extends BaseSquiggly {
         @Override
         protected Squiggly newInstance() {
             this.builtSerializer = buildSerializer();
+
             return new Squiggly(this);
         }
 
@@ -269,7 +272,16 @@ public class Squiggly extends BaseSquiggly {
             return serializer;
         }
 
+        @Override
+        protected SquigglyFunctionSecurity buildFunctionSecurity() {
+            if (functionSecurity != null) {
+                return functionSecurity;
+            }
+
+            return new JacksonFunctionSecurity();
+        }
     }
+
 
     public static void main(String[] args) throws IOException {
         ObjectMapper mapper = new ObjectMapper();

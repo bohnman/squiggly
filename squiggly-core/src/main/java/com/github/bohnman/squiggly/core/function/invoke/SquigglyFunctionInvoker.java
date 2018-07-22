@@ -11,14 +11,12 @@ import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.core.config.SquigglyConfig;
+import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.config.SquigglyEnvironment;
 import com.github.bohnman.squiggly.core.config.SystemFunctionName;
-import com.github.bohnman.squiggly.core.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.core.function.FunctionExecutionRequest;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyParameter;
-import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.core.parser.SquigglyParseException;
 import com.github.bohnman.squiggly.core.parser.SquigglyParser;
 import com.github.bohnman.squiggly.core.parser.node.*;
@@ -40,30 +38,26 @@ import static java.util.stream.Collectors.toMap;
 @SuppressWarnings("unchecked")
 public class SquigglyFunctionInvoker {
 
-    private final SquigglyFunctionRepository functionRepository;
-    private final SquigglyVariableResolver variableResolver;
-    private final SquigglyConversionService conversionService;
-    private final SquigglyConfig config;
+    private final BaseSquiggly squiggly;
     private final SquigglyFunctionMatcher matcher;
+    private final SquigglyVariableResolver variableResolver;
 
     /**
      * Constructor.
      *
-     * @param config             config
-     * @param conversionService  converson service
-     * @param functionRepository function repo
-     * @param variableResolver   variable resolver
+     * @param squiggly squiggly
      */
     public SquigglyFunctionInvoker(
-            SquigglyConfig config,
-            SquigglyConversionService conversionService,
-            SquigglyFunctionRepository functionRepository,
+            BaseSquiggly squiggly) {
+        this(squiggly, squiggly.getVariableResolver());
+    }
+
+    private SquigglyFunctionInvoker(
+            BaseSquiggly squiggly,
             SquigglyVariableResolver variableResolver) {
-        this.config = notNull(config);
-        this.conversionService = notNull(conversionService);
-        this.functionRepository = notNull(functionRepository);
+        this.matcher = new SquigglyFunctionMatcher(squiggly);
+        this.squiggly = notNull(squiggly);
         this.variableResolver = notNull(variableResolver);
-        this.matcher = new SquigglyFunctionMatcher(conversionService);
     }
 
     /**
@@ -149,7 +143,7 @@ public class SquigglyFunctionInvoker {
 
     private Object invokeNormalFunction(Object input, FunctionNode functionNode) {
 
-        List<SquigglyFunction<Object>> functions = functionRepository.findByName(functionNode.getName())
+        List<SquigglyFunction<Object>> functions = squiggly.getFunctionRepository().findByName(functionNode.getName())
                 .stream()
                 .filter(this::matchesEnvironment)
                 .collect(Collectors.toList());
@@ -163,21 +157,23 @@ public class SquigglyFunctionInvoker {
         FunctionMatchRequest request = new FunctionMatchRequest(functionNode, input, parameters, functions);
         FunctionMatchResult result = matcher.apply(request);
 
-        if (result.getWinner() == null) {
+        SquigglyFunction<Object> winner = result.getWinner();
+
+        if (winner == null) {
             throw new SquigglyParseException(functionNode.getContext(), "Unable to match function [%s] with parameters %s.",
                     functionNode.getName(),
                     parameters.stream()
                             .map(p -> String.format("{type=%s, value=%s}", (p == null ? "null" : p.getClass()), p)).collect(Collectors.toList()));
         }
 
-        parameters = convertParameters(request, result);
+        parameters = convertParameters(request, result, winner);
 
-        return result.getWinner().apply(new FunctionExecutionRequest(input, parameters));
+        return winner.apply(new FunctionExecutionRequest(input, parameters));
     }
 
     private boolean matchesEnvironment(SquigglyFunction<Object> function) {
         for (SquigglyEnvironment environment : function.getEnvironments()) {
-            if (environment == config.getFunctionEnvironment() || environment == SquigglyEnvironment.DEFAULT) {
+            if (environment == squiggly.getConfig().getFunctionEnvironment() || environment == SquigglyEnvironment.DEFAULT) {
                 return true;
             }
         }
@@ -210,12 +206,20 @@ public class SquigglyFunctionInvoker {
             return input;
         }
 
+        if (object == null) {
+            return null;
+        }
+
         if (object instanceof CoreJsonNode) {
             object = ((CoreJsonNode) input).getValue();
         }
 
         if (key instanceof Function) {
             return ((Function) key).apply(object);
+        }
+
+        if (!squiggly.getFunctionSecurity().isPropertyViewable(key, object.getClass())) {
+            return null;
         }
 
         return CoreBeans.getProperty(object, key);
@@ -230,9 +234,9 @@ public class SquigglyFunctionInvoker {
     }
 
 
-    private List<Object> convertParameters(FunctionMatchRequest request, FunctionMatchResult result) {
+    private List<Object> convertParameters(FunctionMatchRequest request, FunctionMatchResult result, SquigglyFunction<Object> winner) {
         List<Object> requestedParameters = result.getParameters();
-        List<SquigglyParameter> configuredParameters = result.getWinner().getParameters();
+        List<SquigglyParameter> configuredParameters = winner.getParameters();
 
         if (configuredParameters.isEmpty()) {
             return Collections.emptyList();
@@ -242,14 +246,18 @@ public class SquigglyFunctionInvoker {
         int configuredParametersSize = configuredParameters.size();
         int varargsIndex = configuredParameters.get(configuredParametersSize - 1).isVarArgs() ? configuredParametersSize - 1 : -1;
         int end = (varargsIndex < 0) ? requestedParametersSize : Math.min(varargsIndex, requestedParametersSize);
-
+        int configuredAdder = 0;
 
         List<Object> parameters = new ArrayList<>();
 
+        if (isSquiggly(configuredParameters.get(0))) {
+            parameters.add(squiggly);
+            configuredAdder++;
+        }
 
         for (int i = 0; i < end; i++) {
             Object requestedParam = requestedParameters.get(i);
-            SquigglyParameter configuredParam = configuredParameters.get(i);
+            SquigglyParameter configuredParam = configuredParameters.get(i + configuredAdder);
             parameters.add(convertParameter(requestedParam, configuredParam.getType()));
         }
 
@@ -282,7 +290,7 @@ public class SquigglyFunctionInvoker {
             return source;
         }
 
-        return conversionService.convert(source, targetType);
+        return squiggly.getConversionService().convert(source, targetType);
     }
 
     private List<Object> toParameters(FunctionNode functionNode, Object input) {
@@ -401,7 +409,7 @@ public class SquigglyFunctionInvoker {
             Map<String, Object> varMap = Collections.unmodifiableMap(varBuilder);
 
             SquigglyVariableResolver variableResolver = new CompositeVariableResolver(new MapVariableResolver(varMap), this.variableResolver);
-            SquigglyFunctionInvoker invoker = new SquigglyFunctionInvoker(config, conversionService, functionRepository, variableResolver);
+            SquigglyFunctionInvoker invoker = new SquigglyFunctionInvoker(squiggly, variableResolver);
             return invoker.invoke(input, lambdaNode.getBody());
         };
     }
@@ -415,8 +423,13 @@ public class SquigglyFunctionInvoker {
                 ));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <T> T getValue(ArgumentNode argumentNode, Object input, Class<T> targetType) {
-        return conversionService.convert(getValue(argumentNode, input), targetType);
+        return squiggly.getConversionService().convert(getValue(argumentNode, input), targetType);
+    }
+
+    private boolean isSquiggly(SquigglyParameter parameter) {
+        return !parameter.isVarArgs() && parameter.getType().isAssignableFrom(squiggly.getClass()) && BaseSquiggly.class.isAssignableFrom(parameter.getType());
     }
 
     private class FunctionChain implements FunctionPredicateBridge {
