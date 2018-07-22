@@ -12,7 +12,6 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
-import com.github.bohnman.squiggly.core.config.SquigglyEnvironment;
 import com.github.bohnman.squiggly.core.config.SystemFunctionName;
 import com.github.bohnman.squiggly.core.function.FunctionExecutionRequest;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
@@ -143,10 +142,7 @@ public class SquigglyFunctionInvoker {
 
     private Object invokeNormalFunction(Object input, FunctionNode functionNode) {
 
-        List<SquigglyFunction<Object>> functions = squiggly.getFunctionRepository().findByName(functionNode.getName())
-                .stream()
-                .filter(this::matchesEnvironment)
-                .collect(Collectors.toList());
+        List<SquigglyFunction<Object>> functions = squiggly.getFunctionRepository().findByName(functionNode.getName());
 
         if (functions.isEmpty()) {
             throw new SquigglyParseException(functionNode.getContext(), "Unrecognized function [%s]", functionNode.getName());
@@ -169,16 +165,6 @@ public class SquigglyFunctionInvoker {
         parameters = convertParameters(request, result, winner);
 
         return winner.apply(new FunctionExecutionRequest(input, parameters));
-    }
-
-    private boolean matchesEnvironment(SquigglyFunction<Object> function) {
-        for (SquigglyEnvironment environment : function.getEnvironments()) {
-            if (environment == squiggly.getConfig().getFunctionEnvironment() || environment == SquigglyEnvironment.DEFAULT) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private Object invokeAssignment(Object input, Object parent, FunctionNode functionNode) {

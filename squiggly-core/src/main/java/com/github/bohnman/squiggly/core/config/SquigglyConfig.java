@@ -38,7 +38,6 @@ public class SquigglyConfig {
     private final CoreCacheBuilderSpec convertCacheSpec;
     private final CompositeConfigSource source;
     private final String filterRequestParam;
-    private final SquigglyEnvironment functionEnvironment;
 
     /**
      * Initialize the config with 0 or more config sources.
@@ -87,7 +86,6 @@ public class SquigglyConfig {
         propertyDescriptorCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.property.descriptorCache.spec");
         filterRequestParam = getString(source, propsMap, locationMap, "squiggly.filter.request.param");
         appendContextInNodeFilter = getBool(source, propsMap, locationMap, "squiggly.filter.node.appendContext");
-        functionEnvironment = SquigglyEnvironment.valueOf(getString(source, propsMap, locationMap, "squiggly.env").toUpperCase());
 
         this.propsMap = Collections.unmodifiableSortedMap(propsMap);
         this.locationMap = Collections.unmodifiableSortedMap(locationMap);
@@ -328,10 +326,6 @@ public class SquigglyConfig {
      */
     public boolean isFilterPropagateViewToNestedFilters() {
         return filterPropagateViewToNestedFilters;
-    }
-
-    public SquigglyEnvironment getFunctionEnvironment() {
-        return functionEnvironment;
     }
 
     /**

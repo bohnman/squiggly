@@ -1,6 +1,5 @@
 package com.github.bohnman.squiggly.core.function;
 
-import com.github.bohnman.squiggly.core.config.SquigglyEnvironment;
 import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
 
 import java.lang.reflect.Method;
@@ -8,7 +7,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.isTrue;
@@ -20,7 +18,6 @@ import static java.lang.String.format;
  */
 public class MethodFunction extends AbstractSquigglyFunction<Object> {
 
-    private final List<SquigglyEnvironment> environments;
     private final Method method;
     private final Object owner;
 
@@ -72,15 +69,9 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
                         .collect(Collectors.toList()),
                 aliases);
         SquigglyFunctionMethod functionAnnotation = method.getAnnotation(SquigglyFunctionMethod.class);
-        this.environments = functionAnnotation == null ? Collections.singletonList(SquigglyEnvironment.DEFAULT) : Arrays.asList(functionAnnotation.env());
         this.method = notNull(method);
         this.owner = notNull(owner);
         isTrue(Modifier.isPublic(method.getModifiers()), format("Method [%s] must be public.", method));
-    }
-
-    @Override
-    public List<SquigglyEnvironment> getEnvironments() {
-        return environments;
     }
 
     @Override

@@ -1,8 +1,5 @@
 package com.github.bohnman.squiggly.core.function;
 
-import com.github.bohnman.squiggly.core.config.SquigglyEnvironment;
-
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -40,15 +37,6 @@ public interface SquigglyFunction<T> extends Function<FunctionExecutionRequest, 
      * @return params
      */
     List<SquigglyParameter> getParameters();
-
-    /**
-     * The valid environments for the function.  By default, this is in every environment.
-     *
-     * @return environments
-     */
-    default List<SquigglyEnvironment> getEnvironments() {
-        return Collections.singletonList(SquigglyEnvironment.DEFAULT);
-    }
 
     /**
      * Indicates how the function is registered.
