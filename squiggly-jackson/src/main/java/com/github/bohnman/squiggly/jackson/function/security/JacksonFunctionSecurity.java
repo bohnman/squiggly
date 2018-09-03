@@ -1,11 +1,13 @@
 package com.github.bohnman.squiggly.jackson.function.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
-import com.fasterxml.jackson.databind.type.SimpleType;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.squiggly.core.function.security.SquigglyFunctionSecurity;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -18,7 +20,7 @@ public class JacksonFunctionSecurity implements SquigglyFunctionSecurity {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public boolean isPropertyViewable(Object key, Class type) {
+    public boolean isPropertyViewable(@Nullable Object key, @Nonnull Class type) {
         if (key == null) {
             return true;
         }
@@ -67,7 +69,9 @@ public class JacksonFunctionSecurity implements SquigglyFunctionSecurity {
             return true;
         }
 
-        return objectMapper.getSerializationConfig().introspect(SimpleType.construct(type))
+        SerializationConfig config = objectMapper.getSerializationConfig();
+
+        return config.introspect(config.constructType(type))
                 .findProperties()
                 .stream()
                 .map(BeanPropertyDefinition::getName)
