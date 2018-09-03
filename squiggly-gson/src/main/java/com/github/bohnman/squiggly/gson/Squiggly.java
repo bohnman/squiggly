@@ -14,9 +14,9 @@ import java.util.List;
 /**
  * Entry point for apply Squiggly to the Gson library.
  */
-public class GsonSquiggly extends BaseSquiggly {
+public class Squiggly extends BaseSquiggly {
 
-    private GsonSquiggly(BaseBuilder builder) {
+    private Squiggly(BaseBuilder builder) {
         super(builder);
     }
 
@@ -36,7 +36,7 @@ public class GsonSquiggly extends BaseSquiggly {
      *
      * @return squiggly
      */
-    public static GsonSquiggly init() {
+    public static Squiggly init() {
         return builder().build();
     }
 
@@ -46,7 +46,7 @@ public class GsonSquiggly extends BaseSquiggly {
      * @param filter the filter
      * @return squiggly
      */
-    public static GsonSquiggly init(String filter) {
+    public static Squiggly init(String filter) {
         return builder(filter).build();
     }
 
@@ -56,7 +56,7 @@ public class GsonSquiggly extends BaseSquiggly {
      * @param contextProvider context provider
      * @return squigly
      */
-    public static GsonSquiggly init(SquigglyContextProvider contextProvider) {
+    public static Squiggly init(SquigglyContextProvider contextProvider) {
         return builder(contextProvider).build();
     }
 
@@ -92,7 +92,7 @@ public class GsonSquiggly extends BaseSquiggly {
     /**
      * Custom builder class.
      */
-    public static class Builder extends BaseBuilder<Builder, GsonSquiggly> {
+    public static class Builder extends BaseBuilder<Builder, Squiggly> {
 
         @Override
         protected void applyDefaultFunctions(List<SquigglyFunction<?>> functions) {
@@ -101,8 +101,8 @@ public class GsonSquiggly extends BaseSquiggly {
         }
 
         @Override
-        protected GsonSquiggly newInstance() {
-            return new GsonSquiggly(this);
+        protected Squiggly newInstance() {
+            return new Squiggly(this);
         }
 
     }
