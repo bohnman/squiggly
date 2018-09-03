@@ -5,6 +5,7 @@ package com.github.bohnman.squiggly.core.parser.node;
  */
 public enum ArgumentNodeType {
     ARRAY_DECLARATION,
+    ARRAY_RANGE_DECLARATION,
     BOOLEAN,
     FLOAT,
     FUNCTION_CHAIN,

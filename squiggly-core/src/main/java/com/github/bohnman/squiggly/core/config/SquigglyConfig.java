@@ -38,6 +38,7 @@ public class SquigglyConfig {
     private final CoreCacheBuilderSpec convertCacheSpec;
     private final CompositeConfigSource source;
     private final String filterRequestParam;
+    private final int maxArrayRangeDeclarationLength;
 
     /**
      * Initialize the config with 0 or more config sources.
@@ -77,15 +78,16 @@ public class SquigglyConfig {
         SortedMap<String, String> locationMap = new TreeMap<>();
 
         convertCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.convert.cache.spec");
-        filterImplicitlyIncludeBaseFields = getBool(source, propsMap, locationMap, "squiggly.filter.implicitlyIncludeBaseFields");
-        filterImplicitlyIncludeBaseFieldsInView = getBool(source, propsMap, locationMap, "squiggly.filter.implicitlyIncludeBaseFieldsInView");
-        filterPathCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.filter.pathCache.spec");
-        filterPropagateViewToNestedFilters = getBool(source, propsMap, locationMap, "squiggly.filter.propagateViewToNestedFilters");
-        parserNodeCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.parser.nodeCache.spec");
-        propertyAddNonAnnotatedFieldsToBaseView = getBool(source, propsMap, locationMap, "squiggly.property.addNonAnnotatedFieldsToBaseView");
-        propertyDescriptorCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.property.descriptorCache.spec");
+        filterImplicitlyIncludeBaseFields = getBool(source, propsMap, locationMap, "squiggly.filter.implicitly-include-base-fields");
+        filterImplicitlyIncludeBaseFieldsInView = getBool(source, propsMap, locationMap, "squiggly.filter.implicitly-include-base-fields-in-view");
+        filterPathCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.filter.path-cache.spec");
+        filterPropagateViewToNestedFilters = getBool(source, propsMap, locationMap, "squiggly.filter.propagate-view-to-nested-filters");
+        parserNodeCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.parser.node-cache.spec");
+        propertyAddNonAnnotatedFieldsToBaseView = getBool(source, propsMap, locationMap, "squiggly.property.add-non-annotated-fields-to-base-view");
+        propertyDescriptorCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.property.descriptor-cache.spec");
         filterRequestParam = getString(source, propsMap, locationMap, "squiggly.filter.request.param");
-        appendContextInNodeFilter = getBool(source, propsMap, locationMap, "squiggly.filter.node.appendContext");
+        appendContextInNodeFilter = getBool(source, propsMap, locationMap, "squiggly.filter.node.append-context");
+        maxArrayRangeDeclarationLength = getInt(source, propsMap, locationMap, "squiggly.function.array-range-declaration.max-length");
 
         this.propsMap = Collections.unmodifiableSortedMap(propsMap);
         this.locationMap = Collections.unmodifiableSortedMap(locationMap);
@@ -357,12 +359,21 @@ public class SquigglyConfig {
     }
 
     /**
-     * Determins whether to use the SquigglyContext in the node filter as last filter.
+     * Determines whether to use the SquigglyContext in the node filter as last filter.
      *
      * @return true if use, false if not, or null if defer
      */
     public Boolean getAppendContextInNodeFilter() {
         return appendContextInNodeFilter;
+    }
+
+    /**
+     * Gets the max length of an array range to avoid memory pollution.
+     *
+     * @return max length
+     */
+    public int getMaxArrayRangeDeclarationLength() {
+        return maxArrayRangeDeclarationLength;
     }
 
     /**
@@ -420,5 +431,4 @@ public class SquigglyConfig {
             throw new RuntimeException("Unable to convert " + value + " to int for key " + key);
         }
     }
-
 }

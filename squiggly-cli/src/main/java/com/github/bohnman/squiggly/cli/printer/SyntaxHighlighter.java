@@ -19,7 +19,7 @@ public class SyntaxHighlighter {
 
     public SyntaxHighlighter(SquigglyConfig config) {
         this.booleanColor = parseColor(config, "boolean");
-        this.fieldNameColor = parseColor(config, "fieldName");
+        this.fieldNameColor = parseColor(config, "field-name");
         this.nullColor = parseColor(config, "null");
         this.numberColor = parseColor(config, "name");
         this.stringColor = parseColor(config, "string");

@@ -921,6 +921,12 @@ public class SquigglyParser {
         }
 
         private ArgumentNode.Builder buildArrayDeclaration(SquigglyExpressionParser.ArrayDeclarationContext context) {
+            if (context.intRange() != null) {
+                return baseArg(context, ArgumentNodeType.ARRAY_RANGE_DECLARATION)
+                        .value(buildIntRange(context.intRange()).index(0).build().getValue());
+            }
+
+
             List<ArgumentNode> argumentNodes = new ArrayList<>(context.arg().size());
 
             for (int i = 0; i < context.arg().size(); i++) {

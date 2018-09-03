@@ -16,6 +16,7 @@ import com.github.bohnman.squiggly.core.config.SystemFunctionName;
 import com.github.bohnman.squiggly.core.function.FunctionExecutionRequest;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
 import com.github.bohnman.squiggly.core.function.SquigglyParameter;
+import com.github.bohnman.squiggly.core.parser.ParseContext;
 import com.github.bohnman.squiggly.core.parser.SquigglyParseException;
 import com.github.bohnman.squiggly.core.parser.SquigglyParser;
 import com.github.bohnman.squiggly.core.parser.node.*;
@@ -292,28 +293,18 @@ public class SquigglyFunctionInvoker {
         switch (argumentNode.getType()) {
             case ARRAY_DECLARATION:
                 return buildArrayDeclaration(input, (List<ArgumentNode>) argumentNode.getValue());
+            case ARRAY_RANGE_DECLARATION:
+                return buildArrayRangeDeclartion(input, (IntRangeNode) argumentNode.getValue(), argumentNode.getContext());
             case FUNCTION_CHAIN:
                 return buildFunctionChain((List<FunctionNode>) argumentNode.getValue());
             case LAMBDA:
                 return buildLambda((LambdaNode) argumentNode.getValue());
             case IF:
-                return invokeIf((IfNode) argumentNode.getValue(), input);
+                return invokeIf(input, (IfNode) argumentNode.getValue());
             case INPUT:
                 return input;
             case INT_RANGE:
-                IntRangeNode rangeNode = (IntRangeNode) argumentNode.getValue();
-                Integer start = (rangeNode.getStart() == null) ? null : getValue(rangeNode.getStart(), input, Integer.class);
-                Integer end = (rangeNode.getEnd() == null) ? null : getValue(rangeNode.getEnd(), input, Integer.class);
-
-                if (start == null) {
-                    return rangeNode.isExclusiveEnd() ? CoreIntRange.emptyExclusive() : CoreIntRange.emptyInclusive();
-                }
-
-                if (rangeNode.isExclusiveEnd()) {
-                    return (end == null) ? CoreIntRange.inclusiveExclusive(start) : CoreIntRange.inclusiveExclusive(start, end);
-                }
-
-                return (end == null) ? CoreIntRange.inclusiveInclusive(start) : CoreIntRange.inclusiveInclusive(start, end);
+                return buildIntRange(input, (IntRangeNode) argumentNode.getValue());
             case OBJECT_DECLARATION:
                 return buildObjectDeclaration(input, (List<CorePair<ArgumentNode, ArgumentNode>>) argumentNode.getValue());
             case VARIABLE:
@@ -323,7 +314,22 @@ public class SquigglyFunctionInvoker {
         }
     }
 
-    private Object invokeIf(IfNode ifNode, Object input) {
+    private CoreIntRange buildIntRange(Object input, IntRangeNode rangeNode) {
+        Integer start = (rangeNode.getStart() == null) ? null : getValue(rangeNode.getStart(), input, Integer.class);
+        Integer end = (rangeNode.getEnd() == null) ? null : getValue(rangeNode.getEnd(), input, Integer.class);
+
+        if (start == null) {
+            return rangeNode.isExclusiveEnd() ? CoreIntRange.emptyExclusive() : CoreIntRange.emptyInclusive();
+        }
+
+        if (rangeNode.isExclusiveEnd()) {
+            return (end == null) ? CoreIntRange.inclusiveExclusive(start) : CoreIntRange.inclusiveExclusive(start, end);
+        }
+
+        return (end == null) ? CoreIntRange.inclusiveInclusive(start) : CoreIntRange.inclusiveInclusive(start, end);
+    }
+
+    private Object invokeIf(Object input, IfNode ifNode) {
         for (IfNode.IfClause ifClause : ifNode.getIfClauses()) {
             Object condition = invokeAndGetValue(ifClause.getCondition(), input);
 
@@ -347,6 +353,39 @@ public class SquigglyFunctionInvoker {
 
     private List<Object> buildArrayDeclaration(Object input, List<ArgumentNode> elements) {
         return elements.stream().map(arg -> invokeAndGetValue(arg, input)).collect(Collectors.toList());
+    }
+
+    private Object buildArrayRangeDeclartion(Object input, IntRangeNode rangeNode, ParseContext context) {
+        CoreIntRange range = buildIntRange(input, rangeNode);
+
+        Integer start = range.getStart();
+        Integer end = range.getEnd();
+
+        if (start == null || end == null) {
+            return Collections.emptyList();
+        }
+
+        if (range.isInclusive()) {
+            end = end + 1;
+        }
+
+        if (start >= end) {
+            return Collections.emptyList();
+        }
+
+        int length = end - start;
+
+        if (length > squiggly.getConfig().getMaxArrayRangeDeclarationLength()) {
+            throw new SquigglyParseException(context, "Array range declaration cannot exceed a length of %s.", squiggly.getConfig().getMaxArrayRangeDeclarationLength());
+        }
+
+        List<Integer> list = new ArrayList<>(length);
+
+        for (int i = start; i < end; i++) {
+            list.add(i);
+        }
+
+        return list;
     }
 
     private Function buildFunctionChain(List<FunctionNode> functionNodes) {

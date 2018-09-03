@@ -1,6 +1,5 @@
 package com.github.bohnman.squiggly.jackson.filter;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.BeanDescription;
@@ -22,9 +21,7 @@ import com.github.bohnman.squiggly.jackson.Squiggly;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -166,7 +163,10 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static void main(String[] args) throws IOException {
 
-        String filter = "firstName=age";
+//        Map<String, Object> map = new HashMap<>();
+//        map.put("foo", "bar");
+
+        String filter = "firstName=@(1..3)";
         ObjectMapper mapper = new ObjectMapper();
         BeanDescription introspect = mapper.getSerializationConfig().introspect(SimpleType.construct(Person.class));
         Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");
@@ -225,7 +225,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         private final String firstName;
         private final String lastName;
         private List<NickName> nickNames;
-//        @JsonIgnore
+        //        @JsonIgnore
         private int age;
 
         public Person(String firstName, String lastName, int age, String... nickNames) {

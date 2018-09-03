@@ -133,7 +133,8 @@ keyValueFieldArgChain
 
 //region Arrays
 arrayDeclaration
-    : At ParenLeft (arg (Comma arg)*)? ParenRight
+    : At ParenLeft intRange ParenRight
+    | At ParenLeft (arg (Comma arg)*)? ParenRight
     ;
 //endregion
 
