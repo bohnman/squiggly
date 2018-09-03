@@ -7,8 +7,8 @@
     <name>Squiggly Kotlin Jackson</name>
     <url>https://github.com/bohnman/squiggly-java</url>
 
-    <description>Squiggly Kotlin Core</description>
-    <artifactId>squiggly-kotlin-jackson</artifactId>
+    <description>Squiggly Kotlin Jackson</description>
+    <artifactId>squiggly-jackson-kotlin</artifactId>
 
     <parent>
         <groupId>com.github.bohnman.squiggly</groupId>
