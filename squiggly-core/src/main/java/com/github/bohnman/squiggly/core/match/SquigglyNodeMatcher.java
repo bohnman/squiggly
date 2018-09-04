@@ -11,7 +11,6 @@ import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.name.ExactName;
-import com.github.bohnman.squiggly.core.parser.ParseContext;
 import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 
@@ -27,14 +26,14 @@ public class SquigglyNodeMatcher {
     /**
      * Indicate to never match the path.
      */
-    public static final SquigglyNode NEVER_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, false, false);
+    public static final SquigglyNode NEVER_MATCH = SquigglyNode.createNamed(AnyDeepName.get());
 
     /**
      * Indicate to always match the path.
      */
-    public static final SquigglyNode ALWAYS_MATCH = new SquigglyNode(new ParseContext(1, 1), AnyDeepName.get(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, false, false);
+    public static final SquigglyNode ALWAYS_MATCH = SquigglyNode.createNamed(AnyDeepName.get());
 
-    private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(new SquigglyNode(new ParseContext(1, 1), new ExactName(PropertyView.BASE_VIEW), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, true, false));
+    private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(SquigglyNode.createNamedSquiggly(new ExactName(PropertyView.BASE_VIEW)));
 
     private final CoreCache<CorePair<CoreJsonPath, String>, SquigglyNode> matchCache;
     private final BaseSquiggly squiggly;
@@ -93,66 +92,93 @@ public class SquigglyNodeMatcher {
         return matchInternal(path, node);
     }
 
-    private SquigglyNode matchInternal(CoreJsonPath path, SquigglyNode node) {
-        List<SquigglyNode> nodes = node.getChildren();
-        Set<String> viewStack = null;
-        SquigglyNode viewNode = null;
+    private class MatchContext {
+        private int depth;
+        private int lastIndex;
+        private CoreJsonPath path;
+        private Set<String> viewStack;
+        private SquigglyNode parent;
+        private SquigglyNode viewNode;
+        private List<SquigglyNode> nodes;
+        private List<SquigglyNode> recursiveNodes = Collections.emptyList();
+
+        public MatchContext(CoreJsonPath path, SquigglyNode parent) {
+            this.path = path;
+            this.parent = parent;
+            this.lastIndex = path.getElements().size() - 1;
+            this.nodes = parent.getChildren();
+        }
+
+        public boolean isViewNodeSquiggly() {
+            return viewNode != null && viewNode.isSquiggly();
+        }
+
+        public void descend(SquigglyNode parent, int newDepth) {
+            nodes = parent.getChildren();
+
+            if (depth < lastIndex && nodes.isEmpty() && !parent.isEmptyNested() && squiggly.getConfig().isFilterImplicitlyIncludeBaseFields()) {
+                nodes = BASE_VIEW_NODES;
+            }
+
+            this.depth = newDepth;
+            this.parent = parent;
+        }
+    }
+
+    private SquigglyNode matchInternal(CoreJsonPath path, SquigglyNode parent) {
+        MatchContext context = new MatchContext(path, parent);
         SquigglyNode match = null;
 
         int pathSize = path.getElements().size();
         int lastIdx = pathSize - 1;
 
+
         for (int i = 0; i < pathSize; i++) {
+            int depth = i;
             CoreJsonPathElement element = path.getElements().get(i);
 
-            if (viewNode != null && !viewNode.isSquiggly()) {
-                Class beanClass = element.getBeanClass();
+            if (context.viewNode != null && !context.viewNode.isSquiggly()) {
+                SquigglyNode viewMatch = matchPropertyName(context, element);
 
-                if (beanClass != null && !Map.class.isAssignableFrom(beanClass)) {
-                    Set<String> propertyNames = getPropertyNamesFromViewStack(element, viewStack);
-
-                    if (!propertyNames.contains(element.getName())) {
-                        return NEVER_MATCH;
-                    }
+                if (viewMatch == NEVER_MATCH) {
+                    return viewMatch;
                 }
 
-            } else if (nodes.isEmpty()) {
-                return NEVER_MATCH;
-            } else {
-                match = findBestSimpleNode(element, nodes);
-
-                if (match == null) {
-                    match = findBestViewNode(element, nodes);
-
-                    if (match != null) {
-                        viewNode = match;
-                        viewStack = addToViewStack(viewStack, viewNode);
-                    }
-                } else if (match.isAnyShallow()) {
-                    viewNode = match;
-                } else if (match.isAnyDeep()) {
-                    return match;
+                if (viewMatch != null) {
+                    match = viewMatch;
                 }
 
-                if (match == null) {
-                    if (isJsonUnwrapped(element)) {
-                        match = ALWAYS_MATCH;
-                        continue;
-                    }
-
-                    return NEVER_MATCH;
-                }
-
-                if (match.isNegated()) {
-                    return NEVER_MATCH;
-                }
-
-                nodes = match.getChildren();
-
-                if (i < lastIdx && nodes.isEmpty() && !match.isEmptyNested() && squiggly.getConfig().isFilterImplicitlyIncludeBaseFields()) {
-                    nodes = BASE_VIEW_NODES;
-                }
+                continue;
             }
+
+            if (context.nodes.isEmpty()) {
+                return NEVER_MATCH;
+            }
+
+            match = findBestNode(context, element);
+
+            if (match == null && isJsonUnwrapped(element)) {
+                match = ALWAYS_MATCH;
+                continue;
+            }
+
+            if (match == null) {
+                return NEVER_MATCH;
+            }
+
+            if (match.isAnyDeep()) {
+                return match;
+            }
+
+            if (match.isAnyShallow()) {
+                context.viewNode = match;
+            }
+
+            if (match.isNegated()) {
+                return NEVER_MATCH;
+            }
+
+            context.descend(match, depth + 1);
         }
 
         if (match == null) {
@@ -160,6 +186,30 @@ public class SquigglyNodeMatcher {
         }
 
         return match;
+    }
+
+    private SquigglyNode findBestNode(MatchContext context, CoreJsonPathElement element) {
+        SquigglyNode match = findBestSimpleNode(context, element);
+
+        if (match == null) {
+            match = findBestViewNode(context, element);
+        }
+
+        return match;
+    }
+
+    private SquigglyNode matchPropertyName(MatchContext context, CoreJsonPathElement element) {
+        Class beanClass = element.getBeanClass();
+
+        if (beanClass != null && !Map.class.isAssignableFrom(beanClass)) {
+            Set<String> propertyNames = getPropertyNamesFromViewStack(element, context.viewStack);
+
+            if (!propertyNames.contains(element.getName())) {
+                return NEVER_MATCH;
+            }
+        }
+
+        return null;
     }
 
 
@@ -188,32 +238,41 @@ public class SquigglyNodeMatcher {
         return propertyNames;
     }
 
-    private SquigglyNode findBestViewNode(CoreJsonPathElement element, List<SquigglyNode> nodes) {
+    private SquigglyNode findBestViewNode(MatchContext context, CoreJsonPathElement element) {
+        SquigglyNode match = null;
+
         if (Map.class.isAssignableFrom(element.getBeanClass())) {
-            for (SquigglyNode node : nodes) {
+            for (SquigglyNode node : context.nodes) {
                 if (PropertyView.BASE_VIEW.equals(node.getName())) {
-                    return node;
+                    match = node;
+                    break;
                 }
             }
         } else {
-            for (SquigglyNode node : nodes) {
+            for (SquigglyNode node : context.nodes) {
                 // handle view
                 Set<String> propertyNames = getPropertyNames(element, node.getName());
 
                 if (propertyNames.contains(element.getName())) {
-                    return node;
+                    match = node;
+                    break;
                 }
             }
         }
 
-        return null;
+        if (match != null) {
+            context.viewNode = match;
+            addToViewStack(context);
+        }
+
+        return match;
     }
 
-    private SquigglyNode findBestSimpleNode(CoreJsonPathElement element, List<SquigglyNode> nodes) {
+    private SquigglyNode findBestSimpleNode(MatchContext context, CoreJsonPathElement element) {
         SquigglyNode match = null;
         int lastMatchStrength = -1;
 
-        for (SquigglyNode node : nodes) {
+        for (SquigglyNode node : context.nodes) {
             int matchStrength = node.match(element.getName());
 
             if (matchStrength < 0) {
@@ -230,18 +289,16 @@ public class SquigglyNodeMatcher {
         return match;
     }
 
-    private Set<String> addToViewStack(Set<String> viewStack, SquigglyNode viewNode) {
+    private void addToViewStack(MatchContext context) {
         if (!squiggly.getConfig().isFilterPropagateViewToNestedFilters()) {
-            return null;
+            return;
         }
 
-        if (viewStack == null) {
-            viewStack = new HashSet<>();
+        if (context.viewStack == null) {
+            context.viewStack = new HashSet<>();
         }
 
-        viewStack.add(viewNode.getName());
-
-        return viewStack;
+        context.viewStack.add(context.viewNode.getName());
     }
 
     private Set<String> getPropertyNames(CoreJsonPathElement element, String viewName) {
@@ -253,4 +310,6 @@ public class SquigglyNodeMatcher {
 
         return squiggly.getBeanInfoIntrospector().introspect(beanClass).getPropertyNamesForView(viewName);
     }
+
+
 }

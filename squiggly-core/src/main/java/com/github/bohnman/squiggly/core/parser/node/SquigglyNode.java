@@ -16,15 +16,7 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 public class SquigglyNode {
 
     public static final String ROOT = "root";
-    public static final SquigglyNode EMPTY = new SquigglyNode(
-            new ParseContext(1, 1),
-            new ExactName(ROOT),
-            Collections.emptyList(),
-            Collections.emptyList(),
-            Collections.emptyList(),
-            false,
-            false,
-            false);
+    public static final SquigglyNode EMPTY = SquigglyNode.createNamed(new ExactName(ROOT));
 
     private final ParseContext context;
     private final SquigglyName name;
@@ -34,6 +26,10 @@ public class SquigglyNode {
     private final boolean squiggly;
     private final boolean negated;
     private final boolean emptyNested;
+    private final boolean recursive;
+    private final Integer minDepth;
+    private final Integer maxDepth;
+    private final int stage;
 
     /**
      * Constructor.
@@ -41,22 +37,30 @@ public class SquigglyNode {
      * @param context        parser context
      * @param name           name of the node
      * @param children       child nodes
+     * @param stage          stage
      * @param keyFunctions   key functions
      * @param valueFunctions value functions
      * @param negated        whether or not the node has been negated
      * @param squiggly       whether or not a node is squiggly
      * @param emptyNested    whether of not filter specified {}
+     * @param recursive      whether or not this node is recursive
+     * @param minDepth       min recursive depth
+     * @param maxDepth       max recursive depth
      * @see #isSquiggly()
      */
-    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested) {
+    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, int stage, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested, boolean recursive, Integer minDepth, Integer maxDepth) {
         this.context = notNull(context);
         this.name = name;
         this.negated = negated;
         this.children = Collections.unmodifiableList(children);
+        this.stage = stage;
         this.keyFunctions = Collections.unmodifiableList(keyFunctions);
         this.valueFunctions = Collections.unmodifiableList(valueFunctions);
         this.squiggly = squiggly;
         this.emptyNested = emptyNested;
+        this.recursive = recursive;
+        this.minDepth = minDepth;
+        this.maxDepth = maxDepth;
     }
 
     /**
@@ -94,6 +98,15 @@ public class SquigglyNode {
      */
     public List<SquigglyNode> getChildren() {
         return children;
+    }
+
+    /**
+     * Gets the stage of the node.
+     *
+     * @return stage
+     */
+    public int getStage() {
+        return stage;
     }
 
     /**
@@ -172,13 +185,40 @@ public class SquigglyNode {
     }
 
     /**
+     * Says whether node is recursive.
+     *
+     * @return true if recursive, false otherwise
+     */
+    public boolean isRecursive() {
+        return recursive;
+    }
+
+    /**
+     * Gets the min depth of a recursive node.
+     *
+     * @return min depth
+     */
+    public Integer getMinDepth() {
+        return minDepth;
+    }
+
+    /**
+     * Gets the max depth of a recursive node.
+     *
+     * @return max depth
+     */
+    public Integer getMaxDepth() {
+        return maxDepth;
+    }
+
+    /**
      * Create a squiggly node with the specified name.
      *
      * @param newName new name
      * @return ndoe
      */
     public SquigglyNode withName(SquigglyName newName) {
-        return new SquigglyNode(context, newName, children, keyFunctions, valueFunctions, negated, squiggly, emptyNested);
+        return new SquigglyNode(context, newName, children, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, recursive, minDepth, maxDepth);
     }
 
     /**
@@ -188,6 +228,14 @@ public class SquigglyNode {
      * @return children
      */
     public SquigglyNode withChildren(List<SquigglyNode> newChildren) {
-        return new SquigglyNode(context, name, newChildren, keyFunctions, valueFunctions, negated, squiggly, emptyNested);
+        return new SquigglyNode(context, name, newChildren, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, recursive, minDepth, maxDepth);
+    }
+
+    public static SquigglyNode createNamed(SquigglyName name) {
+        return new SquigglyNode(new ParseContext(1, 1), name, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), false, false, false, false, null, null);
+    }
+
+    public static SquigglyNode createNamedSquiggly(SquigglyName name) {
+        return new SquigglyNode(new ParseContext(1, 1), name, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), false, true, false, false, null, null);
     }
 }

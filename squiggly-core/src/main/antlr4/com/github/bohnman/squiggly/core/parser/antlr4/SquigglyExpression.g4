@@ -25,12 +25,11 @@ expression
     : negatedExpression
     | fieldGroupExpression
     | dottedFieldExpression
-    | recursiveFieldExpression
+    | recursiveExpression
     ;
 
 dottedFieldExpression
-    : dottedField nestedExpression?
-    | dottedField keyValueFieldArgChain (nestedExpression | (Dot dottedField nestedExpression?))?
+    : dottedField keyValueFieldArgChain? nestedExpression?
     ;
 
 fieldGroupExpression
@@ -50,9 +49,41 @@ nestedExpression
     | ParenLeft expressionList? ParenRight
     ;
 
-recursiveFieldExpression
-    : recursiveField keyValueFieldArgChain?
+recursiveExpression
+    : WildcardDeep keyValueFieldArgChain? (ParenLeft recursiveRange  ParenRight)?
+    | WildcardDeep ParenLeft (recursiveRange Comma)? recursiveArg (Comma recursiveArg)*  ParenRight
     ;
+
+recursiveArg
+    : (fieldGroup | field) keyValueFieldArgChain?
+    | Subtract? field
+    ;
+
+recursiveRange
+    : recursiveRangeLeft
+    | recursiveRangeRight
+    | recursiveRangeBoth
+    | recursiveRangeNone
+    ;
+
+
+recursiveRangeLeft
+    : IntegerLiteral (DotDot | Colon)
+    ;
+
+recursiveRangeRight
+    : (DotDot | Colon) IntegerLiteral
+    ;
+
+recursiveRangeBoth
+    : IntegerLiteral (DotDot | Colon) IntegerLiteral
+    ;
+
+recursiveRangeNone
+    : DotDot | Colon
+    ;
+
+
 
 topLevelExpression
     : Dollar topLevelArgChain?
@@ -81,21 +112,6 @@ field
 
 fieldGroup
     : ParenLeft field (Comma field)* ParenRight
-    ;
-
-recursiveField
-    : WildcardShallow recursiveDepth
-    | WildcardDeep
-    ;
-
-recursiveDepth
-    : ParenLeft recursiveDepthArg? Colon recursiveDepthArg? ParenRight
-    | QuestionMark
-    | WildcardShallow
-    ;
-
-recursiveDepthArg
-    : IntegerLiteral
     ;
 
 wildcardField
@@ -241,16 +257,26 @@ objectValue
 
 //region Ranges
 intRange
-    : inclusiveExclusiveIntRange
-    | inclusiveInclusiveIntRange
+    : intRangeLeft
+    | intRangeRight
+    | intRangeBoth
+    | intRangeNone
     ;
 
-inclusiveExclusiveIntRange
-    : intRangeArg? Colon intRangeArg?
+intRangeLeft
+    : intRangeArg (Colon | DotDot)
     ;
 
-inclusiveInclusiveIntRange
-    : intRangeArg? DotDot intRangeArg?
+intRangeRight
+    : (Colon | DotDot) intRangeArg
+    ;
+
+intRangeBoth
+    : intRangeArg (Colon | DotDot) intRangeArg
+    ;
+
+intRangeNone
+    : Colon | DotDot
     ;
 
 intRangeArg

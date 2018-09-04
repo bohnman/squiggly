@@ -315,7 +315,7 @@ public class SquigglyPropertyFilterTest {
     }
 
     @Test
-    public void testFilterSpecificty() {
+    public void testFilterSpecificity() {
         filter("**,reporter[lastName,entityType]");
         String raw = stringifyRaw();
         assertEquals(raw.replace("\"firstName\":\"" + issue.getReporter().getFirstName() + "\",", ""), stringify());
