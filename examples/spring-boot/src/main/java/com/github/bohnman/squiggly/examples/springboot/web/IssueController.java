@@ -1,9 +1,10 @@
 package com.github.bohnman.squiggly.examples.springboot.web;
 
+import com.github.bohnman.squiggly.examples.springboot.exception.NotFoundException;
+import com.github.bohnman.squiggly.examples.springboot.model.ErrorResponse;
 import com.github.bohnman.squiggly.examples.springboot.model.Issue;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class IssueController {
@@ -21,6 +22,13 @@ public class IssueController {
             }
         }
 
-        return null;
+        throw new NotFoundException(String.format("Issue %s was not found.", id));
+    }
+
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse onNotFound(NotFoundException exception) {
+        return new ErrorResponse(exception.getMessage());
     }
 }

@@ -9,6 +9,7 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -18,7 +19,7 @@ import java.io.IOException;
 public class SquigglyRequestFilter implements Filter {
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig) {
     }
 
     @Override
@@ -30,11 +31,15 @@ public class SquigglyRequestFilter implements Filter {
         }
 
         SquigglyRequestHolder.setRequest((HttpServletRequest) request);
+        StatusAwareResponse wrappedResponse = new StatusAwareResponse((HttpServletResponse) response);
+
+        SquigglyResponseHolder.setResponse(wrappedResponse);
 
         try {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(request, wrappedResponse);
         } finally {
             SquigglyRequestHolder.removeRequest();
+            SquigglyResponseHolder.removeResponse();
         }
     }
 

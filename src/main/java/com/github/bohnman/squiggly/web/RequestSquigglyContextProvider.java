@@ -5,6 +5,7 @@ import com.github.bohnman.squiggly.parser.SquigglyParser;
 import com.google.common.base.MoreObjects;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,6 +56,19 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
             return false;
         }
 
+        HttpServletResponse response = getResponse();
+
+
+        if (response == null) {
+            return false;
+        }
+
+        int status = (response instanceof StatusAwareResponse) ? ((StatusAwareResponse) response).getStatus() : HttpServletResponse.SC_OK;
+
+        if (!isSuccessStatusCode(status)) {
+            return false;
+        }
+
         String filter = getFilter(request);
 
         if ("**".equals(filter)) {
@@ -74,6 +88,10 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         }
 
         return false;
+    }
+
+    protected boolean isSuccessStatusCode(int status) {
+        return status >= HttpServletResponse.SC_OK && status < HttpServletResponse.SC_MULTIPLE_CHOICES;
     }
 
     private static class FilterCache {
@@ -130,7 +148,15 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         return SquigglyRequestHolder.getRequest();
     }
 
+    protected HttpServletResponse getResponse() {
+        return SquigglyResponseHolder.getResponse();
+    }
+
     protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
+        return customizeFilter(filter, beanClass);
+    }
+
+    protected String customizeFilter(String filter, Class beanClass) {
         return filter;
     }
 }
