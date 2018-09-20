@@ -25,18 +25,16 @@ public class SquigglyRequestFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 
-        if (!(request instanceof HttpServletRequest)) {
+        if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse)) {
             filterChain.doFilter(request, response);
             return;
         }
 
         SquigglyRequestHolder.setRequest((HttpServletRequest) request);
-        StatusAwareResponse wrappedResponse = new StatusAwareResponse((HttpServletResponse) response);
-
-        SquigglyResponseHolder.setResponse(wrappedResponse);
+        SquigglyResponseHolder.setResponse((HttpServletResponse) response);
 
         try {
-            filterChain.doFilter(request, wrappedResponse);
+            filterChain.doFilter(request, response);
         } finally {
             SquigglyRequestHolder.removeRequest();
             SquigglyResponseHolder.removeResponse();

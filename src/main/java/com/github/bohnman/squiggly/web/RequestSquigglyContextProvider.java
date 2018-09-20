@@ -58,12 +58,11 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
 
         HttpServletResponse response = getResponse();
 
-
         if (response == null) {
             return false;
         }
 
-        int status = (response instanceof StatusAwareResponse) ? ((StatusAwareResponse) response).getStatus() : HttpServletResponse.SC_OK;
+        int status = response.getStatus();
 
         if (!isSuccessStatusCode(status)) {
             return false;
