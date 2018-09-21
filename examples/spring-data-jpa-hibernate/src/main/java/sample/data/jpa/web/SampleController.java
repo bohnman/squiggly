@@ -62,7 +62,7 @@ public class SampleController {
 	@ResponseBody
 	@Transactional(readOnly = true)
 	public Page<Review> reviews() {
-		return hotelService.getReviews(hotel(), new PageRequest(0, 10));
+		return hotelService.getReviews(hotel(), PageRequest.of(0, 10));
 	}
 
 }
