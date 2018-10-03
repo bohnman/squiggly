@@ -1,9 +1,7 @@
 package com.github.bohnman.examples.springdatarest;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 public class Person {
@@ -14,6 +12,17 @@ public class Person {
 
 	private String firstName;
 	private String lastName;
+
+	@ManyToMany(mappedBy = "people")
+	private List<Concert> concerts;
+
+	public long getId() {
+		return id;
+	}
+
+	public void setId(long id) {
+		this.id = id;
+	}
 
 	public String getFirstName() {
 		return firstName;
@@ -29,5 +38,13 @@ public class Person {
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+
+	public List<Concert> getConcerts() {
+		return concerts;
+	}
+
+	public void setConcerts(List<Concert> concerts) {
+		this.concerts = concerts;
 	}
 }
