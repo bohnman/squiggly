@@ -1,3 +1,7 @@
+# 1.3.14 (2018-10-03)
+
+* jar is now OSGI compliant
+
 # 1.3.11 (2018-04-26)
 
 * Fixed #39
