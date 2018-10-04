@@ -14,6 +14,7 @@
     <properties>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
+        <maven-bundle-plugin.version>3.5.1</maven-bundle-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -100,6 +101,46 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <archive>
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>${maven-bundle-plugin.version}</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <id>manifest-generate</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>manifest</goal>
+                        </goals>
+                        <configuration>
+                            <manifestLocation>target/classes/META-INF</manifestLocation>
+                            <instructions>
+                                <Bundle-Name>${project.name}</Bundle-Name>
+                                <Bundle-Description>${project.description}</Bundle-Description>
+                                <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                                <Bundle-Version>${project.version}</Bundle-Version>
+                                <Import-Package>
+                                    !com.github.bohnman.squiggly*,
+                                    net.jcip.annotations;resolution:=optional,
+                                    *
+                                </Import-Package>
+                            </instructions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
             <!-- Antlr 4 Plugin -->
             <plugin>
                 <groupId>org.antlr</groupId>
