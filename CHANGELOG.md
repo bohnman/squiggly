@@ -2,6 +2,14 @@
 
 * jar is now OSGI compliant
 
+# 1.3.13 (2018-09-19)
+
+* updated to servlet spec to minimum version of 3.0.1, which eliminates the need for response wrapping
+
+# 1.3.12 (2018-09-19)
+
+* Only apply filter from request if response code is 2xx as mentioned in issue #50
+
 # 1.3.11 (2018-04-26)
 
 * Fixed #39
