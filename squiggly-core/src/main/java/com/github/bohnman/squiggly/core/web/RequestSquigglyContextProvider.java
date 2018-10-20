@@ -6,6 +6,7 @@ import com.github.bohnman.squiggly.core.name.AnyDeepName;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,6 +77,18 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
             return false;
         }
 
+        HttpServletResponse response = getResponse();
+
+        if (response == null) {
+            return false;
+        }
+
+        int status = response.getStatus();
+
+        if (!isSuccessStatusCode(status)) {
+            return false;
+        }
+
         String filter = getFilter(request);
 
         if (AnyDeepName.ID.equals(filter)) {
@@ -96,6 +109,11 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
 
         return false;
     }
+
+ protected boolean isSuccessStatusCode(int status) {
+        return status >= HttpServletResponse.SC_OK && status < HttpServletResponse.SC_MULTIPLE_CHOICES;
+    }
+
 
     /**
      * Hook method to get the filter from the request.  By default, this look for a query string parameter.
@@ -118,6 +136,16 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
     }
 
     /**
+     * Hook method to get the servlet response.  By default, this uses a thread local.
+     *
+     * @return request
+     * @see SquigglyResponseHolder#getResponse()
+     */
+    protected HttpServletResponse getResponse() {
+        return SquigglyResponseHolder.getResponse();
+    }
+
+    /**
      * Hook method to change the filter.  For example, one could wrap the filter from the request in a nested filter.
      *
      * @param filter    filter string
@@ -125,8 +153,12 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
      * @param beanClass class of the root bean to which the filter is being applied
      * @return customer filter
      */
-    protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
+    protected String customizeFilter(@Nullable String filter, HttpServletRequest request, @Nullable Class beanClass) {
         return customizeFilter(filter, beanClass);
+    }
+
+    protected String customizeFilter(@Nullable String filter, @Nullable Class beanClass) {
+        return filter;
     }
 
 

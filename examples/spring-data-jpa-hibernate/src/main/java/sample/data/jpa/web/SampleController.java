@@ -16,6 +16,14 @@
 
 package sample.data.jpa.web;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import sample.data.jpa.domain.City;
+import sample.data.jpa.domain.Hotel;
+import sample.data.jpa.domain.Review;
+import sample.data.jpa.service.CityService;
+import sample.data.jpa.service.HotelService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -53,15 +61,15 @@ public class SampleController {
         String name = "The Bath Priory Hotel";
         Hotel hotel = this.hotelService.getHotel(city, name);
 //		hotel.getReviews().size();
-        return hotel;
-    }
+		return hotel;
+	}
 
 
-    @GetMapping("/reviews")
-    @ResponseBody
-    @Transactional(readOnly = true)
-    public Page<Review> reviews() {
-        return hotelService.getReviews(hotel(), new PageRequest(0, 10));
-    }
+	@GetMapping("/reviews")
+	@ResponseBody
+	@Transactional(readOnly = true)
+	public Page<Review> reviews() {
+		return hotelService.getReviews(hotel(), PageRequest.of(0, 10));
+	}
 
 }
