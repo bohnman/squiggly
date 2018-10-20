@@ -39,6 +39,7 @@ public class SquigglyRequestFilter implements Filter {
             filterChain.doFilter(request, response);
         } finally {
             SquigglyRequestHolder.removeRequest();
+            SquigglyResponseHolder.removeResponse();
             SquigglyVariablesHolder.remove();
         }
     }
