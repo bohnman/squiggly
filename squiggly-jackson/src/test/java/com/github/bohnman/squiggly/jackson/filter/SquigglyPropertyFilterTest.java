@@ -28,14 +28,12 @@ import static org.junit.Assert.assertEquals;
 
 @SuppressWarnings("Duplicates")
 public class SquigglyPropertyFilterTest {
-
     public static final String BASE_PATH = "com/github/bohnman/squiggly/jackson/filter/SquigglyPropertyFilterTest";
 
-    @Nullable
     private Issue issue;
     @Nullable
     private ObjectMapper objectMapper;
-    private boolean init = false;
+
     @Nullable
     private Squiggly squiggly;
     private ObjectMapper rawObjectMapper = new ObjectMapper();
@@ -344,6 +342,7 @@ public class SquigglyPropertyFilterTest {
         filter("id,actions@limit(2){firstName}");
         System.out.println(stringify());
     }
+
 
     @Test
     public void testJsonUnwrapped() {

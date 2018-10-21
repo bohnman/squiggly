@@ -5,6 +5,7 @@ import com.github.bohnman.squiggly.core.variable.SquigglyVariablesHolder;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -31,12 +32,14 @@ public class SquigglyRequestFilter implements Filter {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         SquigglyRequestHolder.setRequest(httpRequest);
+        SquigglyResponseHolder.setResponse((HttpServletResponse) response);
         SquigglyVariablesHolder.set(toVariables(httpRequest));
 
         try {
             filterChain.doFilter(request, response);
         } finally {
             SquigglyRequestHolder.removeRequest();
+            SquigglyResponseHolder.removeResponse();
             SquigglyVariablesHolder.remove();
         }
     }
