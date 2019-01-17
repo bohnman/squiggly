@@ -89,6 +89,13 @@ Issue object = new Issue();         // replace this with your object/collection/
 System.out.println(SquigglyUtils.stringify(objectMapper, object));
 ```
 
+Also, you can generate a Plain Old Java Object (POJO) instead of a JSON String
+
+```java
+ObjectMapper objectMapper = Squiggly.init(new ObjectMapper(), "assignee{firstName}");
+System.out.println(SquigglyUtils.objectify(objectMapper, object, Object.class));
+```
+
 ## <a name="reference-object"></a>Reference Object
 
 For the filtering examples, let's use an the example object of type Issue
