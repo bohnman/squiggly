@@ -32,7 +32,7 @@ public class SquigglyUtils {
     }
     
     /*
-	 * Takes an object, Class Type and converts it to a object.
+     * Takes an object, Class Type and converts it to a object.
      *
      * @param mapper the object mapper
      * @param object the object to convert
@@ -40,7 +40,7 @@ public class SquigglyUtils {
      * @return Java Object
 	 */
 	
-	private static <T> T objectify(ObjectMapper mapper, Object object, Class<T> classType) throws IOException, ClassNotFoundException {
-		return mapper.readValue(mapper.writeValueAsBytes(object), classType);
-	}
+     private static <T> T objectify(ObjectMapper mapper, Object object, Class<T> classType) throws IOException, ClassNotFoundException {
+	 return mapper.readValue(mapper.writeValueAsBytes(object), classType);
+     }
 }
