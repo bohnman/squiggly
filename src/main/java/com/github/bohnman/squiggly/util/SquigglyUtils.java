@@ -39,7 +39,7 @@ public class SquigglyUtils {
      * @return Java Object
 	 */
 	
-	public static <T> T objectify(ObjectMapper mapper, Object object, Class<T> classType) {
+	public static <T> T objectify(ObjectMapper mapper, Object object, Class<T> classType)  {
 		try {
 			return mapper.readValue(mapper.writeValueAsBytes(object), classType);
 		} catch (Exception e) {
