@@ -31,7 +31,7 @@ public class SquigglyUtils {
     }
     
     /*
-	 * Takes an object, Class Type and converts it to a object.
+     * Takes an object, Class Type and converts it to a object.
      *
      * @param mapper the object mapper
      * @param object the object to convert
