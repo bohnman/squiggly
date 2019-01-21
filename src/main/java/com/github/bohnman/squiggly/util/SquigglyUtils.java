@@ -1,9 +1,8 @@
 package com.github.bohnman.squiggly.util;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import net.jcip.annotations.ThreadSafe;
 
 /**
@@ -40,7 +39,11 @@ public class SquigglyUtils {
      * @return Java Object
 	 */
 	
-	private static <T> T objectify(ObjectMapper mapper, Object object, Class<T> classType) throws IOException, ClassNotFoundException {
-		return mapper.readValue(mapper.writeValueAsBytes(object), classType);
+	public static <T> T objectify(ObjectMapper mapper, Object object, Class<T> classType) {
+		try {
+			return mapper.readValue(mapper.writeValueAsBytes(object), classType);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
