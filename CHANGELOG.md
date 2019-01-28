@@ -1,3 +1,7 @@
+# 1.3.15 (2019-01-28)
+
+* Adding objectify methods in SquigglyUtils - issue #56
+
 # 1.3.14 (2018-10-03)
 
 * jar is now OSGI compliant
