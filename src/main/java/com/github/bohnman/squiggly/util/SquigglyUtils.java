@@ -89,7 +89,7 @@ public class SquigglyUtils {
 			type = objmapper.getTypeFactory().constructCollectionLikeType(Map.class, classType);
 		}
 		
-    	try {
+    	    try {
 			return objmapper.readValue(json, type);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
