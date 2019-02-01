@@ -96,6 +96,19 @@ ObjectMapper objectMapper = Squiggly.init(new ObjectMapper(), "assignee{firstNam
 System.out.println(SquigglyUtils.objectify(objectMapper, object, Object.class));
 ```
 
+For Applying filter on Collection of Objects and for returning Collection of POJOs instead of JSON String 
+
+```java
+	Set<User> set = new HashSet<>();
+		set.add(new User("Peter", 12, "Dinklage"));
+		set.add(new User("Lena", 13, "Heady"));
+		
+		String filter = "firstName,age";
+		
+		ObjectMapper objmapper = Squiggly.init(new ObjectMapper(), filter);  
+		Set<User> lsl = (Set<User>) SquigglyUtils.objectifies(objmapper, set, User.class);
+```
+
 ## <a name="reference-object"></a>Reference Object
 
 For the filtering examples, let's use an the example object of type Issue
