@@ -1,13 +1,16 @@
 package com.github.bohnman.squiggly.util;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.github.bohnman.squiggly.Squiggly;
 import net.jcip.annotations.ThreadSafe;
-
-import java.util.Arrays;
 
 /**
  * Provides various convenience methods.
@@ -63,6 +66,35 @@ public class SquigglyUtils {
             throw new RuntimeException(e);
         }
     }
+    
+    /**
+     * Converts Collection of objects to Collection of objects, with squiggly filters applied.
+	 * 
+	 * @param objmapper
+	 * @param obj
+	 * @param classType
+	 * @return collection of objects
+	 * @author DheerajKN
+	 */
+	
+	public static <T> Collection<T> objectifies(ObjectMapper objmapper, Object obj, Class<T> classType) {
+		String json = SquigglyUtils.stringify(objmapper, obj);
+		
+		JavaType type = null;
+		if (obj instanceof List<?>) {
+			 type = objmapper.getTypeFactory().constructCollectionLikeType(List.class, classType);	
+		} else if(obj instanceof Set<?>){
+			type = objmapper.getTypeFactory().constructCollectionLikeType(Set.class, classType);
+		} else if (obj instanceof Map<?,?>) {
+			type = objmapper.getTypeFactory().constructCollectionLikeType(Map.class, classType);
+		}
+		
+    	    try {
+			return objmapper.readValue(json, type);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
     /**
      * Takes an object and converts it to a string.
