@@ -55,7 +55,7 @@ field
     ;
 
 exact_field
-    : IDENTIFIER
+    : IDENTIFIER ('-' | IDENTIFIER)*
     ;
 
 regex_field
