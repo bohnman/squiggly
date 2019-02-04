@@ -72,10 +72,10 @@ regex_flag
     ;
 
 wildcard_field
-   : IDENTIFIER wildcard_char
-   | IDENTIFIER (wildcard_char IDENTIFIER)+ wildcard_char?
-   | wildcard_char IDENTIFIER
-   | wildcard_char (IDENTIFIER wildcard_char)+ IDENTIFIER?
+   : exact_field wildcard_char
+   | exact_field (wildcard_char exact_field)+ wildcard_char?
+   | wildcard_char exact_field
+   | wildcard_char (exact_field wildcard_char)+ exact_field?
    ;
 
 wildcard_char
