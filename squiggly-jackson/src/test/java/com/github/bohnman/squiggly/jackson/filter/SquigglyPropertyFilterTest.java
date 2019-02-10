@@ -357,8 +357,8 @@ public class SquigglyPropertyFilterTest {
         assertEquals("{\"full-name\":\"Fred Flintstone\"}", stringify(new DashObject("ID-1", "Fred Flintstone")));
     }
 
-    private void setFieldValue(Class<?> ownerClass, String fieldName, boolean value) {
-        Field field = getField(ownerClass, fieldName);
+    private void setFieldValue(Object object, String fieldName, boolean value) {
+        Field field = getField(object, fieldName);
         try {
             field.setBoolean(object, value);
         } catch (IllegalAccessException e) {
