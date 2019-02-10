@@ -242,7 +242,7 @@ elseClause
 
 //region Objects
 objectDeclaration
-    : Pound ParenLeft (objectKeyValue (Comma objectKeyValue)*)? ParenRight
+    : 'o' ParenLeft (objectKeyValue (Comma objectKeyValue)*)? ParenRight
     ;
 
 objectKeyValue
@@ -493,6 +493,7 @@ StringLiteral
     : QuoteDouble DoubleQuotedStringCharacters* QuoteDouble
     | QuoteSingle SingleQuotedStringCharacters* QuoteSingle
     | Backtick BacktickQuotedStringCharacters* Backtick
+    | 's' ParenLeft ParentRightQuotedStringCharacters* ParenRight
     ;
 
 
@@ -580,13 +581,18 @@ fragment DoubleQuotedStringCharacters
     |    StringEscape
     ;
 
+fragment ParentRightQuotedStringCharacters
+    :    ~[)\\]
+    |    StringEscape
+    ;
+
 fragment SingleQuotedStringCharacters
     :    ~['\\]
     |    StringEscape
     ;
 
 fragment StringEscape
-    :    '\\' ["'\\]
+    :    '\\' ["'\\()]
     ;
 //endregion
 

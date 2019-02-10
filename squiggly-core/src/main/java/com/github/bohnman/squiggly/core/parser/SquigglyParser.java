@@ -1049,6 +1049,8 @@ public class SquigglyParser {
                 text = CoreStrings.unescapeEcmaScript(text.substring(1, text.length() - 1));
             } else if (text.startsWith("`") && text.endsWith("`")) {
                 text = CoreStrings.unescapeEcmaScript(text.substring(1, text.length() - 1));
+            } else if (text.startsWith("s(") && text.endsWith(")")) {
+                text = CoreStrings.unescapeEcmaScript(text.substring(2, text.length() - 1));
             }
 
             return text;
