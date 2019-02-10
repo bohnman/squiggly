@@ -68,15 +68,15 @@ recursiveRange
 
 
 recursiveRangeLeft
-    : StrictIntegerLiteral (DotDot | Colon)
+    : IntegerLiteral (DotDot | Colon)
     ;
 
 recursiveRangeRight
-    : (DotDot | Colon)? StrictIntegerLiteral
+    : (DotDot | Colon)? IntegerLiteral
     ;
 
 recursiveRangeBoth
-    : StrictIntegerLiteral (DotDot | Colon) StrictIntegerLiteral
+    : IntegerLiteral (DotDot | Colon) IntegerLiteral
     ;
 
 recursiveRangeNone
@@ -100,9 +100,14 @@ dottedField
     : field (Dot field)*
     ;
 
-field
+exactField
     : Identifier
     | namedSymbol
+    | exactField ('-' | exactField)+
+    ;
+
+field
+    : exactField
     | RegexLiteral
     | StringLiteral
     | variable
@@ -115,11 +120,11 @@ fieldGroup
     ;
 
 wildcardField
-   : Identifier wildcard
-   | Identifier (wildcard Identifier)+ wildcard?
-   | wildcard Identifier
-   | wildcard (Identifier wildcard)+ Identifier?
-   ;
+    : exactField wildcard
+    | exactField (wildcard exactField)+ wildcard?
+    | wildcard exactField
+    | wildcard (exactField wildcard)+ exactField?
+    ;
 
 //endregion
 
@@ -283,6 +288,7 @@ intRangeArg
     : (Add | Subtract)? IntegerLiteral
     | variable
     ;
+
 
 //endregion
 
@@ -470,10 +476,6 @@ BooleanLiteral
     | 'false'
     ;
 
-StrictIntegerLiteral
-    : StrictIntegerNumeral
-    ;
-
 IntegerLiteral
     : IntegerNumeral
     ;
@@ -532,14 +534,11 @@ fragment IdentifierRest
 //region Numbers
 fragment Digit : [0-9];
 
-fragment StrictIntegerNumeral
-    : '0'
-    | [1-9] Digit*
-    ;
 
 fragment IntegerNumeral
-    : StrictIntegerNumeral
-    | [1-9] Digit? Digit? (',' Digit Digit Digit)+
+    : '0'
+    | [1-9] Digit*
+    | [1-9] Digit? Digit? ('_' Digit Digit Digit)+
     ;
 
 fragment FloatNumeral

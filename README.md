@@ -99,6 +99,25 @@ Issue object = new Issue();         // replace this with your object/collection/
 System.out.println(SquigglyUtils.stringify(objectMapper, object));
 ```
 
+Also, you can generate a Plain Old Java Object (POJO) instead of a JSON String
+
+```java
+ObjectMapper objectMapper = Squiggly.init(new ObjectMapper(), "assignee{firstName}");
+System.out.println(SquigglyUtils.objectify(objectMapper, object, Object.class));
+```
+
+For applying filter on Collection of Objects and for returning Collection of POJOs instead of JSON String 
+
+```java
+List<User> users = Arrays.asList(
+        new User("Peter", 12, "Dinklage"), 
+        new User("Lena", 13, "Heady"));
+String filter = "firstName,age";
+ObjectMapper objectMapper = Squiggly.init(new ObjectMapper(), filter);  
+List<User> filteredUsers = SquigglyUtils.listify(objectMapper, users, User.class);
+// setify is also availble
+```
+
 ## <a name="reference-object"></a>Reference Object
 
 For the filtering examples, let's use an the example object of type Issue

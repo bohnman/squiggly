@@ -1,3 +1,12 @@
+# 1.3.16 (2019-02-04)
+
+* Adding abilty to use a dash in a field - issue #60
+* Adding collectify/setify/listify to SquigglyUtils
+
+# 1.3.15 (2019-01-28)
+
+* Adding objectify methods in SquigglyUtils - issue #56
+
 # 1.3.14 (2018-10-03)
 
 * jar is now OSGI compliant

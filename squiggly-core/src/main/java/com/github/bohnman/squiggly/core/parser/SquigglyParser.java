@@ -246,13 +246,13 @@ public class SquigglyParser {
 
             if (recursiveRange != null) {
                 if (recursiveRange.recursiveRangeLeft() != null) {
-                    minDepth = Integer.parseInt(recursiveRange.recursiveRangeLeft().StrictIntegerLiteral().getText());
+                    minDepth = Integer.parseInt(recursiveRange.recursiveRangeLeft().IntegerLiteral().getText());
                 } else if (recursiveRange.recursiveRangeRight() != null) {
-                    maxDepth = Integer.parseInt(recursiveRange.recursiveRangeRight().StrictIntegerLiteral().getText());
+                    maxDepth = Integer.parseInt(recursiveRange.recursiveRangeRight().IntegerLiteral().getText());
                     maxDepthExclusive = recursiveRange.recursiveRangeRight().Colon() != null;
                 } else if (recursiveRange.recursiveRangeBoth() != null) {
-                    minDepth = Integer.parseInt(recursiveRange.recursiveRangeBoth().StrictIntegerLiteral().get(0).getText());
-                    maxDepth = Integer.parseInt(recursiveRange.recursiveRangeBoth().StrictIntegerLiteral().get(1).getText());
+                    minDepth = Integer.parseInt(recursiveRange.recursiveRangeBoth().IntegerLiteral().get(0).getText());
+                    maxDepth = Integer.parseInt(recursiveRange.recursiveRangeBoth().IntegerLiteral().get(1).getText());
                     maxDepthExclusive = recursiveRange.recursiveRangeBoth().Colon() != null;
                 } else if (recursiveRange.recursiveRangeNone() == null) {
                     throw new SquigglyParseException(parseContext(recursiveRange), "Unrecognized recursive range [%s]", recursiveRange.getText());
@@ -1075,10 +1075,8 @@ public class SquigglyParser {
 
             if (ctx.StringLiteral() != null) {
                 name = new ExactName(unescapeString(ctx.StringLiteral().getText()));
-            } else if (ctx.namedSymbol() != null) {
-                name = new ExactName(ctx.namedSymbol().getText());
-            } else if (ctx.Identifier() != null) {
-                name = new ExactName(ctx.Identifier().getText());
+            } else if (ctx.exactField() != null) {
+                name = new ExactName(ctx.exactField().getText());
             } else if (ctx.wildcardField() != null) {
                 name = new WildcardName(ctx.wildcardField().getText());
             } else if (ctx.RegexLiteral() != null) {

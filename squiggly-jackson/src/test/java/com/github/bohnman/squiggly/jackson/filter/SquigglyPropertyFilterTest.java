@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.jackson.filter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.bohnman.core.json.jackson.CoreObjectMappers;
@@ -343,12 +344,18 @@ public class SquigglyPropertyFilterTest {
         System.out.println(stringify());
     }
 
-
     @Test
     public void testJsonUnwrapped() {
         filter("innerText");
         assertEquals("{\"innerText\":\"innerValue\"}", stringify(new Outer("outerValue", "innerValue")));
     }
+
+     @Test
+    public void testPropertyWithDash() {
+        filter("full-name");
+        assertEquals("{\"full-name\":\"Fred Flintstone\"}", stringify(new DashObject("ID-1", "Fred Flintstone")));
+    }
+
 
     @Test
     public void testRecursive() {
@@ -471,5 +478,29 @@ public class SquigglyPropertyFilterTest {
         }
 
         return builder.toString();
+    }
+
+    private static class DashObject {
+
+        private String id;
+
+        @JsonProperty("full-name")
+        private String fullName;
+
+        public DashObject() {
+        }
+
+        public DashObject(String id, String fullName) {
+            this.id = id;
+            this.fullName = fullName;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getFullName() {
+            return fullName;
+        }
     }
 }
