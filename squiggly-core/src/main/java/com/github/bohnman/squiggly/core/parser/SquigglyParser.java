@@ -1020,10 +1020,8 @@ public class SquigglyParser {
 
             if (ctx.StringLiteral() != null) {
                 name = new ExactName(unescapeString(ctx.StringLiteral().getText()));
-            } else if (ctx.namedSymbol() != null) {
-                name = new ExactName(ctx.namedSymbol().getText());
-            } else if (ctx.Identifier() != null) {
-                name = new ExactName(ctx.Identifier().getText());
+            } else if (ctx.exactField() != null) {
+                name = new ExactName(ctx.exactField().getText());
             } else if (ctx.wildcardField() != null) {
                 name = new WildcardName(ctx.wildcardField().getText());
             } else if (ctx.RegexLiteral() != null) {

@@ -69,9 +69,14 @@ dottedField
     : field (Dot field)*
     ;
 
-field
+exactField
     : Identifier
     | namedSymbol
+    | exactField ('-' | exactField)+
+    ;
+
+field
+    : exactField
     | RegexLiteral
     | StringLiteral
     | variable
@@ -99,11 +104,11 @@ recursiveDepthArg
     ;
 
 wildcardField
-   : Identifier wildcard
-   | Identifier (wildcard Identifier)+ wildcard?
-   | wildcard Identifier
-   | wildcard (Identifier wildcard)+ Identifier?
-   ;
+    : exactField wildcard
+    | exactField (wildcard exactField)+ wildcard?
+    | wildcard exactField
+    | wildcard (exactField wildcard)+ exactField?
+    ;
 
 //endregion
 
