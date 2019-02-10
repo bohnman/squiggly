@@ -246,13 +246,13 @@ public class SquigglyParser {
 
             if (recursiveRange != null) {
                 if (recursiveRange.recursiveRangeLeft() != null) {
-                    minDepth = Integer.parseInt(recursiveRange.recursiveRangeLeft().IntegerLiteral().getText());
+                    minDepth = Integer.parseInt(recursiveRange.recursiveRangeLeft().StrictIntegerLiteral().getText());
                 } else if (recursiveRange.recursiveRangeRight() != null) {
-                    maxDepth = Integer.parseInt(recursiveRange.recursiveRangeRight().IntegerLiteral().getText());
+                    maxDepth = Integer.parseInt(recursiveRange.recursiveRangeRight().StrictIntegerLiteral().getText());
                     maxDepthExclusive = recursiveRange.recursiveRangeRight().Colon() != null;
                 } else if (recursiveRange.recursiveRangeBoth() != null) {
-                    minDepth = Integer.parseInt(recursiveRange.recursiveRangeBoth().IntegerLiteral().get(0).getText());
-                    maxDepth = Integer.parseInt(recursiveRange.recursiveRangeBoth().IntegerLiteral().get(1).getText());
+                    minDepth = Integer.parseInt(recursiveRange.recursiveRangeBoth().StrictIntegerLiteral().get(0).getText());
+                    maxDepth = Integer.parseInt(recursiveRange.recursiveRangeBoth().StrictIntegerLiteral().get(1).getText());
                     maxDepthExclusive = recursiveRange.recursiveRangeBoth().Colon() != null;
                 } else if (recursiveRange.recursiveRangeNone() == null) {
                     throw new SquigglyParseException(parseContext(recursiveRange), "Unrecognized recursive range [%s]", recursiveRange.getText());

@@ -212,6 +212,28 @@ public class SquigglyNode {
     }
 
     /**
+     * Determines if the node is recusive at the supplied data
+     *
+     * @param depth the depth
+     * @return recursive
+     */
+    public boolean isRecusiveAtDepth(int depth) {
+        if (!isRecursive()) {
+            return false;
+        }
+
+        if (minDepth != null && depth < minDepth) {
+            return false;
+        }
+
+        if (maxDepth != null && depth >= maxDepth) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Create a squiggly node with the specified name.
      *
      * @param newName new name

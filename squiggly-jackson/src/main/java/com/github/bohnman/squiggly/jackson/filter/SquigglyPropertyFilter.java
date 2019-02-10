@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.jackson.filter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
+import com.fasterxml.jackson.core.util.JsonGeneratorDelegate;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -95,8 +96,15 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
 
     @Override
-    public void serializeAsField(final Object pojo, final JsonGenerator jgen, final SerializerProvider provider,
+    public void serializeAsField(final Object pojo, JsonGenerator jgen, final SerializerProvider provider,
                                  final PropertyWriter writer) throws Exception {
+
+        if (jgen instanceof JgenWrapper) {
+            System.out.println("Already jgen");
+        } else {
+            jgen = new JgenWrapper(jgen);
+        }
+
         SquigglyNode match = match(writer, jgen);
 
         SquigglyFunctionInvoker functionInvoker = squiggly.getFunctionInvoker();
@@ -143,7 +151,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         LinkedList<CoreJsonPathElement> elements = new LinkedList<>();
 
         if (sc != null) {
-            elements.add(new CoreJsonPathElement(writer.getName(), sc.getCurrentValue()));
+            elements.add(new CoreJsonPathElement(writer.getName(), sc.getCurrentValue(), getValue(sc.getCurrentValue(), writer)));
             sc = sc.getParent();
         }
 
@@ -157,8 +165,30 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         return new CoreJsonPath(elements);
     }
 
+    private Object getValue(Object pojo, PropertyWriter writer) {
+        if (writer instanceof BeanPropertyWriter) {
+            try {
+                return ((BeanPropertyWriter) writer).get(pojo);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        if (writer instanceof MapProperty && pojo instanceof Map) {
+            return ((Map) pojo).get(writer.getName());
+        }
+
+        return null;
+    }
+
     private JsonStreamContext getStreamContext(JsonGenerator jgen) {
         return jgen.getOutputContext();
+    }
+
+    private static class JgenWrapper extends JsonGeneratorDelegate {
+        public JgenWrapper(JsonGenerator d) {
+            super(d);
+        }
     }
 
     public static void main(String[] args) throws IOException {
@@ -166,7 +196,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 //        Map<String, Object> map = new HashMap<>();
 //        map.put("foo", "bar");
 
-        String filter = "firstName=@(1..3)";
+        String filter = "**(-numbers)";
         ObjectMapper mapper = new ObjectMapper();
         BeanDescription introspect = mapper.getSerializationConfig().introspect(SimpleType.construct(Person.class));
         Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");

@@ -68,15 +68,15 @@ recursiveRange
 
 
 recursiveRangeLeft
-    : IntegerLiteral (DotDot | Colon)
+    : StrictIntegerLiteral (DotDot | Colon)
     ;
 
 recursiveRangeRight
-    : (DotDot | Colon) IntegerLiteral
+    : (DotDot | Colon)? StrictIntegerLiteral
     ;
 
 recursiveRangeBoth
-    : IntegerLiteral (DotDot | Colon) IntegerLiteral
+    : StrictIntegerLiteral (DotDot | Colon) StrictIntegerLiteral
     ;
 
 recursiveRangeNone
@@ -470,6 +470,10 @@ BooleanLiteral
     | 'false'
     ;
 
+StrictIntegerLiteral
+    : StrictIntegerNumeral
+    ;
+
 IntegerLiteral
     : IntegerNumeral
     ;
@@ -528,9 +532,13 @@ fragment IdentifierRest
 //region Numbers
 fragment Digit : [0-9];
 
-fragment IntegerNumeral
+fragment StrictIntegerNumeral
     : '0'
     | [1-9] Digit*
+    ;
+
+fragment IntegerNumeral
+    : StrictIntegerNumeral
     | [1-9] Digit? Digit? (',' Digit Digit Digit)+
     ;
 

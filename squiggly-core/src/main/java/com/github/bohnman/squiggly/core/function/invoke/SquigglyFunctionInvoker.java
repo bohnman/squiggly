@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.core.function.invoke;
 
 import com.github.bohnman.core.bean.CoreBeans;
+import com.github.bohnman.core.collect.CoreArrayWrapper;
 import com.github.bohnman.core.collect.CoreArrays;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
@@ -27,6 +28,7 @@ import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
@@ -168,6 +170,11 @@ public class SquigglyFunctionInvoker {
         return winner.apply(new FunctionExecutionRequest(input, parameters));
     }
 
+    private boolean isLambdaType(Class<?> type) {
+        type = type.getComponentType() == null ? type : type.getComponentType();
+        return Predicate.class.isAssignableFrom(type) || Function.class.isAssignableFrom(type);
+    }
+
     private Object invokeAssignment(Object input, Object parent, FunctionNode functionNode) {
         List<ArgumentNode> argumentNodes = functionNode.getArguments();
 
@@ -233,44 +240,49 @@ public class SquigglyFunctionInvoker {
         int configuredParametersSize = configuredParameters.size();
         int varargsIndex = configuredParameters.get(configuredParametersSize - 1).isVarArgs() ? configuredParametersSize - 1 : -1;
         int end = (varargsIndex < 0) ? requestedParametersSize : Math.min(varargsIndex, requestedParametersSize);
-        int configuredAdder = 0;
+        int start = 0;
 
         List<Object> parameters = new ArrayList<>();
 
         if (isSquiggly(configuredParameters.get(0))) {
             parameters.add(squiggly);
-            configuredAdder++;
+            start++;
         }
 
-        for (int i = 0; i < end; i++) {
-            Object requestedParam = requestedParameters.get(i);
-            SquigglyParameter configuredParam = configuredParameters.get(i + configuredAdder);
-            parameters.add(convertParameter(requestedParam, configuredParam.getType()));
+        for (int i = start; i < end; i++) {
+            Object requestedParam = requestedParameters.get(i - start);
+            SquigglyParameter configuredParam = configuredParameters.get(i);
+            parameters.add(convertParameter(request, requestedParam, configuredParam.getType()));
         }
 
         if (varargsIndex >= 0) {
             SquigglyParameter varargParameter = configuredParameters.get(varargsIndex);
             Class<?> varargType = CoreObjects.firstNonNull(varargParameter.getType().getComponentType(), varargParameter.getType());
-            int len = Math.max(0, requestedParametersSize - varargsIndex);
-            Object[] array = CoreArrays.newArray(varargType, len);
+            int len = Math.max(0, requestedParametersSize - varargsIndex + start);
+            CoreArrayWrapper array = CoreArrays.wrapperOf(varargType, len);
+            start = varargsIndex - start;
 
-            for (int i = varargsIndex; i < requestedParametersSize; i++) {
-                array[i - varargsIndex] = convertParameter(requestedParameters.get(i), varargType);
+            for (int i = start; i < requestedParametersSize; i++) {
+                array.set(i - start, convertParameter(request, requestedParameters.get(i), varargType));
             }
 
-            parameters.add(array);
+            parameters.add(array.getValue());
         }
 
         return Collections.unmodifiableList(parameters);
     }
 
-    private Object convertParameter(Object source, Class<?> targetType) {
+    private Object convertParameter(FunctionMatchRequest request, Object source, Class<?> targetType) {
         if ((source instanceof CoreJsonNode) && !CoreJsonNode.class.isAssignableFrom(targetType)) {
             source = ((CoreJsonNode) source).getValue();
         }
 
         if (source == null) {
             return null;
+        }
+
+        if (source instanceof Function && !isLambdaType(targetType)) {
+            return convertParameter(request, ((Function) source).apply(request.getInput()), targetType);
         }
 
         if (targetType.isAssignableFrom(source.getClass())) {
