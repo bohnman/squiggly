@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.jackson.filter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.bohnman.core.json.jackson.CoreObjectMappers;
@@ -350,8 +351,14 @@ public class SquigglyPropertyFilterTest {
         assertEquals("{\"innerText\":\"innerValue\"}", stringify(new Outer("outerValue", "innerValue")));
     }
 
-    private void setFieldValue(Object object, String fieldName, boolean value) {
-        Field field = getField(object, fieldName);
+    @Test
+    public void testPropertyWithDash() {
+        filter("full-name");
+        assertEquals("{\"full-name\":\"Fred Flintstone\"}", stringify(new DashObject("ID-1", "Fred Flintstone")));
+    }
+
+    private void setFieldValue(Class<?> ownerClass, String fieldName, boolean value) {
+        Field field = getField(ownerClass, fieldName);
         try {
             field.setBoolean(object, value);
         } catch (IllegalAccessException e) {
@@ -465,5 +472,29 @@ public class SquigglyPropertyFilterTest {
         }
 
         return builder.toString();
+    }
+
+    private static class DashObject {
+
+        private String id;
+
+        @JsonProperty("full-name")
+        private String fullName;
+
+        public DashObject() {
+        }
+
+        public DashObject(String id, String fullName) {
+            this.id = id;
+            this.fullName = fullName;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getFullName() {
+            return fullName;
+        }
     }
 }
