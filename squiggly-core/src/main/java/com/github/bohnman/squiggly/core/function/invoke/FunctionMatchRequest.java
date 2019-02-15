@@ -14,20 +14,26 @@ public class FunctionMatchRequest {
     private final List<Object> parameters;
     private final Object input;
     private final List<SquigglyFunction<Object>> functions;
+    private final Object childScope;
+    private final Object parentScope;
 
     /**
      * Constructor.
      *
      * @param functionNode function node
      * @param input        the input object
+     * @param childScope   child scope
+     * @param parentScope  parent scope
      * @param parameters   the function parameters
      * @param functions    the candidates
      */
-    public FunctionMatchRequest(FunctionNode functionNode, Object input, List<Object> parameters, List<SquigglyFunction<Object>> functions) {
+    public FunctionMatchRequest(FunctionNode functionNode, Object input, Object childScope, Object parentScope, List<Object> parameters, List<SquigglyFunction<Object>> functions) {
         this.functionNode = functionNode;
         this.parameters = parameters;
         this.input = input;
         this.functions = functions;
+        this.childScope = childScope;
+        this.parentScope = parentScope;
     }
 
     /**
@@ -64,5 +70,13 @@ public class FunctionMatchRequest {
      */
     public Object getInput() {
         return input;
+    }
+
+    public Object getChildScope() {
+        return childScope;
+    }
+
+    public Object getParentScope() {
+        return parentScope;
     }
 }

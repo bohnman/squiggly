@@ -30,7 +30,6 @@ expression
 
 deepExpression
     : WildcardDeep (ParenLeft deepRange ParenRight)? (ParenLeft deepArg (Comma deepArg)*  ParenRight)?
-    |
     ;
 
 deepArg
@@ -39,10 +38,7 @@ deepArg
     ;
 
 deepRange
-    : deepRangeLeft
-    | deepRangeRight
-    | deepRangeBoth
-    | deepRangeNone
+    : IntegerLiteral? intRangeOp IntegerLiteral?
     ;
 
 dottedFieldExpression
@@ -51,8 +47,7 @@ dottedFieldExpression
 
 fieldGroupExpression
     : fieldGroup nestedExpression
-    | fieldGroup keyValueFieldArgChain
-    | fieldGroup keyValueFieldArgChain nestedExpression
+    | fieldGroup keyValueFieldArgChain nestedExpression?
     ;
 
 negatedExpression
@@ -61,37 +56,15 @@ negatedExpression
     ;
 
 nestedExpression
-    : SquigglyLeft expressionList? SquigglyRight
+    : ParenLeft expressionList? ParenRight
     | BracketLeft expressionList? BracketRight
-    | ParenLeft expressionList? ParenRight
+    | SquigglyLeft expressionList? SquigglyRight
     ;
-
-deepRangeLeft
-    : IntegerLiteral (DotDot | Colon)
-    ;
-
-deepRangeRight
-    : (DotDot | Colon)? IntegerLiteral
-    ;
-
-deepRangeBoth
-    : IntegerLiteral (DotDot | Colon) IntegerLiteral
-    ;
-
-deepRangeNone
-    : DotDot | Colon
-    ;
-
-
 
 topLevelExpression
-    : Dollar topLevelArgChain?
+    : Dollar (assignment | argChainLink+)?
     ;
 
-topLevelArgChain
-    : assignment
-    | argChainLink+
-    ;
 //endregion
 
 //region Fields
@@ -102,7 +75,7 @@ dottedField
 exactField
     : Identifier
     | namedSymbol
-    | exactField ('-' | exactField)+
+    | exactField (Subtract | exactField)+
     ;
 
 field
@@ -128,26 +101,17 @@ wildcardField
 //endregion
 
 //region Field Arguments
-continuingFieldArgChain
-    :  continuingFieldArgChainLink+
-    ;
-
-continuingFieldArgChainLink
-    : accessOperator function
-    ;
-
-fieldArgChain
-    : (function) continuingFieldArgChain?
-    ;
 
 keyValueFieldArgChain
-    : Colon (fieldArgChain | assignment) Colon (fieldArgChain| assignment)
-    | Colon fieldArgChain
-    | Colon assignment
-    | assignment
-    | fieldArgChain
-    | continuingFieldArgChain
+    : Colon keyValueFieldArgChainLink Colon keyValueFieldArgChainLink
+    | Colon? keyValueFieldArgChainLink
     ;
+
+keyValueFieldArgChainLink
+    : Dot? function argChainLink*
+    | assignment
+    ;
+
 
 //endregion
 
@@ -160,19 +124,13 @@ arrayDeclaration
 
 //region Assignment
 assignment
-    : Equals arg
-    | AssignSelf arg
-    | AddAssign arg
-    | SubtractAssign arg
-    | MultiplyAssign arg
-    | DivideAssign arg
-    | ModulusAssign arg
+    : Equals arg?
     ;
 //endregion
 
 //region Functions
 functionAccessor
-    : accessOperator function
+    : accessOperator? function
     ;
 
 function
@@ -200,7 +158,7 @@ arg
     | arg (And | AndName) arg
     | arg (Or | OrName) arg
     | ifArg
-    | argGroupStart arg argGroupEnd argChainLink*
+    | ParenLeft arg ParenRight argChainLink*
     ;
 
 argChain
@@ -211,14 +169,6 @@ argChain
 argChainLink
     : propertyAccessor
     | functionAccessor
-    ;
-
-argGroupStart
-    : ParenLeft
-    ;
-
-argGroupEnd
-    : ParenRight
     ;
 
 
@@ -241,7 +191,7 @@ elseClause
 
 //region Objects
 objectDeclaration
-    : 'o' ParenLeft (objectKeyValue (Comma objectKeyValue)*)? ParenRight
+    : '@o' ParenLeft (objectKeyValue (Comma objectKeyValue)*)? ParenRight
     ;
 
 objectKeyValue
@@ -261,31 +211,17 @@ objectValue
 
 //region Ranges
 intRange
-    : intRangeLeft
-    | intRangeRight
-    | intRangeBoth
-    | intRangeNone
-    ;
-
-intRangeLeft
-    : intRangeArg (Colon | DotDot)
-    ;
-
-intRangeRight
-    : (Colon | DotDot) intRangeArg
-    ;
-
-intRangeBoth
-    : intRangeArg (Colon | DotDot) intRangeArg
-    ;
-
-intRangeNone
-    : Colon | DotDot
+    : intRangeArg? intRangeOp intRangeArg?
     ;
 
 intRangeArg
     : (Add | Subtract)? IntegerLiteral
     | variable
+    ;
+
+intRangeOp
+    : DotDot
+    | Colon
     ;
 
 
@@ -295,9 +231,13 @@ intRangeArg
 //region Lambdas
 
 lambda
-    : lambdaArg Lambda lambdaBody
-    | ParenLeft (lambdaArg (Comma lambdaArg)*)? ParenRight Lambda lambdaBody
-    | lambdaArg? Lambda lambdaBody
+    : lambdaArg? lambdaOp lambdaBody
+    | ParenLeft (lambdaArg (Comma lambdaArg)*)? ParenRight lambdaOp lambdaBody
+    ;
+
+lambdaOp
+    : Lambda
+    | ColonColon
     ;
 
 lambdaBody
@@ -324,7 +264,6 @@ literal
 
 accessOperator
     : Dot
-    | SafeNavigation
     ;
 
 namedSymbol
@@ -353,10 +292,9 @@ namedSymbol
 //endregion
 
 //region Properties
+
 initialPropertyAccessor
-    : (Dollar QuestionMark? Dot)? Identifier
-    | (Dollar QuestionMark? ParenLeft) (StringLiteral | variable) ParenRight
-    | Dollar
+    : (Dollar | DollarDollar | Identifier) function?
     ;
 
 propertySortDirection
@@ -366,8 +304,7 @@ propertySortDirection
 
 propertyAccessor
     : accessOperator Identifier
-    | (ParenLeft | ParenLeftSafe) (StringLiteral | variable) ParenRight
-    | intRange
+    | ParenLeft (StringLiteral | variable | intRange) ParenRight
     ;
 //endregion
 
@@ -411,22 +348,20 @@ SubtractName: 'sub';
 
 //region Symbols
 Add: '+';
-AddAssign: '+=';
 And: '&&';
 AngleLeft: '<';
 AngleRight: '>';
-AssignSelf: '.=';
 At: '@';
 Backtick: '`';
 BracketLeft: '[';
-BracketLeftSafe: '?[';
 BracketRight: ']';
 Colon: ':';
+ColonColon: '::';
 Comma: ',';
 Dollar: '$';
+DollarDollar: '$$';
 Dot: '.';
 DotDot: '..';
-DivideAssign: '/=';
 Equals: '=';
 EqualsEquals: '==';
 EqualsNot: '!=';
@@ -442,23 +377,18 @@ LessThanEquals: '<=';
 Match: '=~';
 MatchNot: '!~';
 Modulus: '%';
-ModulusAssign: '%=';
-MultiplyAssign: '*=';
 Not: '!';
 Null: 'null';
 ParenLeft: '(';
-ParenLeftSafe: '?(';
 ParenRight: ')';
 Pound: '#';
 Pipe: '|';
 QuestionMark: '?';
 QuoteSingle: '\'';
 QuoteDouble: '"';
-SafeNavigation: '?.';
 SemiColon: ';';
 SlashForward: '/';
 Subtract: '-';
-SubtractAssign: '-=';
 SquigglyLeft: '{';
 SquigglyRight: '}';
 Then: 'then';
@@ -493,7 +423,7 @@ StringLiteral
     : QuoteDouble DoubleQuotedStringCharacters* QuoteDouble
     | QuoteSingle SingleQuotedStringCharacters* QuoteSingle
     | Backtick BacktickQuotedStringCharacters* Backtick
-    | 's' ParenLeft ParentRightQuotedStringCharacters* ParenRight
+    | '@s' ParenLeft ParentRightQuotedStringCharacters* ParenRight
     ;
 
 
@@ -559,7 +489,7 @@ fragment RegexEscape
     ;
 
 fragment RegexFlag
-    : 'i'
+    : [a-zA-Z]
     ;
 //endregion
 

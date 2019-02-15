@@ -39,6 +39,7 @@ public class NumberFunctions {
      * @param o2 item 2
      * @return sum/concatenation
      */
+    @SquigglyFunctionMethod(aliases = "plus")
     public static Object add(Object o1, Object o2) {
         if (o1 instanceof String || o2 instanceof String) {
             return CoreStrings.defaultIfEmpty(CoreConversions.safeToString(o1), "") + CoreStrings.defaultIfEmpty(CoreConversions.safeToString(o2), "");
@@ -222,7 +223,7 @@ public class NumberFunctions {
      * @param o2 number 2
      * @return multiplication result
      */
-    @SquigglyFunctionMethod(aliases = "mul")
+    @SquigglyFunctionMethod(aliases = {"mul", "times"})
     public static Number multiply(Object o1, Object o2) {
         Number n1 = CoreConversions.toNumber(o1);
         Number n2 = CoreConversions.toNumber(o2);
@@ -286,7 +287,7 @@ public class NumberFunctions {
      * @param o2 number 2
      * @return subtraction result
      */
-    @SquigglyFunctionMethod(aliases = "sub")
+    @SquigglyFunctionMethod(aliases = {"minus", "sub"})
     public static Number subtract(Object o1, Object o2) {
         Number n1 = CoreConversions.toNumber(o1);
         Number n2 = CoreConversions.toNumber(o2);

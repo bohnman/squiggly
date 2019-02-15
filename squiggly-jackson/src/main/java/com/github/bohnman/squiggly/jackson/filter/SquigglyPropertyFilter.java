@@ -111,13 +111,14 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
                 squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
             } else if (writer instanceof BeanPropertyWriter) {
                 BeanPropertyWriter beanPropertyWriter = (BeanPropertyWriter) writer;
-                String name = "" + functionInvoker.invoke(writer.getName(), pojo, match.getKeyFunctions());
-                Object value = functionInvoker.invoke(beanPropertyWriter.get(pojo), pojo, match.getValueFunctions());
+                String name = "" + functionInvoker.invoke(writer.getName(), writer.getName(), pojo, match.getKeyFunctions());
+                Object beanValue = beanPropertyWriter.get(pojo);
+                Object value = functionInvoker.invoke(beanValue, beanValue, pojo, match.getValueFunctions());
                 squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
             } else if (writer instanceof MapProperty) {
                 MapProperty mapProperty = (MapProperty) writer;
-                String name = "" + functionInvoker.invoke(writer.getName(), pojo, match.getKeyFunctions());
-                Object value = functionInvoker.invoke(pojo, pojo, match.getValueFunctions());
+                String name = "" + functionInvoker.invoke(writer.getName(), writer.getName(), pojo, match.getKeyFunctions());
+                Object value = functionInvoker.invoke(pojo, pojo, pojo, match.getValueFunctions());
                 squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
             } else {
                 squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
@@ -187,28 +188,64 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 //        Map<String, Object> map = new HashMap<>();
 //        map.put("foo", "bar");
 
-        String filter = "**(-numbers)";
-        ObjectMapper mapper = new ObjectMapper();
-        BeanDescription introspect = mapper.getSerializationConfig().introspect(SimpleType.construct(Person.class));
+//        String filter = "name=name.firstName";
+//        String filter = "nickNames@filter(::$.name.@equals('rbohn'))";
+        String filter = "$=''";
         Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");
+//        Person person = new Person(new Name("Ryan", "Bohn"));
+//        Person person = new Person(null);
 //        mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
-        Squiggly.init(mapper, filter).writeValue(System.out, person);
-
+        Squiggly squiggly = Squiggly.init();
+        ObjectMapper mapper = squiggly.apply(new ObjectMapper());
+//        mapper.writeValue(System.out, person);
+        mapper.writerWithDefaultPrettyPrinter().writeValue(System.out, squiggly.apply(mapper, person, "nickNames.@map(::name)"));
+        System.err.println();
+        System.err.println();
+        System.err.println();
+        System.err.println();
         System.out.println();
         System.out.println();
         System.out.println();
     }
+
+//    public static class Person {
+//        private final Name name;
+//
+//        public Person(Name name) {
+//            this.name = name;
+//        }
+//
+//        public Name getName() {
+//            return name;
+//        }
+//    }
+//
+//    public static class Name {
+//        private String firstName;
+//        private String lastName;
+//
+//        public Name(String firstName, String lastName) {
+//            this.firstName = firstName;
+//            this.lastName = lastName;
+//        }
+//
+//        public String getFirstName() {
+//            return firstName;
+//        }
+//
+//        public String getLastName() {
+//            return lastName;
+//        }
+//    }
 
 
     public static class NickName implements Comparable<NickName> {
         private static final AtomicInteger SEQUENCE = new AtomicInteger();
         private final String name;
         private final int priority = SEQUENCE.incrementAndGet();
-        private final Person person;
 
         public NickName(String name) {
             this.name = name;
-            this.person = new Person(name, name, 0);
         }
 
         public String getName() {
@@ -232,10 +269,6 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             return priority;
         }
 
-        public Person getPerson() {
-            return person;
-        }
-
         @Override
         public int compareTo(@Nullable NickName o) {
             return (o == null) ? -1 : name.compareTo(o.name);
@@ -246,6 +279,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         private final String firstName;
         private final String lastName;
         private List<NickName> nickNames;
+        private NickName firstNickName;
         //        @JsonIgnore
         private int age;
 
@@ -254,6 +288,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             this.firstName = firstName;
             this.lastName = lastName;
             this.nickNames = Arrays.stream(nickNames).map(NickName::new).collect(Collectors.toList());
+            this.firstNickName = this.nickNames.isEmpty() ? null : this.nickNames.get(0);
         }
 
         public int getAge() {
@@ -266,6 +301,10 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
         public String getLastName() {
             return lastName;
+        }
+
+        public NickName getFirstNickName() {
+            return firstNickName;
         }
 
         public List<NickName> getNickNames() {

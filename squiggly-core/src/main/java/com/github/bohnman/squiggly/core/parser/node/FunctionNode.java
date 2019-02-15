@@ -20,6 +20,7 @@ public class FunctionNode {
     private final boolean ignoreNulls;
     private final FunctionNodeType type;
     private final boolean ascending;
+    private final boolean initial;
 
     /**
      * Constuctor.
@@ -30,6 +31,7 @@ public class FunctionNode {
      * @param ignoreNulls ignore function if input is null
      * @param type        function type
      * @param ascending   is sorted ascending
+     * @param initial     initial
      */
     public FunctionNode(
             ParseContext context,
@@ -37,13 +39,15 @@ public class FunctionNode {
             List<ArgumentNode> arguments,
             boolean ignoreNulls,
             FunctionNodeType type,
-            boolean ascending) {
+            boolean ascending,
+            boolean initial) {
         this.context = notNull(context);
         this.name = notNull(name);
         this.arguments = Collections.unmodifiableList(notNull(arguments));
         this.ignoreNulls = ignoreNulls;
         this.type = notNull(type);
         this.ascending = ascending;
+        this.initial = initial;
     }
 
     /**
@@ -100,6 +104,10 @@ public class FunctionNode {
         return ascending;
     }
 
+    public boolean isInitial() {
+        return initial;
+    }
+
     /**
      * Create a new builder to help with construction.
      *
@@ -130,6 +138,7 @@ public class FunctionNode {
 
         private FunctionNodeType type = FunctionNodeType.FUNCTION;
         private boolean ascending = true;
+        private boolean initial;
 
         private Builder() {
         }
@@ -202,12 +211,23 @@ public class FunctionNode {
         }
 
         /**
+         * Set the initial.
+         *
+         * @param initial initial
+         * @return builder
+         */
+        public Builder initial(boolean initial) {
+            this.initial = initial;
+            return this;
+        }
+
+        /**
          * Build the node.
          *
          * @return node
          */
         public FunctionNode build() {
-            return new FunctionNode(context, name, arguments, ignoreNulls, type, ascending);
+            return new FunctionNode(context, name, arguments, ignoreNulls, type, ascending, initial);
         }
     }
 }
