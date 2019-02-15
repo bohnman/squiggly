@@ -32,7 +32,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * Contains logic for executing a function.
@@ -84,7 +83,7 @@ public class SquigglyFunctionInvoker {
     public Object invoke(@Nullable Object input, @Nullable Object child, @Nullable Object parent, Iterable<FunctionNode> functionNodes) {
         input = unwrapJsonNode(input);
         child = unwrapJsonNode(child);
-        parent= unwrapJsonNode(parent);
+        parent = unwrapJsonNode(parent);
 
         Object value = input;
 
@@ -107,7 +106,7 @@ public class SquigglyFunctionInvoker {
      * @return result
      */
     public Object invoke(@Nullable Object input, FunctionNode functionNode) {
-        return invoke(input, input,null, functionNode);
+        return invoke(input, input, null, functionNode);
     }
 
 
@@ -122,14 +121,14 @@ public class SquigglyFunctionInvoker {
     public Object invoke(@Nullable Object input, Object child, @Nullable Object parent, FunctionNode functionNode) {
         input = unwrapJsonNode(input);
         child = unwrapJsonNode(child);
-        parent= unwrapJsonNode(parent);
+        parent = unwrapJsonNode(parent);
 
         if (functionNode.getType().equals(FunctionNodeType.PROPERTY)) {
             return invokeProperty(input, child, parent, functionNode);
         }
 
         if (functionNode.getType().equals(FunctionNodeType.ASSIGNMENT)) {
-            return invokeAssignment(input, child,  parent, functionNode);
+            return invokeAssignment(input, child, parent, functionNode);
         }
 
 
@@ -466,12 +465,16 @@ public class SquigglyFunctionInvoker {
     }
 
     private Map<Object, Object> buildObjectDeclaration(Object input, Object child, Object parent, List<CorePair<ArgumentNode, ArgumentNode>> pairs) {
-        return pairs.stream()
-                .collect(toMap(
-                        pair -> invokeAndGetValue(pair.getLeft(), input, child, parent),
-                        pair -> invokeAndGetValue(pair.getRight(), input, child, parent),
-                        (a, b) -> b
-                ));
+        Map<Object, Object> map = new HashMap<>(pairs.size());
+
+        for (CorePair<ArgumentNode, ArgumentNode> pair : pairs) {
+            map.put(
+                    invokeAndGetValue(pair.getLeft(), input, child, parent),
+                    invokeAndGetValue(pair.getRight(), input, child, parent)
+            );
+        }
+
+        return map;
     }
 
     @SuppressWarnings("SameParameterValue")
