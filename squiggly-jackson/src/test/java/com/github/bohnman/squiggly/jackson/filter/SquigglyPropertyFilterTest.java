@@ -356,10 +356,9 @@ public class SquigglyPropertyFilterTest {
         assertEquals("{\"full-name\":\"Fred Flintstone\"}", stringify(new DashObject("ID-1", "Fred Flintstone")));
     }
 
-
     @Test
-    public void testRecursive() {
-        filter("**(firstName='charlie')");
+    public void testDeep() {
+        filter("**(*,firstName='charlie')");
         assertEquals("{s}", stringify());
     }
 

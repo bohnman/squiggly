@@ -27,11 +27,12 @@ public class ExactName implements SquigglyName {
     }
 
     @Override
-    public int match(String name) {
-        if (this.name.equals(name)) {
-            return Integer.MAX_VALUE;
-        }
+    public int getSpecificity() {
+        return Integer.MAX_VALUE;
+    }
 
-        return -1;
+    @Override
+    public boolean matches(String name) {
+        return this.name.equals(name);
     }
 }

@@ -13,7 +13,7 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
  * A squiggly node represents a component of a filter expression.
  */
 @ThreadSafe
-public class SquigglyNode {
+public class SquigglyNode implements Comparable<SquigglyNode> {
 
     public static final String ROOT = "root";
     public static final SquigglyNode EMPTY = SquigglyNode.createNamed(new ExactName(ROOT));
@@ -26,7 +26,7 @@ public class SquigglyNode {
     private final boolean squiggly;
     private final boolean negated;
     private final boolean emptyNested;
-    private final boolean recursive;
+    private final boolean deep;
     private final Integer minDepth;
     private final Integer maxDepth;
     private final int stage;
@@ -43,12 +43,12 @@ public class SquigglyNode {
      * @param negated        whether or not the node has been negated
      * @param squiggly       whether or not a node is squiggly
      * @param emptyNested    whether of not filter specified {}
-     * @param recursive      whether or not this node is recursive
-     * @param minDepth       min recursive depth
-     * @param maxDepth       max recursive depth
+     * @param deep           whether or not this node is deep
+     * @param minDepth       min depth
+     * @param maxDepth       max depth
      * @see #isSquiggly()
      */
-    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, int stage, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested, boolean recursive, Integer minDepth, Integer maxDepth) {
+    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, int stage, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested, boolean deep, Integer minDepth, Integer maxDepth) {
         this.context = notNull(context);
         this.name = name;
         this.negated = negated;
@@ -58,19 +58,47 @@ public class SquigglyNode {
         this.valueFunctions = Collections.unmodifiableList(valueFunctions);
         this.squiggly = squiggly;
         this.emptyNested = emptyNested;
-        this.recursive = recursive;
+        this.deep = deep;
         this.minDepth = minDepth;
         this.maxDepth = maxDepth;
     }
 
+    public static void main(String[] args) {
+        System.out.println(Boolean.compare(true, false));
+    }
+
+    @Override
+    public int compareTo(SquigglyNode other) {
+//        int cmp;
+//
+//        if ((cmp = Integer.compare(stage, other.stage)) != 0) {
+//            return cmp;
+//        }
+//
+//        if ((cmp = Integer.compare(stage, other.stage)) != 0) {
+//            return cmp;
+//        }
+
+        return Integer.compare(getSpecificity(), other.getSpecificity());
+    }
+
     /**
-     * Performs a match against the name of another node/element.
+     * Indicates how specific the name is.  The higher the value, the more specific.
      *
-     * @param otherName the name of the other node
-     * @return -1 if no match, MAX_INT if exact match, or positive number for wildcards
+     * @return specificity
      */
-    public int match(String otherName) {
-        return name.match(otherName);
+    public int getSpecificity() {
+        return name.getSpecificity();
+    }
+
+    /**
+     * Determines if the supplied name matches the current name.
+     *
+     * @param name a name
+     * @return true if matches, false otherwise
+     */
+    public boolean matches(String otherName) {
+        return name.matches(otherName);
     }
 
     /**
@@ -185,16 +213,16 @@ public class SquigglyNode {
     }
 
     /**
-     * Says whether node is recursive.
+     * Says whether node is deep.
      *
-     * @return true if recursive, false otherwise
+     * @return true if deep, false otherwise
      */
-    public boolean isRecursive() {
-        return recursive;
+    public boolean isDeep() {
+        return deep;
     }
 
     /**
-     * Gets the min depth of a recursive node.
+     * Gets the min depth of a node.
      *
      * @return min depth
      */
@@ -203,7 +231,7 @@ public class SquigglyNode {
     }
 
     /**
-     * Gets the max depth of a recursive node.
+     * Gets the max depth of node.
      *
      * @return max depth
      */
@@ -212,13 +240,13 @@ public class SquigglyNode {
     }
 
     /**
-     * Determines if the node is recusive at the supplied data
+     * Determines if the node is available at the supplied data
      *
      * @param depth the depth
-     * @return recursive
+     * @return available
      */
-    public boolean isRecusiveAtDepth(int depth) {
-        if (!isRecursive()) {
+    public boolean isAvailableAtDepth(int depth) {
+        if (!isDeep()) {
             return false;
         }
 
@@ -240,7 +268,7 @@ public class SquigglyNode {
      * @return ndoe
      */
     public SquigglyNode withName(SquigglyName newName) {
-        return new SquigglyNode(context, newName, children, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, recursive, minDepth, maxDepth);
+        return new SquigglyNode(context, newName, children, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, deep, minDepth, maxDepth);
     }
 
     /**
@@ -250,7 +278,7 @@ public class SquigglyNode {
      * @return children
      */
     public SquigglyNode withChildren(List<SquigglyNode> newChildren) {
-        return new SquigglyNode(context, name, newChildren, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, recursive, minDepth, maxDepth);
+        return new SquigglyNode(context, name, newChildren, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, deep, minDepth, maxDepth);
     }
 
     public static SquigglyNode createNamed(SquigglyName name) {

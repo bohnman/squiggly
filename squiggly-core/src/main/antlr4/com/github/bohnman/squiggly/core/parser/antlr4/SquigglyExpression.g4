@@ -4,7 +4,7 @@ grammar SquigglyExpression;
 //region Parser Rules
 //-----------------------------------------------------------------------------
 nodeFilter
-    : nodeExpressionList (Pipe nodeExpressionList)* EOF
+    : nodeExpressionList ((Pipe | SemiColon) nodeExpressionList)* EOF
     ;
 
 propertyFilter
@@ -25,7 +25,24 @@ expression
     : negatedExpression
     | fieldGroupExpression
     | dottedFieldExpression
-    | recursiveExpression
+    | deepExpression
+    ;
+
+deepExpression
+    : WildcardDeep (ParenLeft deepRange ParenRight)? (ParenLeft deepArg (Comma deepArg)*  ParenRight)?
+    |
+    ;
+
+deepArg
+    : (fieldGroup | field) keyValueFieldArgChain?
+    | Subtract? field
+    ;
+
+deepRange
+    : deepRangeLeft
+    | deepRangeRight
+    | deepRangeBoth
+    | deepRangeNone
     ;
 
 dottedFieldExpression
@@ -49,37 +66,19 @@ nestedExpression
     | ParenLeft expressionList? ParenRight
     ;
 
-recursiveExpression
-    : WildcardDeep keyValueFieldArgChain? (ParenLeft recursiveRange  ParenRight)?
-    | WildcardDeep ParenLeft (recursiveRange Comma)? recursiveArg (Comma recursiveArg)*  ParenRight
-    ;
-
-recursiveArg
-    : (fieldGroup | field) keyValueFieldArgChain?
-    | Subtract? field
-    ;
-
-recursiveRange
-    : recursiveRangeLeft
-    | recursiveRangeRight
-    | recursiveRangeBoth
-    | recursiveRangeNone
-    ;
-
-
-recursiveRangeLeft
+deepRangeLeft
     : IntegerLiteral (DotDot | Colon)
     ;
 
-recursiveRangeRight
+deepRangeRight
     : (DotDot | Colon)? IntegerLiteral
     ;
 
-recursiveRangeBoth
+deepRangeBoth
     : IntegerLiteral (DotDot | Colon) IntegerLiteral
     ;
 
-recursiveRangeNone
+deepRangeNone
     : DotDot | Colon
     ;
 
@@ -111,7 +110,6 @@ field
     | RegexLiteral
     | StringLiteral
     | variable
-    | wildcard
     | wildcardField
     ;
 
@@ -124,6 +122,7 @@ wildcardField
     | exactField (wildcard exactField)+ wildcard?
     | wildcard exactField
     | wildcard (exactField wildcard)+ exactField?
+    | wildcard
     ;
 
 //endregion
@@ -456,6 +455,7 @@ QuestionMark: '?';
 QuoteSingle: '\'';
 QuoteDouble: '"';
 SafeNavigation: '?.';
+SemiColon: ';';
 SlashForward: '/';
 Subtract: '-';
 SubtractAssign: '-=';

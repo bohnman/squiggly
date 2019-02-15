@@ -42,11 +42,12 @@ public class WildcardName implements SquigglyName {
     }
 
     @Override
-    public int match(String name) {
-        if (pattern.matcher(name).matches()) {
-            return rawName.length() + 2;
-        }
+    public int getSpecificity() {
+        return rawName.length() + 2;
+    }
 
-        return -1;
+    @Override
+    public boolean matches(String name) {
+        return pattern.matcher(name).matches();
     }
 }

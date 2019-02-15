@@ -12,7 +12,6 @@ import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSo
 import com.github.bohnman.squiggly.core.name.AnyDeepName;
 import com.github.bohnman.squiggly.core.name.AnyShallowName;
 import com.github.bohnman.squiggly.core.name.ExactName;
-import com.github.bohnman.squiggly.core.name.SquigglyName;
 import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 
@@ -36,11 +35,6 @@ public class SquigglyNodeMatcher {
      * Indicate to always match the path.
      */
     public static final SquigglyNode ALWAYS_MATCH = SquigglyNode.createNamed(AnyDeepName.get());
-
-    /**
-     * Indicate a recursive match.
-     */
-    public static final SquigglyNode RECURSIVE_MATCH = SquigglyNode.createNamed(AnyShallowName.get());
 
     private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(SquigglyNode.createNamedSquiggly(new ExactName(PropertyView.BASE_VIEW)));
 
@@ -109,7 +103,7 @@ public class SquigglyNodeMatcher {
         private SquigglyNode parent;
         private SquigglyNode viewNode;
         private List<SquigglyNode> nodes;
-        private boolean allRecursiveChildren;
+        private boolean allDeepChildren;
 
         public MatchContext(CoreJsonPath path, SquigglyNode parent) {
             this.path = path;
@@ -119,8 +113,8 @@ public class SquigglyNodeMatcher {
             descend(parent, 0);
         }
 
-        public boolean isAllRecursiveChildren() {
-            return allRecursiveChildren;
+        public boolean isAllDeepChildren() {
+            return allDeepChildren;
         }
 
         public boolean isViewNodeSquiggly() {
@@ -128,22 +122,26 @@ public class SquigglyNodeMatcher {
         }
 
         public void descend(SquigglyNode parent, int newDepth) {
-            List<SquigglyNode> recursiveNodes = Stream.concat(nodes.stream(), parent.getChildren().stream())
-                    .filter(node -> node.isRecusiveAtDepth(newDepth))
+            List<SquigglyNode> deepNodes = Stream.concat(nodes.stream(), parent.getChildren().stream())
+                    .filter(node -> node.isAvailableAtDepth(newDepth))
                     .collect(Collectors.toList());
             nodes = parent.getChildren().stream()
-                    .filter(node -> !node.isRecursive())
+//                    .filter(node -> !node.isDeep() || node.isAvailableAtDepth(newDepth))
                     .collect(Collectors.toList());
 
-            if (newDepth > 0 && !parent.isRecursive() && depth < lastIndex && nodes.isEmpty() && !parent.isEmptyNested() && squiggly.getConfig().isFilterImplicitlyIncludeBaseFields()) {
+            if (newDepth > 0 && !parent.isDeep() && depth < lastIndex && nodes.isEmpty() && !parent.isEmptyNested() && squiggly.getConfig().isFilterImplicitlyIncludeBaseFields()) {
                 nodes = BASE_VIEW_NODES;
             }
 
-            nodes = Stream.concat(nodes.stream(), recursiveNodes.stream()).collect(Collectors.toList());
+//            nodes = Stream.concat(nodes.stream(), deepNodes.stream()).collect(Collectors.toList());
+
+            if (nodes.isEmpty() && !parent.isEmptyNested()) {
+                nodes = deepNodes;
+            }
 
             this.depth = newDepth;
             this.parent = parent;
-            this.allRecursiveChildren = recursiveNodes.size() > 0 && recursiveNodes.size() == nodes.size();
+            this.allDeepChildren = deepNodes.size() > 0 && deepNodes.size() == nodes.size();
         }
     }
 
@@ -179,15 +177,15 @@ public class SquigglyNodeMatcher {
 
             match = findBestNode(context, element, pathSize);
 
-            if (match == null && context.isAllRecursiveChildren() && (element.isChildPathProbable() || i < lastIdx)) {
-                if (i < lastIdx) {
-                    context.descend(context.parent, depth + 1);
-                    continue;
-                } else if (element.isChildPathProbable()) {
-                    match = ALWAYS_MATCH;
-                    continue;
-                }
-            }
+//            if (match == null && context.isAllDeepChildren() && (element.isChildPathProbable() || i < lastIdx)) {
+//                if (i < lastIdx) {
+//                    context.descend(context.parent, depth + 1);
+//                    continue;
+//                } else if (element.isChildPathProbable()) {
+//                    match = ALWAYS_MATCH;
+//                    continue;
+//                }
+//            }
 
             if (match == null && isJsonUnwrapped(element)) {
                 match = ALWAYS_MATCH;
@@ -303,20 +301,16 @@ public class SquigglyNodeMatcher {
 
     private SquigglyNode findBestSimpleNode(MatchContext context, CoreJsonPathElement element) {
         SquigglyNode match = null;
-        int lastMatchStrength = -1;
 
         for (SquigglyNode node : context.nodes) {
-            int matchStrength = node.match(element.getName());
 
-            if (matchStrength < 0) {
+            if (!node.matches(element.getName())) {
                 continue;
             }
 
-            if (lastMatchStrength < 0 || matchStrength >= lastMatchStrength) {
+            if (match == null || node.compareTo(match) >= 0) {
                 match = node;
-                lastMatchStrength = matchStrength;
             }
-
         }
 
         return match;

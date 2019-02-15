@@ -203,8 +203,8 @@ public class SquigglyParser {
                 return;
             }
 
-            if (ctx.recursiveExpression() != null) {
-                handleRecursiveExpression(ctx.recursiveExpression(), parent, depth);
+            if (ctx.deepExpression() != null) {
+                handleDeepExpression(ctx.deepExpression(), parent, depth);
                 return;
             }
 
@@ -236,26 +236,26 @@ public class SquigglyParser {
             }
         }
 
-        private void handleRecursiveExpression(SquigglyExpressionParser.RecursiveExpressionContext ctx, MutableNode parent, int depth) {
-            List<SquigglyExpressionParser.RecursiveArgContext> recursiveArgs = ctx.recursiveArg();
+        private void handleDeepExpression(SquigglyExpressionParser.DeepExpressionContext ctx, MutableNode parent, int depth) {
+            List<SquigglyExpressionParser.DeepArgContext> deepArgs = ctx.deepArg();
 
             Integer minDepth = null;
             Integer maxDepth = null;
             boolean maxDepthExclusive = false;
-            SquigglyExpressionParser.RecursiveRangeContext recursiveRange = ctx.recursiveRange();
+            SquigglyExpressionParser.DeepRangeContext deepRange = ctx.deepRange();
 
-            if (recursiveRange != null) {
-                if (recursiveRange.recursiveRangeLeft() != null) {
-                    minDepth = Integer.parseInt(recursiveRange.recursiveRangeLeft().IntegerLiteral().getText());
-                } else if (recursiveRange.recursiveRangeRight() != null) {
-                    maxDepth = Integer.parseInt(recursiveRange.recursiveRangeRight().IntegerLiteral().getText());
-                    maxDepthExclusive = recursiveRange.recursiveRangeRight().Colon() != null;
-                } else if (recursiveRange.recursiveRangeBoth() != null) {
-                    minDepth = Integer.parseInt(recursiveRange.recursiveRangeBoth().IntegerLiteral().get(0).getText());
-                    maxDepth = Integer.parseInt(recursiveRange.recursiveRangeBoth().IntegerLiteral().get(1).getText());
-                    maxDepthExclusive = recursiveRange.recursiveRangeBoth().Colon() != null;
-                } else if (recursiveRange.recursiveRangeNone() == null) {
-                    throw new SquigglyParseException(parseContext(recursiveRange), "Unrecognized recursive range [%s]", recursiveRange.getText());
+            if (deepRange != null) {
+                if (deepRange.deepRangeLeft() != null) {
+                    minDepth = Integer.parseInt(deepRange.deepRangeLeft().IntegerLiteral().getText());
+                } else if (deepRange.deepRangeRight() != null) {
+                    maxDepth = Integer.parseInt(deepRange.deepRangeRight().IntegerLiteral().getText());
+                    maxDepthExclusive = deepRange.deepRangeRight().Colon() != null;
+                } else if (deepRange.deepRangeBoth() != null) {
+                    minDepth = Integer.parseInt(deepRange.deepRangeBoth().IntegerLiteral().get(0).getText());
+                    maxDepth = Integer.parseInt(deepRange.deepRangeBoth().IntegerLiteral().get(1).getText());
+                    maxDepthExclusive = deepRange.deepRangeBoth().Colon() != null;
+                } else if (deepRange.deepRangeNone() == null) {
+                    throw new SquigglyParseException(parseContext(deepRange), "Unrecognized deep range [%s]", deepRange.getText());
                 }
             }
 
@@ -264,25 +264,25 @@ public class SquigglyParser {
             }
 
             if (minDepth != null && maxDepth != null && minDepth >= maxDepth) {
-                throw new SquigglyParseException(parseContext(ctx), "Invalid recursive range %s", ctx.getText());
+                throw new SquigglyParseException(parseContext(ctx), "Invalid deep range %s", ctx.getText());
             }
 
-            if (recursiveArgs.isEmpty()) {
-                createMutableNode(ctx, parent, depth, AnyDeepName.get(), null, ctx.keyValueFieldArgChain())
-                        .recursive(true)
+            if (deepArgs.isEmpty()) {
+                createMutableNode(ctx, parent, depth, AnyDeepName.get(), null, null)
+                        .deep(true)
                         .minDepth(minDepth == null ? null : depth + minDepth)
                         .maxDepth(maxDepth == null ? null : depth + maxDepth);
                 return;
             }
 
-            for (SquigglyExpressionParser.RecursiveArgContext recursiveArg : recursiveArgs) {
-                for (MutableNode node : handleRecursiveArg(recursiveArg, parent, depth)) {
-                    node.recursive(true).minDepth(minDepth).maxDepth(maxDepth);
+            for (SquigglyExpressionParser.DeepArgContext deepArg : deepArgs) {
+                for (MutableNode node : handleDeepArg(deepArg, parent, depth)) {
+                    node.deep(true).minDepth(minDepth).maxDepth(maxDepth);
                 }
             }
         }
 
-        private List<MutableNode> handleRecursiveArg(SquigglyExpressionParser.RecursiveArgContext ctx, MutableNode parent, int depth) {
+        private List<MutableNode> handleDeepArg(SquigglyExpressionParser.DeepArgContext ctx, MutableNode parent, int depth) {
             if (ctx.Subtract() != null) {
                 return Collections.singletonList(parent.addChild(new MutableNode(parseContext(ctx.field()), createName(ctx.field())).negated(true)));
             }
@@ -1080,19 +1080,14 @@ public class SquigglyParser {
             } else if (ctx.exactField() != null) {
                 name = new ExactName(ctx.exactField().getText());
             } else if (ctx.wildcardField() != null) {
-                name = new WildcardName(ctx.wildcardField().getText());
-            } else if (ctx.RegexLiteral() != null) {
-
-
-                Pattern pattern = buildPattern(ctx.RegexLiteral().getText(), ctx);
-
-                name = new RegexName(pattern.pattern(), pattern);
-            } else if (ctx.wildcard() != null) {
-                if ("*".equals(ctx.wildcard().getText())) {
+                if ("*".equals(ctx.wildcardField().getText())) {
                     name = AnyShallowName.get();
                 } else {
-                    name = new WildcardName(ctx.wildcard().getText());
+                    name = new WildcardName(ctx.wildcardField().getText());
                 }
+            } else if (ctx.RegexLiteral() != null) {
+                Pattern pattern = buildPattern(ctx.RegexLiteral().getText(), ctx);
+                name = new RegexName(pattern.pattern(), pattern);
             } else if (ctx.variable() != null) {
                 name = new VariableName(buildVariableValue(ctx.variable()));
             } else {
@@ -1220,7 +1215,7 @@ public class SquigglyParser {
         private MutableNode parent;
         private List<FunctionNode> keyFunctions = new ArrayList<>();
         private List<FunctionNode> valueFunctions = new ArrayList<>();
-        private boolean recursive;
+        private boolean deep;
 
         @Nullable
         private Integer minDepth;
@@ -1250,7 +1245,7 @@ public class SquigglyParser {
                 }
             }
 
-            return new SquigglyNode(context, name, childNodes, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, recursive, minDepth, maxDepth);
+            return new SquigglyNode(context, name, childNodes, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, deep, minDepth, maxDepth);
         }
 
         public ParseContext getContext() {
@@ -1294,8 +1289,8 @@ public class SquigglyParser {
             return this;
         }
 
-        public MutableNode recursive(boolean recursive) {
-            this.recursive = recursive;
+        public MutableNode deep(boolean deep) {
+            this.deep = deep;
             return this;
         }
         

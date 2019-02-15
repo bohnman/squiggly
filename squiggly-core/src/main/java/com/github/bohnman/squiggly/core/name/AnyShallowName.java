@@ -19,8 +19,13 @@ public class AnyShallowName implements SquigglyName {
     }
 
     @Override
-    public int match(String name) {
+    public int getSpecificity() {
         return 1;
+    }
+
+    @Override
+    public boolean matches(String name) {
+        return true;
     }
 
     /**
