@@ -27,6 +27,7 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
     private final Integer minDepth;
     private final Integer maxDepth;
     private final int stage;
+    private final int depth;
 
     /**
      * Constructor.
@@ -45,11 +46,12 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      * @param maxDepth       max depth
      * @see #isNested()
      */
-    public SquigglyNode(ParseContext context, SquigglyName name, int modifiers, List<SquigglyNode> children, int stage, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, Integer minDepth, Integer maxDepth) {
+    public SquigglyNode(ParseContext context, SquigglyName name, int modifiers, List<SquigglyNode> children, int stage, int depth, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, Integer minDepth, Integer maxDepth) {
         this.context = notNull(context);
         this.name = name;
         this.modifiers = modifiers;
         this.children = Collections.unmodifiableList(children);
+        this.depth = depth;
         this.stage = stage;
         this.keyFunctions = Collections.unmodifiableList(keyFunctions);
         this.valueFunctions = Collections.unmodifiableList(valueFunctions);
@@ -129,6 +131,10 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      */
     public int getStage() {
         return stage;
+    }
+
+    public int getDepth() {
+        return depth;
     }
 
     /**
@@ -262,7 +268,7 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      * @return ndoe
      */
     public SquigglyNode withName(SquigglyName newName) {
-        return new SquigglyNode(context, newName, modifiers, children, stage, keyFunctions, valueFunctions, minDepth, maxDepth);
+        return new SquigglyNode(context, newName, modifiers, children, stage, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
     }
 
     /**
@@ -272,15 +278,15 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      * @return children
      */
     public SquigglyNode withChildren(List<SquigglyNode> newChildren) {
-        return new SquigglyNode(context, name, modifiers, newChildren, stage, keyFunctions, valueFunctions, minDepth, maxDepth);
+        return new SquigglyNode(context, name, modifiers, newChildren, stage, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
     }
 
     public static SquigglyNode createNamed(SquigglyName name) {
-        return new SquigglyNode(new ParseContext(1, 1), name, 0, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), null, null);
+        return new SquigglyNode(new ParseContext(1, 1), name, 0, Collections.emptyList(), 0, 0, Collections.emptyList(), Collections.emptyList(), null, null);
     }
 
     public static SquigglyNode createNamedNested(SquigglyName name) {
-        return new SquigglyNode(new ParseContext(1, 1), name, Modifier.NESTED, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), null, null);
+        return new SquigglyNode(new ParseContext(1, 1), name, Modifier.NESTED, Collections.emptyList(), 0, 0, Collections.emptyList(), Collections.emptyList(), null, null);
     }
 
 

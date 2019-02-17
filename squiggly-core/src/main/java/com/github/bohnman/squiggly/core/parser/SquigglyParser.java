@@ -128,10 +128,10 @@ public class SquigglyParser {
 
         @Override
         public SquigglyNode visitNodeExpressionList(SquigglyExpressionParser.NodeExpressionListContext ctx) {
-            MutableNode root = new MutableNode(parseContext(ctx), new ExactName(SquigglyNode.ROOT)).dotPathed(true);
+            MutableNode root = createMutableNode(ctx, null, new ExactName(SquigglyNode.ROOT)).dotPathed(true);
 
             if (ctx.expressionList() != null) {
-                handleExpressionList(ctx.expressionList(), root, 0);
+                handleExpressionList(ctx.expressionList(), root);
             } else if (ctx.topLevelExpression() != null) {
                 handleTopLevelExpression(ctx.topLevelExpression(), root);
             }
@@ -142,8 +142,8 @@ public class SquigglyParser {
 
         @Override
         public SquigglyNode visitPropertyFilter(SquigglyExpressionParser.PropertyFilterContext ctx) {
-            MutableNode root = new MutableNode(parseContext(ctx), new ExactName(SquigglyNode.ROOT)).dotPathed(true);
-            handleExpressionList(ctx.expressionList(), root, 0);
+            MutableNode root = createMutableNode(ctx, null, new ExactName(SquigglyNode.ROOT)).dotPathed(true);
+            handleExpressionList(ctx.expressionList(), root);
             MutableNode analyzedRoot = analyze(root);
             return analyzedRoot.toSquigglyNode();
         }
@@ -169,33 +169,33 @@ public class SquigglyParser {
             }
         }
 
-        private void handleExpressionList(SquigglyExpressionParser.ExpressionListContext ctx, MutableNode parent, int depth) {
+        private void handleExpressionList(SquigglyExpressionParser.ExpressionListContext ctx, MutableNode parent) {
             List<SquigglyExpressionParser.ExpressionContext> expressions = ctx.expression();
 
             for (SquigglyExpressionParser.ExpressionContext expressionContext : expressions) {
-                handleExpression(expressionContext, parent, depth);
+                handleExpression(expressionContext, parent);
             }
         }
 
-        private void handleExpression(SquigglyExpressionParser.ExpressionContext ctx, MutableNode parent, int depth) {
+        private void handleExpression(SquigglyExpressionParser.ExpressionContext ctx, MutableNode parent) {
 
             if (ctx.negatedExpression() != null) {
-                handleNegatedExpression(ctx.negatedExpression(), parent, depth);
+                handleNegatedExpression(ctx.negatedExpression(), parent);
                 return;
             }
 
             if (ctx.dottedFieldExpression() != null) {
-                handleDottedFieldExpression(ctx.dottedFieldExpression(), parent, depth);
+                handleDottedFieldExpression(ctx.dottedFieldExpression(), parent);
                 return;
             }
 
             if (ctx.fieldGroupExpression() != null) {
-                handleFieldGroupExpression(ctx.fieldGroupExpression(), parent, depth);
+                handleFieldGroupExpression(ctx.fieldGroupExpression(), parent);
                 return;
             }
 
             if (ctx.deepExpression() != null) {
-                handleDeepExpression(ctx.deepExpression(), parent, depth);
+                handleDeepExpression(ctx.deepExpression(), parent);
                 return;
             }
 
@@ -204,30 +204,30 @@ public class SquigglyParser {
         }
 
 
-        private void handleDottedFieldExpression(SquigglyExpressionParser.DottedFieldExpressionContext ctx, MutableNode parent, int depth) {
+        private void handleDottedFieldExpression(SquigglyExpressionParser.DottedFieldExpressionContext ctx, MutableNode parent) {
             SquigglyExpressionParser.DottedFieldContext dottedField = ctx.dottedField();
 
             parent.nested(dottedField.field().size() > 1);
 
             for (int i = 0; i < dottedField.field().size() - 1; i++) {
                 SquigglyExpressionParser.FieldContext field = dottedField.field(i);
-                parent = parent.addChild(new MutableNode(parseContext(field), createName(field)).dotPathed(true));
+                parent = createMutableNode(field, parent, createName(field)).dotPathed(true);
                 parent.nested(true);
             }
 
             SquigglyExpressionParser.FieldContext lastField = ctx.dottedField().field(dottedField.field().size() - 1);
-            createMutableNode(lastField, parent, depth, createName(lastField), ctx.nestedExpression(), ctx.keyValueFieldArgChain());
+            createMutableNode(lastField, parent, createName(lastField), ctx.nestedExpression(), ctx.keyValueFieldArgChain());
         }
 
-        private void handleFieldGroupExpression(SquigglyExpressionParser.FieldGroupExpressionContext ctx, MutableNode parent, int depth) {
+        private void handleFieldGroupExpression(SquigglyExpressionParser.FieldGroupExpressionContext ctx, MutableNode parent) {
             SquigglyExpressionParser.FieldGroupContext fieldGroup = ctx.fieldGroup();
 
             for (SquigglyExpressionParser.FieldContext fieldContext : fieldGroup.field()) {
-                createMutableNode(fieldContext, parent, depth, createName(fieldContext), ctx.nestedExpression(), ctx.keyValueFieldArgChain());
+                createMutableNode(fieldContext, parent, createName(fieldContext), ctx.nestedExpression(), ctx.keyValueFieldArgChain());
             }
         }
 
-        private void handleDeepExpression(SquigglyExpressionParser.DeepExpressionContext ctx, MutableNode parent, int depth) {
+        private void handleDeepExpression(SquigglyExpressionParser.DeepExpressionContext ctx, MutableNode parent) {
             List<SquigglyExpressionParser.DeepArgContext> deepArgs = ctx.deepArg();
 
             Integer minDepth = null;
@@ -264,21 +264,27 @@ public class SquigglyParser {
             }
 
             if (deepArgs.isEmpty()) {
-                createMutableNode(ctx, parent, depth, AnyDeepName.get(), null, null)
-                        .deep(true)
-                        .minDepth(minDepth == null ? null : depth + minDepth)
-                        .maxDepth(maxDepth == null ? null : depth + maxDepth);
+                MutableNode node = createMutableNode(ctx, parent, AnyDeepName.get())
+                        .deep(true);
+
+                if (minDepth != null) {
+                    node.minDepth(node.depth + minDepth);
+                }
+
+                if (maxDepth != null) {
+                    node.maxDepth(node.depth + maxDepth);
+                }
                 return;
             }
 
             for (SquigglyExpressionParser.DeepArgContext deepArg : deepArgs) {
-                for (MutableNode node : handleDeepArg(deepArg, parent, depth)) {
+                for (MutableNode node : handleDeepArg(deepArg, parent)) {
                     node.deep(true).minDepth(minDepth).maxDepth(maxDepth);
                 }
             }
         }
 
-        private List<MutableNode> handleDeepArg(SquigglyExpressionParser.DeepArgContext ctx, MutableNode parent, int depth) {
+        private List<MutableNode> handleDeepArg(SquigglyExpressionParser.DeepArgContext ctx, MutableNode parent) {
             if (ctx.Subtract() != null) {
                 return Collections.singletonList(parent.addChild(new MutableNode(parseContext(ctx.field()), createName(ctx.field())).negated(true)));
             }
@@ -298,12 +304,23 @@ public class SquigglyParser {
             }
 
             return fields.stream()
-                    .map(field -> createMutableNode(ruleContext, parent, depth, createName(field), null, ctx.keyValueFieldArgChain()))
+                    .map(field -> createMutableNode(ruleContext, parent, createName(field), null, ctx.keyValueFieldArgChain()))
                     .collect(toList());
         }
 
-        private MutableNode createMutableNode(ParserRuleContext ruleContext, MutableNode parent, int depth, SquigglyName name, SquigglyExpressionParser.NestedExpressionContext nestedExpression, SquigglyExpressionParser.KeyValueFieldArgChainContext keyValueFieldArgChain) {
-            MutableNode node = parent.addChild(new MutableNode(parseContext(ruleContext), name));
+
+        private MutableNode createMutableNode(ParserRuleContext ruleContext, MutableNode parent, SquigglyName name) {
+            return createMutableNode(ruleContext, parent, name, null, null);
+        }
+
+        private MutableNode createMutableNode(ParserRuleContext ruleContext, @Nullable  MutableNode parent, SquigglyName name, SquigglyExpressionParser.NestedExpressionContext nestedExpression, SquigglyExpressionParser.KeyValueFieldArgChainContext keyValueFieldArgChain) {
+
+            MutableNode node = new MutableNode(parseContext(ruleContext), name);
+
+            if (parent != null) {
+                node = parent.addChild(node);
+                node.depth(parent.depth + 1);
+            }
 
             if (keyValueFieldArgChain != null) {
                 node.keyFunctions(parseKeyFunctionChain(keyValueFieldArgChain));
@@ -314,7 +331,7 @@ public class SquigglyParser {
                 node.nested(true);
 
                 if (nestedExpression.expressionList() != null) {
-                    handleExpressionList(nestedExpression.expressionList(), node, depth + 1);
+                    handleExpressionList(nestedExpression.expressionList(), node);
                 }
             }
 
@@ -1069,9 +1086,9 @@ public class SquigglyParser {
         }
 
 
-        private void handleNegatedExpression(SquigglyExpressionParser.NegatedExpressionContext ctx, MutableNode parent, int depth) {
+        private void handleNegatedExpression(SquigglyExpressionParser.NegatedExpressionContext ctx, MutableNode parent) {
             if (ctx.field() != null) {
-                parent.addChild(new MutableNode(parseContext(ctx.field()), createName(ctx.field())).negated(true));
+                createMutableNode(ctx.field(), parent, createName(ctx.field())).negated(true);
             } else if (ctx.dottedField() != null) {
                 for (int i = 0; i < ctx.dottedField().field().size(); i++) {
                     SquigglyExpressionParser.FieldContext fieldContext = ctx.dottedField().field(i);
@@ -1130,6 +1147,7 @@ public class SquigglyParser {
         private SquigglyName name;
         private int modifiers;
         private int stage;
+        private int depth;
         @Nullable
         private Map<String, MutableNode> children;
         private boolean dotPathed;
@@ -1166,7 +1184,7 @@ public class SquigglyParser {
                 }
             }
 
-            return new SquigglyNode(context, name, modifiers, childNodes, stage, keyFunctions, valueFunctions, minDepth, maxDepth);
+            return new SquigglyNode(context, name, modifiers, childNodes, stage, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
         }
 
         public ParseContext getContext() {
@@ -1175,6 +1193,11 @@ public class SquigglyParser {
 
         public MutableNode stage(int stage) {
             this.stage = stage;
+            return this;
+        }
+
+        public MutableNode depth(int depth) {
+            this.depth = depth;
             return this;
         }
 
