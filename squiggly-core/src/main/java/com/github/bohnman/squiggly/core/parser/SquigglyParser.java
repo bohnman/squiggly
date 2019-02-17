@@ -207,12 +207,12 @@ public class SquigglyParser {
         private void handleDottedFieldExpression(SquigglyExpressionParser.DottedFieldExpressionContext ctx, MutableNode parent, int depth) {
             SquigglyExpressionParser.DottedFieldContext dottedField = ctx.dottedField();
 
-            parent.squiggly = dottedField.field().size() > 1;
+            parent.nested(dottedField.field().size() > 1);
 
             for (int i = 0; i < dottedField.field().size() - 1; i++) {
                 SquigglyExpressionParser.FieldContext field = dottedField.field(i);
                 parent = parent.addChild(new MutableNode(parseContext(field), createName(field)).dotPathed(true));
-                parent.squiggly = true;
+                parent.nested(true);
             }
 
             SquigglyExpressionParser.FieldContext lastField = ctx.dottedField().field(dottedField.field().size() - 1);
@@ -311,10 +311,9 @@ public class SquigglyParser {
             }
 
             if (nestedExpression != null) {
-                if (nestedExpression.expressionList() == null) {
-                    node.emptyNested = true;
-                } else {
-                    node.squiggly = true;
+                node.nested(true);
+
+                if (nestedExpression.expressionList() != null) {
                     handleExpressionList(nestedExpression.expressionList(), node, depth + 1);
                 }
             }
@@ -1076,7 +1075,7 @@ public class SquigglyParser {
             } else if (ctx.dottedField() != null) {
                 for (int i = 0; i < ctx.dottedField().field().size(); i++) {
                     SquigglyExpressionParser.FieldContext fieldContext = ctx.dottedField().field(i);
-                    parent.squiggly = true;
+                    parent.nested(true);
 
                     MutableNode mutableNode = new MutableNode(parseContext(ctx.dottedField()), createName(fieldContext));
                     mutableNode.negativeParent = true;
@@ -1107,7 +1106,7 @@ public class SquigglyParser {
             boolean allNegated = true;
 
             for (MutableNode child : node.children.values()) {
-                if (!child.negated && !child.negativeParent) {
+                if (!SquigglyNode.Modifier.isNegated(child.modifiers) && !child.negativeParent) {
                     allNegated = false;
                     break;
                 }
@@ -1129,10 +1128,8 @@ public class SquigglyParser {
         private boolean negativeParent;
         private final ParseContext context;
         private SquigglyName name;
+        private int modifiers;
         private int stage;
-        private boolean negated;
-        private boolean squiggly;
-        private boolean emptyNested;
         @Nullable
         private Map<String, MutableNode> children;
         private boolean dotPathed;
@@ -1140,7 +1137,6 @@ public class SquigglyParser {
         private MutableNode parent;
         private List<FunctionNode> keyFunctions = new ArrayList<>();
         private List<FunctionNode> valueFunctions = new ArrayList<>();
-        private boolean deep;
 
         @Nullable
         private Integer minDepth;
@@ -1170,7 +1166,7 @@ public class SquigglyParser {
                 }
             }
 
-            return new SquigglyNode(context, name, childNodes, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, deep, minDepth, maxDepth);
+            return new SquigglyNode(context, name, modifiers, childNodes, stage, keyFunctions, valueFunctions, minDepth, maxDepth);
         }
 
         public ParseContext getContext() {
@@ -1209,13 +1205,18 @@ public class SquigglyParser {
             return this;
         }
 
+        public MutableNode nested(boolean nested) {
+            modifiers = SquigglyNode.Modifier.setNested(modifiers, nested);
+            return this;
+        }
+
         public MutableNode negated(boolean negated) {
-            this.negated = negated;
+            modifiers = SquigglyNode.Modifier.setNegated(modifiers, negated);
             return this;
         }
 
         public MutableNode deep(boolean deep) {
-            this.deep = deep;
+            modifiers = SquigglyNode.Modifier.setDeep(modifiers, deep);
             return this;
         }
 
@@ -1251,8 +1252,7 @@ public class SquigglyParser {
                 }
 
 
-                existingChild.squiggly = existingChild.squiggly || childToAdd.squiggly;
-                existingChild.emptyNested = existingChild.emptyNested && childToAdd.emptyNested;
+                existingChild.nested(SquigglyNode.Modifier.isNested(existingChild.modifiers) || SquigglyNode.Modifier.isNested(childToAdd.modifiers));
                 existingChild.dotPathed = existingChild.dotPathed && childToAdd.dotPathed;
                 existingChild.negativeParent = existingChild.negativeParent && childToAdd.negativeParent;
                 childToAdd = existingChild;

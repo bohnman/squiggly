@@ -20,13 +20,10 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
 
     private final ParseContext context;
     private final SquigglyName name;
+    private final int modifiers;
     private final List<SquigglyNode> children;
     private final List<FunctionNode> keyFunctions;
     private final List<FunctionNode> valueFunctions;
-    private final boolean squiggly;
-    private final boolean negated;
-    private final boolean emptyNested;
-    private final boolean deep;
     private final Integer minDepth;
     private final Integer maxDepth;
     private final int stage;
@@ -46,19 +43,16 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      * @param deep           whether or not this node is deep
      * @param minDepth       min depth
      * @param maxDepth       max depth
-     * @see #isSquiggly()
+     * @see #isNested()
      */
-    public SquigglyNode(ParseContext context, SquigglyName name, List<SquigglyNode> children, int stage, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, boolean negated, boolean squiggly, boolean emptyNested, boolean deep, Integer minDepth, Integer maxDepth) {
+    public SquigglyNode(ParseContext context, SquigglyName name, int modifiers, List<SquigglyNode> children, int stage, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, Integer minDepth, Integer maxDepth) {
         this.context = notNull(context);
         this.name = name;
-        this.negated = negated;
+        this.modifiers = modifiers;
         this.children = Collections.unmodifiableList(children);
         this.stage = stage;
         this.keyFunctions = Collections.unmodifiableList(keyFunctions);
         this.valueFunctions = Collections.unmodifiableList(valueFunctions);
-        this.squiggly = squiggly;
-        this.emptyNested = emptyNested;
-        this.deep = deep;
         this.minDepth = minDepth;
         this.maxDepth = maxDepth;
     }
@@ -163,8 +157,8 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      *
      * @return true/false
      */
-    public boolean isSquiggly() {
-        return squiggly;
+    public boolean isNested() {
+        return Modifier.isNested(modifiers);
     }
 
     /**
@@ -191,7 +185,7 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      * @return true if empty nested, false otherwise
      */
     public boolean isEmptyNested() {
-        return emptyNested;
+        return isNested() && children.isEmpty();
     }
 
     /**
@@ -200,7 +194,7 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      * @return true if negated false if not
      */
     public boolean isNegated() {
-        return negated;
+        return Modifier.isNegated(modifiers);
     }
 
     /**
@@ -218,7 +212,7 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      * @return true if deep, false otherwise
      */
     public boolean isDeep() {
-        return deep;
+        return Modifier.isDeep(modifiers);
     }
 
     /**
@@ -268,7 +262,7 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      * @return ndoe
      */
     public SquigglyNode withName(SquigglyName newName) {
-        return new SquigglyNode(context, newName, children, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, deep, minDepth, maxDepth);
+        return new SquigglyNode(context, newName, modifiers, children, stage, keyFunctions, valueFunctions, minDepth, maxDepth);
     }
 
     /**
@@ -278,14 +272,47 @@ public class SquigglyNode implements Comparable<SquigglyNode> {
      * @return children
      */
     public SquigglyNode withChildren(List<SquigglyNode> newChildren) {
-        return new SquigglyNode(context, name, newChildren, stage, keyFunctions, valueFunctions, negated, squiggly, emptyNested, deep, minDepth, maxDepth);
+        return new SquigglyNode(context, name, modifiers, newChildren, stage, keyFunctions, valueFunctions, minDepth, maxDepth);
     }
 
     public static SquigglyNode createNamed(SquigglyName name) {
-        return new SquigglyNode(new ParseContext(1, 1), name, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), false, false, false, false, null, null);
+        return new SquigglyNode(new ParseContext(1, 1), name, 0, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), null, null);
     }
 
-    public static SquigglyNode createNamedSquiggly(SquigglyName name) {
-        return new SquigglyNode(new ParseContext(1, 1), name, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), false, true, false, false, null, null);
+    public static SquigglyNode createNamedNested(SquigglyName name) {
+        return new SquigglyNode(new ParseContext(1, 1), name, Modifier.NESTED, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), null, null);
+    }
+
+
+    public static class Modifier {
+
+        private static final int DEEP = 0x00000001;
+        private static final int NEGATED = 0x00000002;
+        private static final int NESTED = 0x00000004;
+
+
+        public static boolean isDeep(int mod) {
+            return (mod & DEEP) != 0;
+        }
+
+        public static int setDeep(int mod, boolean flag) {
+            return (flag) ? mod | DEEP : mod & ~DEEP;
+        }
+
+        public static boolean isNegated(int mod) {
+            return (mod & NEGATED) != 0;
+        }
+
+        public static int setNegated(int mod, boolean flag) {
+            return (flag) ? mod | NEGATED : mod & ~NEGATED;
+        }
+
+        public static boolean isNested(int mod) {
+            return (mod & NESTED) != 0;
+        }
+
+        public static int setNested(int mod, boolean flag) {
+            return (flag) ? mod | NESTED : mod & ~NESTED;
+        }
     }
 }

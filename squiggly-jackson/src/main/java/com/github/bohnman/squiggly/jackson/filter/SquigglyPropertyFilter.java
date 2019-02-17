@@ -195,10 +195,12 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 //        Person person = new Person(new Name("Ryan", "Bohn"));
 //        Person person = new Person(null);
 //        mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
-        Squiggly squiggly = Squiggly.init();
+        Squiggly squiggly = Squiggly.init("firstName=@o(foo:bar)");
+//        Squiggly squiggly = Squiggly.init();
         ObjectMapper mapper = squiggly.apply(new ObjectMapper());
 //        mapper.writeValue(System.out, person);
-        mapper.writerWithDefaultPrettyPrinter().writeValue(System.out, squiggly.apply(mapper, person, "nickNames.@map(::name)"));
+//        mapper.writerWithDefaultPrettyPrinter().writeValue(System.out, squiggly.apply(mapper, person, "nickNames.@map(::priority+1)"));
+        mapper.writerWithDefaultPrettyPrinter().writeValue(System.out, person);
         System.err.println();
         System.err.println();
         System.err.println();

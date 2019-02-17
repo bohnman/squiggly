@@ -10,11 +10,11 @@ import com.github.bohnman.squiggly.core.bean.BeanInfo;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.name.AnyDeepName;
-import com.github.bohnman.squiggly.core.name.AnyShallowName;
 import com.github.bohnman.squiggly.core.name.ExactName;
 import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,7 +36,7 @@ public class SquigglyNodeMatcher {
      */
     public static final SquigglyNode ALWAYS_MATCH = SquigglyNode.createNamed(AnyDeepName.get());
 
-    private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(SquigglyNode.createNamedSquiggly(new ExactName(PropertyView.BASE_VIEW)));
+    private static final List<SquigglyNode> BASE_VIEW_NODES = Collections.singletonList(SquigglyNode.createNamedNested(new ExactName(PropertyView.BASE_VIEW)));
 
     private final CoreCache<CorePair<CoreJsonPath, String>, SquigglyNode> matchCache;
     private final BaseSquiggly squiggly;
@@ -47,7 +47,6 @@ public class SquigglyNodeMatcher {
      *
      * @param squiggly configurator
      */
-    @SuppressWarnings("unchecked")
     public SquigglyNodeMatcher(BaseSquiggly squiggly) {
         this.squiggly = notNull(squiggly);
         this.matchCache = CoreCacheBuilder.from(squiggly.getConfig().getFilterPathCacheSpec()).build();
@@ -61,7 +60,6 @@ public class SquigglyNodeMatcher {
      * @param context the context holding the root node
      * @return matched node or {@link #ALWAYS_MATCH} or {@link #NEVER_MATCH}
      */
-    @SuppressWarnings("unchecked")
     public SquigglyNode match(CoreJsonPath path, SquigglyContext context) {
         return match(path, context.getFilter(), context.getNode());
     }
@@ -99,8 +97,12 @@ public class SquigglyNodeMatcher {
         private int depth;
         private int lastIndex;
         private CoreJsonPath path;
+
+        @Nullable
         private Set<String> viewStack;
         private SquigglyNode parent;
+
+        @Nullable
         private SquigglyNode viewNode;
         private List<SquigglyNode> nodes;
         private boolean allDeepChildren;
@@ -118,7 +120,7 @@ public class SquigglyNodeMatcher {
         }
 
         public boolean isViewNodeSquiggly() {
-            return viewNode != null && viewNode.isSquiggly();
+            return viewNode != null && viewNode.isNested();
         }
 
         public void descend(SquigglyNode parent, int newDepth) {
@@ -157,7 +159,7 @@ public class SquigglyNodeMatcher {
             int depth = i;
             CoreJsonPathElement element = path.getElements().get(i);
 
-            if (context.viewNode != null && !context.viewNode.isSquiggly()) {
+            if (context.viewNode != null && !context.viewNode.isNested()) {
                 SquigglyNode viewMatch = matchPropertyName(context, element);
 
                 if (viewMatch == NEVER_MATCH) {
