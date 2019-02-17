@@ -5,10 +5,11 @@ import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
-import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
-import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
+import com.github.bohnman.squiggly.core.match.SquigglyExpressionMatcher;
+import com.github.bohnman.squiggly.core.parser.node.ExpressionNode;
+import com.github.bohnman.squiggly.core.parser.node.FilterNode;
+import com.github.bohnman.squiggly.core.parser.node.StatementNode;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -45,7 +46,7 @@ public class SquigglyNodeFilter {
             Object value = node.getValue();
             Class<?> beanClass = value == null ? Object.class : value.getClass();
             SquigglyContext context = squiggly.getContextProvider().getContext(beanClass, squiggly);
-            node = applyFilter(node, context.getFilter(), context.getNode());
+            node = applyFilter(node, context.getFilter(), context.getParsedFilter());
         }
 
         return node;
@@ -61,31 +62,38 @@ public class SquigglyNodeFilter {
     }
 
     private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> node, String filter) {
-        List<SquigglyNode> squigglyNodes = squiggly.getParser().parseNodeFilter(filter);
+        return applyFilter(node, filter, squiggly.getParser().parseNodeFilter(filter));
+    }
 
-        for (SquigglyNode squigglyNode : squigglyNodes) {
-            node = applyFilter(node, filter, squiggly.getNodeNormalizer().normalize(squigglyNode));
+    private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> node, String filter, FilterNode filterNode) {
+        for (StatementNode statement : filterNode.getStatements()) {
+            node = applyFilter(node, filter, statement);
         }
 
         return node;
     }
 
-    private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> rootJsonNode, String filter, SquigglyNode squigglyNode) {
-        if (squigglyNode == null) {
+    private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> rootJsonNode, String filter, StatementNode statement) {
+        return applyFilter(rootJsonNode, filter, statement.getRootExpression());
+    }
+
+
+    private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> rootJsonNode, String filter, ExpressionNode expression) {
+        if (expression == null) {
             return rootJsonNode;
         }
 
-        if (squigglyNode.isAnyDeep()) {
-            return invokeValueFunctions(rootJsonNode, rootJsonNode, squigglyNode);
+        if (expression.isAnyDeep()) {
+            return invokeValueFunctions(rootJsonNode, rootJsonNode, expression);
         }
 
         return rootJsonNode.transform((context, jsonNode) -> {
             if (context.getObjectPath().isEmpty()) {
-                if (squigglyNode.getValueFunctions().isEmpty()) {
+                if (expression.getValueFunctions().isEmpty()) {
                     return jsonNode;
                 }
 
-                return invokeValueFunctions(jsonNode, jsonNode, squigglyNode);
+                return invokeValueFunctions(jsonNode, jsonNode, expression);
             }
 
             if (context.getKey() instanceof Number) {
@@ -93,9 +101,9 @@ public class SquigglyNodeFilter {
                 return jsonNode;
             }
 
-            SquigglyNode match = squiggly.getNodeMatcher().match(context.getObjectPath(), filter, squigglyNode);
+            ExpressionNode match = squiggly.getNodeMatcher().match(context.getObjectPath(), filter, expression);
 
-            if (match == null || match == SquigglyNodeMatcher.NEVER_MATCH) {
+            if (match == null || match == SquigglyExpressionMatcher.NEVER_MATCH) {
                 return null;
             }
 
@@ -104,8 +112,8 @@ public class SquigglyNodeFilter {
         });
     }
 
-    private <T> CoreJsonNode<T> invokeValueFunctions(CoreJsonNode<T> jsonNode, CoreJsonNode parentNode, SquigglyNode squigglyNode) {
-        Object newValue = squiggly.getFunctionInvoker().invoke(jsonNode, jsonNode, parentNode, squigglyNode.getValueFunctions());
+    private <T> CoreJsonNode<T> invokeValueFunctions(CoreJsonNode<T> jsonNode, CoreJsonNode parentNode, ExpressionNode expression) {
+        Object newValue = squiggly.getFunctionInvoker().invoke(jsonNode, jsonNode, parentNode, expression.getValueFunctions());
 
         if (newValue instanceof CoreJsonNode) {
             return (CoreJsonNode) newValue;

@@ -24,7 +24,6 @@ import java.util.Collection;
 /**
  * Configuration used when the Servlet API exists in the project.
  */
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
 @ConditionalOnWebApplication
 @ConditionalOnClass(Filter.class)
@@ -42,7 +41,7 @@ public class SquigglyWebAutoConfiguration {
     @Bean
     public FilterRegistrationBean squigglyRequestFilter(SquigglyConfig config) {
         FilterRegistrationBean registrationBean = new FilterRegistrationBean(new SquigglyRequestFilter());
-        registrationBean.setOrder(config.getInt("squiggly.spring.boot.requestFilter.order", Integer.MAX_VALUE));
+        registrationBean.setOrder(config.getInt("squiggly.spring.boot.request-filter.order", Integer.MAX_VALUE));
         return registrationBean;
     }
 

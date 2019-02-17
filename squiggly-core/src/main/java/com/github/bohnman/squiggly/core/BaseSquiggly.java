@@ -21,9 +21,8 @@ import com.github.bohnman.squiggly.core.function.repository.CompositeFunctionRep
 import com.github.bohnman.squiggly.core.function.repository.MapFunctionRepository;
 import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.core.function.security.SquigglyFunctionSecurity;
-import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
+import com.github.bohnman.squiggly.core.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
-import com.github.bohnman.squiggly.core.normalize.SquigglyNodeNormalizer;
 import com.github.bohnman.squiggly.core.parser.SquigglyParser;
 import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
 import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
@@ -48,8 +47,7 @@ public abstract class BaseSquiggly {
     private final SquigglyFunctionRepository functionRepository;
     private final SquigglyFunctionSecurity functionSecurity;
     private final SquigglyMetrics metrics;
-    private final SquigglyNodeMatcher nodeMatcher;
-    private final SquigglyNodeNormalizer nodeNormalizer;
+    private final SquigglyExpressionMatcher nodeMatcher;
     private final SquigglyNodeFilter nodeFilter;
     private final SquigglyParser parser;
     private final SquigglyVariableResolver variableResolver;
@@ -72,8 +70,7 @@ public abstract class BaseSquiggly {
         this.parser = notNull(builder.builtParser);
         this.variableResolver = notNull(builder.builtVariableResolver);
         this.functionInvoker = new SquigglyFunctionInvoker(this);
-        this.nodeMatcher = new SquigglyNodeMatcher(this);
-        this.nodeNormalizer = new SquigglyNodeNormalizer(this);
+        this.nodeMatcher = new SquigglyExpressionMatcher(this);
         this.nodeFilter = createNodeFilter();
         this.serviceLocator = notNull(builder.builtServiceLocator);
     }
@@ -223,17 +220,8 @@ public abstract class BaseSquiggly {
      *
      * @return node matcher
      */
-    public SquigglyNodeMatcher getNodeMatcher() {
+    public SquigglyExpressionMatcher getNodeMatcher() {
         return nodeMatcher;
-    }
-
-    /**
-     * Get the node normalizer.
-     *
-     * @return node normalizer
-     */
-    public SquigglyNodeNormalizer getNodeNormalizer() {
-        return nodeNormalizer;
     }
 
     /**
@@ -595,7 +583,6 @@ public abstract class BaseSquiggly {
          *
          * @return squiggly object
          */
-        @SuppressWarnings("unchecked")
         public S build() {
             this.builtConfig = config == null ? new SquigglyConfig() : config;
             this.builtContextProvider = buildContextProvider();
@@ -729,7 +716,6 @@ public abstract class BaseSquiggly {
             return functionSecurity == null ? SquigglyFunctionSecurity.ALWAYS_ALLOW : functionSecurity;
         }
 
-        @SuppressWarnings("unchecked")
         private List<SquigglyFunction<?>> getDefaultFunctions() {
             List<SquigglyFunction<?>> defaultFunctions = new ArrayList<>();
             applyDefaultFunctions(defaultFunctions);

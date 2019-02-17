@@ -10,11 +10,10 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 /**
  * Represents a function arguments.
  */
-public class ArgumentNode {
-    private final ParseContext context;
+public class ArgumentNode extends BaseSquigglyNode {
     private final int index;
     private final Object value;
-    private final ArgumentNodeType type;
+    private final ArgumentNodeType argumentType;
 
 
     /**
@@ -23,24 +22,15 @@ public class ArgumentNode {
      * @param context parse context
      * @param index   argument index
      * @param value   argument value
-     * @param type    argument type
+     * @param argumentType    argument type
      */
-    public ArgumentNode(ParseContext context, int index, Object value, ArgumentNodeType type) {
-        this.context = notNull(context);
+    public ArgumentNode(ParseContext context, int index, Object value, ArgumentNodeType argumentType) {
+        super(context, SquigglyNodeType.ARGUMENT);
         isTrue(index >= 0, "index must be >= 0");
         this.index = index;
 
         this.value = value;
-        this.type = notNull(type);
-    }
-
-    /**
-     * Parse context.
-     *
-     * @return parse context
-     */
-    public ParseContext getContext() {
-        return context;
+        this.argumentType = notNull(argumentType);
     }
 
     /**
@@ -66,15 +56,15 @@ public class ArgumentNode {
      *
      * @return type
      */
-    public ArgumentNodeType getType() {
-        return type;
+    public ArgumentNodeType getArgumentType() {
+        return argumentType;
     }
 
     @Override
     public String toString() {
         return "{" +
                 "value=" + value +
-                ", type=" + type +
+                ", type=" + argumentType +
                 '}';
     }
 

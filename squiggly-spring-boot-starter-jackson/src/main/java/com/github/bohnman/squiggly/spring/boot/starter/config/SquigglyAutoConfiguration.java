@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
@@ -159,7 +160,7 @@ public class SquigglyAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnNotWebApplication
     public SquigglyContextProvider squigglySimpleContextProvider(SquigglyConfig config) {
-        return new SimpleSquigglyContextProvider(config.getString("squiggly.spring.boot.staticFilter")) {
+        return new SimpleSquigglyContextProvider(config.getString("squiggly.spring.boot.static-filter")) {
             @Override
             @Nullable
             protected String customizeFilter(@Nullable String filter, @Nullable Class beanClass) {
@@ -202,11 +203,11 @@ public class SquigglyAutoConfiguration {
 
         public SquigglyApplicationListener(Squiggly squiggly) {
             this.squiggly = squiggly;
-            this.autoRegister = squiggly.getConfig().getBoolean("squiggly.spring.boot.mapper.autoRegister", true);
+            this.autoRegister = squiggly.getConfig().getBoolean("squiggly.spring.boot.mapper.auto-register", true);
         }
 
         @Override
-        public void onApplicationEvent(ContextRefreshedEvent event) {
+        public void onApplicationEvent(@Nonnull ContextRefreshedEvent event) {
             Collection<ObjectMapper> objectMappers = event.getApplicationContext().getBeansOfType(ObjectMapper.class).values();
             apply(event, objectMappers);
         }

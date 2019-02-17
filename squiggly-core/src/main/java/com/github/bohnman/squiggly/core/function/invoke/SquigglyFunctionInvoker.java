@@ -123,11 +123,11 @@ public class SquigglyFunctionInvoker {
         child = unwrapJsonNode(child);
         parent = unwrapJsonNode(parent);
 
-        if (functionNode.getType().equals(FunctionNodeType.PROPERTY)) {
+        if (functionNode.getFunctionType().equals(FunctionNodeType.PROPERTY)) {
             return invokeProperty(input, child, parent, functionNode);
         }
 
-        if (functionNode.getType().equals(FunctionNodeType.ASSIGNMENT)) {
+        if (functionNode.getFunctionType().equals(FunctionNodeType.ASSIGNMENT)) {
             return invokeAssignment(input, child, parent, functionNode);
         }
 
@@ -186,7 +186,7 @@ public class SquigglyFunctionInvoker {
         ArgumentNode lastArg = argumentNodes.get(1);
 
         if (SystemFunctionName.ASSIGN.getFunctionName().equals(functionNode.getName())) {
-            if (lastArg.getType() == ArgumentNodeType.FUNCTION_CHAIN) {
+            if (lastArg.getArgumentType() == ArgumentNodeType.FUNCTION_CHAIN) {
                 return invoke(input, child, parent, (List<FunctionNode>) lastArg.getValue());
             } else {
                 return getValue(lastArg, input, child, parent);
@@ -315,7 +315,7 @@ public class SquigglyFunctionInvoker {
 
     @SuppressWarnings("unchecked")
     private Object getValue(ArgumentNode argumentNode, Object input, Object child, Object parent) {
-        switch (argumentNode.getType()) {
+        switch (argumentNode.getArgumentType()) {
             case ARRAY_DECLARATION:
                 return buildArrayDeclaration(input, child, parent, (List<ArgumentNode>) argumentNode.getValue());
             case ARRAY_RANGE_DECLARATION:
@@ -421,7 +421,7 @@ public class SquigglyFunctionInvoker {
         Function function;
         FunctionNode firstFunctionNode = functionNodes.get(0);
 
-        if (firstFunctionNode.getType() == FunctionNodeType.PROPERTY) {
+        if (firstFunctionNode.getFunctionType() == FunctionNodeType.PROPERTY) {
             function = new Property(child, parent, firstFunctionNode.isAscending(), functionNodes);
         } else {
             function = new FunctionChain(child, parent, functionNodes);

@@ -1,5 +1,7 @@
 package com.github.bohnman.squiggly.core.name;
 
+import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
+
 /**
  * Represents a node name matching strategy.
  */

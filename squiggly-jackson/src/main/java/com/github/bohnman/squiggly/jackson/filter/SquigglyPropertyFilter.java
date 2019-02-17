@@ -2,20 +2,19 @@ package com.github.bohnman.squiggly.jackson.filter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
-import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.std.MapProperty;
-import com.fasterxml.jackson.databind.type.SimpleType;
 import com.github.bohnman.core.json.path.CoreJsonPath;
 import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.squiggly.core.context.SquigglyContext;
 import com.github.bohnman.squiggly.core.function.invoke.SquigglyFunctionInvoker;
-import com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher;
-import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
+import com.github.bohnman.squiggly.core.parser.node.ExpressionNode;
+import com.github.bohnman.squiggly.core.parser.node.FilterNode;
+import com.github.bohnman.squiggly.core.parser.node.StatementNode;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 
 import javax.annotation.Nullable;
@@ -29,7 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static com.github.bohnman.squiggly.core.match.SquigglyNodeMatcher.NEVER_MATCH;
+import static com.github.bohnman.squiggly.core.match.SquigglyExpressionMatcher.ALWAYS_MATCH;
+import static com.github.bohnman.squiggly.core.match.SquigglyExpressionMatcher.NEVER_MATCH;
 
 
 /**
@@ -102,7 +102,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
                                  final PropertyWriter writer) throws Exception {
 
 
-        SquigglyNode match = match(writer, jgen);
+        ExpressionNode match = match(writer, jgen);
 
         SquigglyFunctionInvoker functionInvoker = squiggly.getFunctionInvoker();
 
@@ -128,21 +128,33 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         }
     }
 
-    private SquigglyNode match(final PropertyWriter writer, final JsonGenerator jgen) {
+    private ExpressionNode match(final PropertyWriter writer, final JsonGenerator jgen) {
         JsonStreamContext streamContext = getStreamContext(jgen);
 
         if (streamContext == null) {
-            return SquigglyNodeMatcher.ALWAYS_MATCH;
+            return ALWAYS_MATCH;
         }
 
         if (!squiggly.getContextProvider().isFilteringEnabled()) {
-            return SquigglyNodeMatcher.ALWAYS_MATCH;
+            return ALWAYS_MATCH;
         }
 
         CoreJsonPath path = getPath(writer, streamContext);
         SquigglyContext context = squiggly.getContextProvider().getContext(path.getFirst().getBeanClass(), squiggly);
 
-        return squiggly.getNodeMatcher().match(path, context);
+        String filter = context.getFilter();
+        FilterNode parsedFilter = context.getParsedFilter();
+        List<StatementNode> statements = parsedFilter.getStatements();
+
+        if (statements.isEmpty()) {
+            return NEVER_MATCH;
+        }
+
+        if (statements.size() > 1) {
+            throw new IllegalArgumentException("Currently, only a single statement is supported for property filters.");
+        }
+
+        return squiggly.getNodeMatcher().match(path, filter, statements.get(0));
     }
 
     private CoreJsonPath getPath(PropertyWriter writer, JsonStreamContext sc) {

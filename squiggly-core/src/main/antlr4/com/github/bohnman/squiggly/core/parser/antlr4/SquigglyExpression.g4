@@ -3,23 +3,39 @@ grammar SquigglyExpression;
 //-----------------------------------------------------------------------------
 //region Parser Rules
 //-----------------------------------------------------------------------------
+
+// region Filter Chains
 nodeFilter
-    : nodeExpressionList ((Pipe | SemiColon) nodeExpressionList)* EOF
+    : nodeStatement (statementSeperator nodeStatement)* EOF
     ;
 
 propertyFilter
-    : expressionList EOF
+    : propertyStatement EOF
     ;
 
-//region Expressions
+statementSeperator
+    : Pipe
+    | SemiColon
+    ;
+
+// endregion
+
+//region Statements
+propertyStatement
+    : expressionList
+    ;
+
+nodeStatement
+    : expressionList
+    | topLevelExpression
+    ;
+// endregion
+
+// region Expressions
 expressionList
     : expression (Comma expression)*
     ;
 
-nodeExpressionList
-    : expressionList
-    | topLevelExpression
-    ;
 
 expression
     : negatedExpression
@@ -30,6 +46,7 @@ expression
 
 deepExpression
     : WildcardDeep (ParenLeft deepRange ParenRight)? (ParenLeft deepArg (Comma deepArg)*  ParenRight)?
+    | WildcardDeepInherit
     ;
 
 deepArg
@@ -82,7 +99,6 @@ field
     : exactField
     | RegexLiteral
     | StringLiteral
-    | variable
     | wildcardField
     ;
 
@@ -396,6 +412,7 @@ Tilde: '~';
 Underscore: '_';
 WildcardShallow: '*';
 WildcardDeep: '**';
+WildcardDeepInherit: '***';
 Or: '||';
 //endregion
 

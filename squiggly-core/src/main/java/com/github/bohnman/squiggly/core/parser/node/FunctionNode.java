@@ -12,13 +12,12 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 /**
  * Represents a function call.
  */
-public class FunctionNode {
+public class FunctionNode extends BaseSquigglyNode {
 
-    private final ParseContext context;
     private final String name;
     private final List<ArgumentNode> arguments;
     private final boolean ignoreNulls;
-    private final FunctionNodeType type;
+    private final FunctionNodeType functionType;
     private final boolean ascending;
     private final boolean initial;
 
@@ -29,7 +28,7 @@ public class FunctionNode {
      * @param name        name of the function
      * @param arguments   function arguments
      * @param ignoreNulls ignore function if input is null
-     * @param type        function type
+     * @param functionType        function type
      * @param ascending   is sorted ascending
      * @param initial     initial
      */
@@ -38,25 +37,16 @@ public class FunctionNode {
             String name,
             List<ArgumentNode> arguments,
             boolean ignoreNulls,
-            FunctionNodeType type,
+            FunctionNodeType functionType,
             boolean ascending,
             boolean initial) {
-        this.context = notNull(context);
+        super(context, SquigglyNodeType.FUNCTION);
         this.name = notNull(name);
         this.arguments = Collections.unmodifiableList(notNull(arguments));
         this.ignoreNulls = ignoreNulls;
-        this.type = notNull(type);
+        this.functionType = notNull(functionType);
         this.ascending = ascending;
         this.initial = initial;
-    }
-
-    /**
-     * Get the parse context.
-     *
-     * @return parse context
-     */
-    public ParseContext getContext() {
-        return context;
     }
 
     /**
@@ -91,8 +81,8 @@ public class FunctionNode {
      *
      * @return type
      */
-    public FunctionNodeType getType() {
-        return type;
+    public FunctionNodeType getFunctionType() {
+        return functionType;
     }
 
     /**

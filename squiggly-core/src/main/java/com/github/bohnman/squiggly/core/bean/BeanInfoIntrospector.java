@@ -35,7 +35,7 @@ public class BeanInfoIntrospector {
     public BeanInfoIntrospector(SquigglyConfig config, SquigglyMetrics metrics) {
         this.config = notNull(config);
         cache = CoreCacheBuilder.from(config.getPropertyDescriptorCacheSpec()).build();
-        metrics.add(new CoreCacheSquigglyMetricsSource("squiggly.property.descriptorCache.", cache));
+        metrics.add(new CoreCacheSquigglyMetricsSource("squiggly.property.descriptor-cache.", cache));
     }
 
 

@@ -82,7 +82,7 @@ public class SquigglyConfig {
         filterImplicitlyIncludeBaseFieldsInView = getBool(source, propsMap, locationMap, "squiggly.filter.implicitly-include-base-fields-in-view");
         filterPathCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.filter.path-cache.spec");
         filterPropagateViewToNestedFilters = getBool(source, propsMap, locationMap, "squiggly.filter.propagate-view-to-nested-filters");
-        parserNodeCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.parser.node-cache.spec");
+        parserNodeCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.parser.filter-cache.spec");
         propertyAddNonAnnotatedFieldsToBaseView = getBool(source, propsMap, locationMap, "squiggly.property.add-non-annotated-fields-to-base-view");
         propertyDescriptorCacheSpec = getCacheSpec(source, propsMap, locationMap, "squiggly.property.descriptor-cache.spec");
         filterRequestParam = getString(source, propsMap, locationMap, "squiggly.filter.request.param");
