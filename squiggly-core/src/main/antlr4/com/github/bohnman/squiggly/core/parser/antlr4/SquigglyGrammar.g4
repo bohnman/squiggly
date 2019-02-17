@@ -1,4 +1,4 @@
-grammar SquigglyExpression;
+grammar SquigglyGrammar;
 
 //-----------------------------------------------------------------------------
 //region Parser Rules

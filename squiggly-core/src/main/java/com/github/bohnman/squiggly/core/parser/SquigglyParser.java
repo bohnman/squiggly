@@ -10,9 +10,9 @@ import com.github.bohnman.squiggly.core.config.SystemFunctionName;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
 import com.github.bohnman.squiggly.core.name.*;
-import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionBaseVisitor;
-import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionLexer;
-import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyExpressionParser;
+import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyGrammarBaseVisitor;
+import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyGrammarLexer;
+import com.github.bohnman.squiggly.core.parser.antlr4.SquigglyGrammarParser;
 import com.github.bohnman.squiggly.core.parser.node.*;
 import com.github.bohnman.squiggly.core.view.PropertyView;
 import org.antlr.v4.runtime.CharStreams;
@@ -82,8 +82,8 @@ public class SquigglyParser {
             return filterNode;
         }
 
-        SquigglyExpressionLexer lexer = ThrowingErrorListener.overwrite(new SquigglyExpressionLexer(CharStreams.fromString(filter)));
-        SquigglyExpressionParser parser = ThrowingErrorListener.overwrite(new SquigglyExpressionParser(new CommonTokenStream(lexer)));
+        SquigglyGrammarLexer lexer = ThrowingErrorListener.overwrite(new SquigglyGrammarLexer(CharStreams.fromString(filter)));
+        SquigglyGrammarParser parser = ThrowingErrorListener.overwrite(new SquigglyGrammarParser(new CommonTokenStream(lexer)));
         FilterVisitor visitor = new FilterVisitor();
 
         filterNode = visitor.visit(nodeFilter ? parser.nodeFilter() : parser.propertyFilter());
@@ -93,20 +93,20 @@ public class SquigglyParser {
     }
 
 
-    private class FilterVisitor extends SquigglyExpressionBaseVisitor<FilterNode> {
+    private class FilterVisitor extends SquigglyGrammarBaseVisitor<FilterNode> {
 
         @Override
-        public FilterNode visitNodeFilter(SquigglyExpressionParser.NodeFilterContext ctx) {
+        public FilterNode visitNodeFilter(SquigglyGrammarParser.NodeFilterContext ctx) {
             FilterNodeBuilder filterNode = new FilterNodeBuilder(parseContext(ctx), ctx.nodeStatement().size());
 
-            for (SquigglyExpressionParser.NodeStatementContext statementContext : ctx.nodeStatement()) {
+            for (SquigglyGrammarParser.NodeStatementContext statementContext : ctx.nodeStatement()) {
                 handleNodeStatement(statementContext, filterNode);
             }
 
             return analyze(filterNode).build();
         }
 
-        private void handleNodeStatement(SquigglyExpressionParser.NodeStatementContext ctx, FilterNodeBuilder filterNode) {
+        private void handleNodeStatement(SquigglyGrammarParser.NodeStatementContext ctx, FilterNodeBuilder filterNode) {
             ParseContext parseContext = parseContext(ctx);
             StatementNodeBuilder statementNode;
 
@@ -124,13 +124,13 @@ public class SquigglyParser {
         }
 
         @Override
-        public FilterNode visitPropertyFilter(SquigglyExpressionParser.PropertyFilterContext ctx) {
+        public FilterNode visitPropertyFilter(SquigglyGrammarParser.PropertyFilterContext ctx) {
             FilterNodeBuilder filterNode = new FilterNodeBuilder(parseContext(ctx), 1);
             handlePropertyStatement(ctx.propertyStatement(), filterNode);
             return analyze(filterNode).build();
         }
 
-        private void handlePropertyStatement(SquigglyExpressionParser.PropertyStatementContext ctx, FilterNodeBuilder filterNode) {
+        private void handlePropertyStatement(SquigglyGrammarParser.PropertyStatementContext ctx, FilterNodeBuilder filterNode) {
             ParseContext parseContext = parseContext(ctx);
             StatementNodeBuilder statementNode;
 
@@ -149,7 +149,7 @@ public class SquigglyParser {
             return new ParseContext(start.getLine(), start.getCharPositionInLine());
         }
 
-        private void handleTopLevelExpression(SquigglyExpressionParser.TopLevelExpressionContext context, StatementNodeBuilder statementNode) {
+        private void handleTopLevelExpression(SquigglyGrammarParser.TopLevelExpressionContext context, StatementNodeBuilder statementNode) {
             ExpressionNodeBuilder expressionNode = statementNode.rootExpression;
 
             if (context.assignment() != null) {
@@ -166,23 +166,23 @@ public class SquigglyParser {
             }
         }
 
-        private void handleExpressionList(SquigglyExpressionParser.ExpressionListContext ctx, StatementNodeBuilder statementNode) {
-            List<SquigglyExpressionParser.ExpressionContext> expressions = ctx.expression();
+        private void handleExpressionList(SquigglyGrammarParser.ExpressionListContext ctx, StatementNodeBuilder statementNode) {
+            List<SquigglyGrammarParser.ExpressionContext> expressions = ctx.expression();
 
-            for (SquigglyExpressionParser.ExpressionContext expressionContext : expressions) {
+            for (SquigglyGrammarParser.ExpressionContext expressionContext : expressions) {
                 handleExpression(expressionContext, statementNode.rootExpression);
             }
         }
 
-        private void handleExpressionList(SquigglyExpressionParser.ExpressionListContext ctx, ExpressionNodeBuilder parent) {
-            List<SquigglyExpressionParser.ExpressionContext> expressions = ctx.expression();
+        private void handleExpressionList(SquigglyGrammarParser.ExpressionListContext ctx, ExpressionNodeBuilder parent) {
+            List<SquigglyGrammarParser.ExpressionContext> expressions = ctx.expression();
 
-            for (SquigglyExpressionParser.ExpressionContext expressionContext : expressions) {
+            for (SquigglyGrammarParser.ExpressionContext expressionContext : expressions) {
                 handleExpression(expressionContext, parent);
             }
         }
 
-        private void handleExpression(SquigglyExpressionParser.ExpressionContext ctx, ExpressionNodeBuilder parent) {
+        private void handleExpression(SquigglyGrammarParser.ExpressionContext ctx, ExpressionNodeBuilder parent) {
 
             if (ctx.negatedExpression() != null) {
                 handleNegatedExpression(ctx.negatedExpression(), parent);
@@ -209,39 +209,39 @@ public class SquigglyParser {
         }
 
 
-        private void handleDottedFieldExpression(SquigglyExpressionParser.DottedFieldExpressionContext ctx, ExpressionNodeBuilder parent) {
-            SquigglyExpressionParser.DottedFieldContext dottedField = ctx.dottedField();
+        private void handleDottedFieldExpression(SquigglyGrammarParser.DottedFieldExpressionContext ctx, ExpressionNodeBuilder parent) {
+            SquigglyGrammarParser.DottedFieldContext dottedField = ctx.dottedField();
 
             parent.nested(dottedField.field().size() > 1);
 
             for (int i = 0; i < dottedField.field().size() - 1; i++) {
-                SquigglyExpressionParser.FieldContext field = dottedField.field(i);
+                SquigglyGrammarParser.FieldContext field = dottedField.field(i);
                 parent = expressionBuilder(field, createName(field), parent).dotPathed(true);
                 parent.nested(true);
             }
 
-            SquigglyExpressionParser.FieldContext lastField = ctx.dottedField().field(dottedField.field().size() - 1);
+            SquigglyGrammarParser.FieldContext lastField = ctx.dottedField().field(dottedField.field().size() - 1);
             expressionBuilder(lastField, createName(lastField), parent, ctx.nestedExpression(), ctx.keyValueFieldArgChain());
         }
 
-        private void handleFieldGroupExpression(SquigglyExpressionParser.FieldGroupExpressionContext ctx, ExpressionNodeBuilder parent) {
-            SquigglyExpressionParser.FieldGroupContext fieldGroup = ctx.fieldGroup();
+        private void handleFieldGroupExpression(SquigglyGrammarParser.FieldGroupExpressionContext ctx, ExpressionNodeBuilder parent) {
+            SquigglyGrammarParser.FieldGroupContext fieldGroup = ctx.fieldGroup();
 
-            for (SquigglyExpressionParser.FieldContext fieldContext : fieldGroup.field()) {
+            for (SquigglyGrammarParser.FieldContext fieldContext : fieldGroup.field()) {
                 expressionBuilder(fieldContext, createName(fieldContext), parent, ctx.nestedExpression(), ctx.keyValueFieldArgChain());
             }
         }
 
-        private void handleDeepExpression(SquigglyExpressionParser.DeepExpressionContext ctx, ExpressionNodeBuilder parent) {
-            List<SquigglyExpressionParser.DeepArgContext> deepArgs = ctx.deepArg();
+        private void handleDeepExpression(SquigglyGrammarParser.DeepExpressionContext ctx, ExpressionNodeBuilder parent) {
+            List<SquigglyGrammarParser.DeepArgContext> deepArgs = ctx.deepArg();
 
             Integer minDepth = null;
             Integer maxDepth = null;
             boolean maxDepthExclusive = false;
-            SquigglyExpressionParser.DeepRangeContext deepRange = ctx.deepRange();
+            SquigglyGrammarParser.DeepRangeContext deepRange = ctx.deepRange();
 
             if (deepRange != null && !deepRange.IntegerLiteral().isEmpty()) {
-                SquigglyExpressionParser.IntRangeOpContext intRangeOp = deepRange.intRangeOp();
+                SquigglyGrammarParser.IntRangeOpContext intRangeOp = deepRange.intRangeOp();
                 maxDepthExclusive = intRangeOp.Colon() != null;
 
                 if (deepRange.IntegerLiteral().size() > 1) {
@@ -282,19 +282,19 @@ public class SquigglyParser {
                 return;
             }
 
-            for (SquigglyExpressionParser.DeepArgContext deepArg : deepArgs) {
+            for (SquigglyGrammarParser.DeepArgContext deepArg : deepArgs) {
                 for (ExpressionNodeBuilder node : handleDeepArg(deepArg, parent)) {
                     node.deep(true).minDepth(minDepth).maxDepth(maxDepth);
                 }
             }
         }
 
-        private List<ExpressionNodeBuilder> handleDeepArg(SquigglyExpressionParser.DeepArgContext ctx, ExpressionNodeBuilder parent) {
+        private List<ExpressionNodeBuilder> handleDeepArg(SquigglyGrammarParser.DeepArgContext ctx, ExpressionNodeBuilder parent) {
             if (ctx.Subtract() != null) {
                 return Collections.singletonList(parent.child(new ExpressionNodeBuilder(parseContext(ctx.field()), createName(ctx.field())).negated(true)));
             }
 
-            List<SquigglyExpressionParser.FieldContext> fields;
+            List<SquigglyGrammarParser.FieldContext> fields;
             ParserRuleContext ruleContext;
 
             if (ctx.field() != null) {
@@ -314,7 +314,7 @@ public class SquigglyParser {
         }
 
 
-        private List<FunctionNode> parseKeyFunctionChain(SquigglyExpressionParser.KeyValueFieldArgChainContext context) {
+        private List<FunctionNode> parseKeyFunctionChain(SquigglyGrammarParser.KeyValueFieldArgChainContext context) {
             if (context.Colon().isEmpty()) {
                 return Collections.emptyList();
             }
@@ -322,7 +322,7 @@ public class SquigglyParser {
             return parseKeyValueFieldArgChainLink(context.keyValueFieldArgChainLink().get(0));
         }
 
-        private List<FunctionNode> parseValueFunctionChain(SquigglyExpressionParser.KeyValueFieldArgChainContext context) {
+        private List<FunctionNode> parseValueFunctionChain(SquigglyGrammarParser.KeyValueFieldArgChainContext context) {
             if (context.Colon().isEmpty()) {
                 return parseKeyValueFieldArgChainLink(context.keyValueFieldArgChainLink().get(0));
             } else if (context.keyValueFieldArgChainLink().size() > 1) {
@@ -332,7 +332,7 @@ public class SquigglyParser {
             return Collections.emptyList();
         }
 
-        private List<FunctionNode> parseKeyValueFieldArgChainLink(SquigglyExpressionParser.KeyValueFieldArgChainLinkContext context) {
+        private List<FunctionNode> parseKeyValueFieldArgChainLink(SquigglyGrammarParser.KeyValueFieldArgChainLinkContext context) {
             if (context.assignment() != null) {
                 return parseAssignment(context.assignment());
             }
@@ -341,7 +341,7 @@ public class SquigglyParser {
                 List<FunctionNode> functionNodes = new ArrayList<>(context.argChainLink().size() + 1);
                 functionNodes.add(buildFunction(context.function(), null, true).build());
 
-                for (SquigglyExpressionParser.ArgChainLinkContext linkContext : context.argChainLink()) {
+                for (SquigglyGrammarParser.ArgChainLinkContext linkContext : context.argChainLink()) {
                     functionNodes.add(buildFunction(linkContext, true).build());
                 }
 
@@ -351,7 +351,7 @@ public class SquigglyParser {
             throw new SquigglyParseException(parseContext(context), "Unhandled keyValueArgChainLink [%s]", context.getText());
         }
 
-        private List<FunctionNode> parseAssignment(SquigglyExpressionParser.AssignmentContext context) {
+        private List<FunctionNode> parseAssignment(SquigglyGrammarParser.AssignmentContext context) {
 
             FunctionNodeType type = FunctionNodeType.ASSIGNMENT;
 
@@ -367,7 +367,7 @@ public class SquigglyParser {
 
         }
 
-        private FunctionNode.Builder buildFunction(SquigglyExpressionParser.ArgChainLinkContext context, boolean input) {
+        private FunctionNode.Builder buildFunction(SquigglyGrammarParser.ArgChainLinkContext context, boolean input) {
             if (context.functionAccessor() != null) {
                 return buildFunction(context.functionAccessor().function(), context.functionAccessor().accessOperator(), input);
             }
@@ -380,11 +380,11 @@ public class SquigglyParser {
         }
 
         @SuppressWarnings("SameParameterValue")
-        private FunctionNode parseFunction(SquigglyExpressionParser.ArgChainLinkContext context, boolean input) {
+        private FunctionNode parseFunction(SquigglyGrammarParser.ArgChainLinkContext context, boolean input) {
             return buildFunction(context, input).build();
         }
 
-        private FunctionNode.Builder buildPropertyFunction(SquigglyExpressionParser.PropertyAccessorContext context, boolean input) {
+        private FunctionNode.Builder buildPropertyFunction(SquigglyGrammarParser.PropertyAccessorContext context, boolean input) {
             Object value;
             ArgumentNodeType type;
 
@@ -408,7 +408,7 @@ public class SquigglyParser {
                     .argument(baseArg(context, type).value(value));
         }
 
-        private FunctionNode.Builder buildPropertyFunction(SquigglyExpressionParser.InitialPropertyAccessorContext context) {
+        private FunctionNode.Builder buildPropertyFunction(SquigglyGrammarParser.InitialPropertyAccessorContext context) {
             Object value;
             ArgumentNodeType type;
 
@@ -441,7 +441,7 @@ public class SquigglyParser {
             return function;
         }
 
-        private FunctionNode.Builder buildFunction(SquigglyExpressionParser.FunctionContext functionContext, @Nullable SquigglyExpressionParser.AccessOperatorContext operatorContext, boolean input) {
+        private FunctionNode.Builder buildFunction(SquigglyGrammarParser.FunctionContext functionContext, @Nullable SquigglyGrammarParser.AccessOperatorContext operatorContext, boolean input) {
             ParseContext context = parseContext(functionContext);
             FunctionNode.Builder builder = buildBaseFunction(functionContext, context);
 
@@ -454,7 +454,7 @@ public class SquigglyParser {
             return builder;
         }
 
-        private FunctionNode.Builder buildBaseFunction(SquigglyExpressionParser.FunctionContext functionContext, ParseContext context) {
+        private FunctionNode.Builder buildBaseFunction(SquigglyGrammarParser.FunctionContext functionContext, ParseContext context) {
             String text = functionContext.functionName().getText();
             String name;
 
@@ -469,20 +469,20 @@ public class SquigglyParser {
                     .name(name);
         }
 
-        private void applyParameters(FunctionNode.Builder builder, SquigglyExpressionParser.FunctionContext functionContext) {
+        private void applyParameters(FunctionNode.Builder builder, SquigglyGrammarParser.FunctionContext functionContext) {
             functionContext.arg().forEach(parameter -> applyParameter(builder, parameter));
         }
 
-        private void applyParameter(FunctionNode.Builder builder, SquigglyExpressionParser.ArgContext parameter) {
+        private void applyParameter(FunctionNode.Builder builder, SquigglyGrammarParser.ArgContext parameter) {
             ArgumentNode.Builder arg = buildArg(parameter);
             builder.argument(arg);
         }
 
-        private ArgumentNode.Builder buildArg(SquigglyExpressionParser.ArgContext arg) {
+        private ArgumentNode.Builder buildArg(SquigglyGrammarParser.ArgContext arg) {
             return buildArg(arg, arg);
         }
 
-        private ArgumentNode.Builder buildArg(SquigglyExpressionParser.ArgContext arg, ParserRuleContext context) {
+        private ArgumentNode.Builder buildArg(SquigglyGrammarParser.ArgContext arg, ParserRuleContext context) {
             Object value;
             ArgumentNodeType type;
 
@@ -514,11 +514,11 @@ public class SquigglyParser {
             throw new SquigglyParseException(parseContext(arg), "Unknown arg type [%s]", arg.getText());
         }
 
-        private ArgumentNode.Builder buildNull(SquigglyExpressionParser.ArgContext arg) {
+        private ArgumentNode.Builder buildNull(SquigglyGrammarParser.ArgContext arg) {
             return baseArg(arg, ArgumentNodeType.NULL).value(null);
         }
 
-        private ArgumentNode.Builder buildIfArg(SquigglyExpressionParser.IfArgContext context) {
+        private ArgumentNode.Builder buildIfArg(SquigglyGrammarParser.IfArgContext context) {
             Stream<IfNode.IfClause> ifClauseStream = Stream.of(context.ifClause())
                     .map(this::buildIfClause);
 
@@ -550,20 +550,20 @@ public class SquigglyParser {
         }
 
         @SuppressWarnings("Duplicates")
-        private IfNode.IfClause buildIfClause(SquigglyExpressionParser.IfClauseContext context) {
+        private IfNode.IfClause buildIfClause(SquigglyGrammarParser.IfClauseContext context) {
             ArgumentNode condition = buildArg(context.arg(0)).index(0).build();
             ArgumentNode value = buildArg(context.arg(1)).index(1).build();
             return new IfNode.IfClause(condition, value);
         }
 
         @SuppressWarnings("Duplicates")
-        private IfNode.IfClause buildIfClause(SquigglyExpressionParser.ElifClauseContext context) {
+        private IfNode.IfClause buildIfClause(SquigglyGrammarParser.ElifClauseContext context) {
             ArgumentNode condition = buildArg(context.arg(0)).index(0).build();
             ArgumentNode value = buildArg(context.arg(1)).index(1).build();
             return new IfNode.IfClause(condition, value);
         }
 
-        private ArgumentNode.Builder buildLambda(SquigglyExpressionParser.LambdaContext lambda) {
+        private ArgumentNode.Builder buildLambda(SquigglyGrammarParser.LambdaContext lambda) {
             List<String> arguments = lambda.lambdaArg()
                     .stream()
                     .map(arg -> arg.variable() == null ? "_" : buildVariableValue(arg.variable()))
@@ -583,7 +583,7 @@ public class SquigglyParser {
                     .value(lambdaNode);
         }
 
-        private ArgumentNode.Builder buildSubArg(SquigglyExpressionParser.ArgContext arg) {
+        private ArgumentNode.Builder buildSubArg(SquigglyGrammarParser.ArgContext arg) {
             if (arg.ParenLeft() != null) {
                 ArgumentNode.Builder groupArg = buildArg(arg.arg(0));
 
@@ -597,7 +597,7 @@ public class SquigglyParser {
                             .build()
                     );
 
-                    for (SquigglyExpressionParser.ArgChainLinkContext linkContext : arg.argChainLink()) {
+                    for (SquigglyGrammarParser.ArgChainLinkContext linkContext : arg.argChainLink()) {
                         functionNodes.add(buildFunction(linkContext, true).build());
                     }
 
@@ -612,7 +612,7 @@ public class SquigglyParser {
             return buildArgExpression(arg);
         }
 
-        private ArgumentNode.Builder buildArgExpression(SquigglyExpressionParser.ArgContext arg) {
+        private ArgumentNode.Builder buildArgExpression(SquigglyGrammarParser.ArgContext arg) {
             String op = getOp(arg);
 
             ParseContext parseContext = parseContext(arg);
@@ -627,7 +627,7 @@ public class SquigglyParser {
                     .value(Collections.singletonList(functionNode.build()));
         }
 
-        private String getOp(SquigglyExpressionParser.ArgContext arg) {
+        private String getOp(SquigglyGrammarParser.ArgContext arg) {
             if (matchOp(arg.Not(), arg.NotName())) {
                 return SystemFunctionName.NOT.getFunctionName();
             }
@@ -707,7 +707,7 @@ public class SquigglyParser {
             return token1 != null || token2 != null || token3 != null;
         }
 
-        private ArgumentNode.Builder buildLiteral(SquigglyExpressionParser.LiteralContext context) {
+        private ArgumentNode.Builder buildLiteral(SquigglyGrammarParser.LiteralContext context) {
             if (context.BooleanLiteral() != null) {
                 return buildBoolean(context);
             }
@@ -732,7 +732,7 @@ public class SquigglyParser {
             throw new SquigglyParseException(parseContext(context), "Unknown literal type [%s]", context.getText());
         }
 
-        private ArgumentNode.Builder buildIntRange(SquigglyExpressionParser.IntRangeContext context) {
+        private ArgumentNode.Builder buildIntRange(SquigglyGrammarParser.IntRangeContext context) {
             boolean exclusiveEnd = context.intRangeOp().Colon() != null;
             ArgumentNode.Builder start;
             ArgumentNode.Builder end;
@@ -744,7 +744,7 @@ public class SquigglyParser {
                 start = buildIntRangeArg(context.intRangeArg(0));
                 end = buildIntRangeArg(context.intRangeArg(1));
             } else {
-                SquigglyExpressionParser.IntRangeArgContext intRangeArg = context.intRangeArg(0);
+                SquigglyGrammarParser.IntRangeArgContext intRangeArg = context.intRangeArg(0);
                 int cmp = comparePositions(intRangeArg.getStart(), context.intRangeOp().getStart());
 
                 if (cmp < 0) {
@@ -764,7 +764,7 @@ public class SquigglyParser {
                     .value(new IntRangeNode(parseContext(context), start, end, end == null || exclusiveEnd));
         }
 
-        private FunctionNode buildIntRangeFunction(SquigglyExpressionParser.IntRangeContext intRange) {
+        private FunctionNode buildIntRangeFunction(SquigglyGrammarParser.IntRangeContext intRange) {
             ArgumentNode.Builder arg = buildIntRange(intRange);
             return FunctionNode.builder()
                     .context(parseContext(intRange))
@@ -774,7 +774,7 @@ public class SquigglyParser {
                     .build();
         }
 
-        private ArgumentNode.Builder buildIntRangeArg(SquigglyExpressionParser.IntRangeArgContext context) {
+        private ArgumentNode.Builder buildIntRangeArg(SquigglyGrammarParser.IntRangeArgContext context) {
             if (context.variable() != null) {
                 return buildVariable(context.variable());
             }
@@ -801,7 +801,7 @@ public class SquigglyParser {
             return baseArg(context, ArgumentNodeType.FLOAT).value(Double.parseDouble(context.getText()));
         }
 
-        private ArgumentNode.Builder buildArgChain(SquigglyExpressionParser.ArgChainContext context) {
+        private ArgumentNode.Builder buildArgChain(SquigglyGrammarParser.ArgChainContext context) {
             int functionLength = (context.argChainLink() == null) ? 0 : context.argChainLink().size();
             functionLength += 2;
             List<FunctionNode> functionNodes = new ArrayList<>(functionLength);
@@ -874,7 +874,7 @@ public class SquigglyParser {
             if (context.argChainLink() != null) {
                 boolean input = !functionNodes.isEmpty();
 
-                for (SquigglyExpressionParser.ArgChainLinkContext linkContext : context.argChainLink()) {
+                for (SquigglyGrammarParser.ArgChainLinkContext linkContext : context.argChainLink()) {
                     functionNodes.add(buildFunction(linkContext, input).ascending(ascending).build());
                 }
             }
@@ -883,7 +883,7 @@ public class SquigglyParser {
                     .value(functionNodes);
         }
 
-        private ArgumentNode.Builder buildArrayDeclaration(SquigglyExpressionParser.ArrayDeclarationContext context) {
+        private ArgumentNode.Builder buildArrayDeclaration(SquigglyGrammarParser.ArrayDeclarationContext context) {
             if (context.intRange() != null) {
                 return baseArg(context, ArgumentNodeType.ARRAY_RANGE_DECLARATION)
                         .value(buildIntRange(context.intRange()).index(0).build().getValue());
@@ -893,7 +893,7 @@ public class SquigglyParser {
             List<ArgumentNode> argumentNodes = new ArrayList<>(context.arg().size());
 
             for (int i = 0; i < context.arg().size(); i++) {
-                SquigglyExpressionParser.ArgContext arg = context.arg().get(i);
+                SquigglyGrammarParser.ArgContext arg = context.arg().get(i);
                 argumentNodes.add(buildArg(arg).index(i).build());
             }
 
@@ -905,7 +905,7 @@ public class SquigglyParser {
             return baseArg(context, ArgumentNodeType.INTEGER).value(Integer.parseInt(context.getText()));
         }
 
-        private ArgumentNode.Builder buildObjectDeclaration(SquigglyExpressionParser.ObjectDeclarationContext context) {
+        private ArgumentNode.Builder buildObjectDeclaration(SquigglyGrammarParser.ObjectDeclarationContext context) {
             return baseArg(context, ArgumentNodeType.OBJECT_DECLARATION)
                     .value(
                             context.objectKeyValue()
@@ -915,14 +915,14 @@ public class SquigglyParser {
                     );
         }
 
-        private CorePair<ArgumentNode, ArgumentNode> buildObjectArgPair(SquigglyExpressionParser.ObjectKeyValueContext context) {
+        private CorePair<ArgumentNode, ArgumentNode> buildObjectArgPair(SquigglyGrammarParser.ObjectKeyValueContext context) {
             ArgumentNode key = buildObjectArgKey(context.objectKey()).index(0).build();
             ArgumentNode value = buildArg(context.objectValue().arg()).index(0).build();
 
             return CorePair.of(key, value);
         }
 
-        private ArgumentNode.Builder buildObjectArgKey(SquigglyExpressionParser.ObjectKeyContext context) {
+        private ArgumentNode.Builder buildObjectArgKey(SquigglyGrammarParser.ObjectKeyContext context) {
             if (context.Identifier() != null) {
                 return baseArg(context, ArgumentNodeType.STRING).value(context.Identifier().getText());
             } else if (context.literal() != null) {
@@ -950,7 +950,7 @@ public class SquigglyParser {
             return expressionBuilder(ruleContext, name, parent, null, null);
         }
 
-        private ExpressionNodeBuilder expressionBuilder(ParserRuleContext ruleContext, SquigglyName name, @Nullable ExpressionNodeBuilder parent, SquigglyExpressionParser.NestedExpressionContext nestedExpression, SquigglyExpressionParser.KeyValueFieldArgChainContext keyValueFieldArgChain) {
+        private ExpressionNodeBuilder expressionBuilder(ParserRuleContext ruleContext, SquigglyName name, @Nullable ExpressionNodeBuilder parent, SquigglyGrammarParser.NestedExpressionContext nestedExpression, SquigglyGrammarParser.KeyValueFieldArgChainContext keyValueFieldArgChain) {
 
             ExpressionNodeBuilder node = new ExpressionNodeBuilder(parseContext(ruleContext), name);
 
@@ -997,11 +997,11 @@ public class SquigglyParser {
             return text;
         }
 
-        private ArgumentNode.Builder buildVariable(SquigglyExpressionParser.VariableContext context) {
+        private ArgumentNode.Builder buildVariable(SquigglyGrammarParser.VariableContext context) {
             return baseArg(context, ArgumentNodeType.VARIABLE).value(buildVariableValue(context));
         }
 
-        private String buildVariableValue(SquigglyExpressionParser.VariableContext context) {
+        private String buildVariableValue(SquigglyGrammarParser.VariableContext context) {
             String text = context.getText();
 
             if (text.charAt(1) == '{') {
@@ -1023,7 +1023,7 @@ public class SquigglyParser {
             return Integer.compare(token1.getCharPositionInLine(), token2.getCharPositionInLine());
         }
 
-        private SquigglyName createName(SquigglyExpressionParser.FieldContext ctx) {
+        private SquigglyName createName(SquigglyGrammarParser.FieldContext ctx) {
             SquigglyName name;
 
             if (ctx.StringLiteral() != null) {
@@ -1094,12 +1094,12 @@ public class SquigglyParser {
         }
 
 
-        private void handleNegatedExpression(SquigglyExpressionParser.NegatedExpressionContext ctx, ExpressionNodeBuilder parent) {
+        private void handleNegatedExpression(SquigglyGrammarParser.NegatedExpressionContext ctx, ExpressionNodeBuilder parent) {
             if (ctx.field() != null) {
                 expressionBuilder(ctx.field(), createName(ctx.field()), parent).negated(true);
             } else if (ctx.dottedField() != null) {
                 for (int i = 0; i < ctx.dottedField().field().size(); i++) {
-                    SquigglyExpressionParser.FieldContext fieldContext = ctx.dottedField().field(i);
+                    SquigglyGrammarParser.FieldContext fieldContext = ctx.dottedField().field(i);
                     parent.nested(true);
 
                     ExpressionNodeBuilder expressionNodeBuilder = new ExpressionNodeBuilder(parseContext(ctx.dottedField()), createName(fieldContext));
@@ -1200,8 +1200,7 @@ public class SquigglyParser {
 
     private static class StatementNodeBuilder extends BaseNodeBuilder<StatementNode> {
 
-        @Nullable
-        private ExpressionNodeBuilder rootExpression;
+        private final ExpressionNodeBuilder rootExpression;
 
         public StatementNodeBuilder(ParseContext context) {
             this(context, new ExpressionNodeBuilder(context, AnyShallowName.get()));
@@ -1210,11 +1209,6 @@ public class SquigglyParser {
         public StatementNodeBuilder(ParseContext context, ExpressionNodeBuilder rootExpression) {
             super(context);
             this.rootExpression = rootExpression;
-        }
-
-        public StatementNodeBuilder rootExpression(ExpressionNodeBuilder rootExpression) {
-            this.rootExpression = rootExpression;
-            return this;
         }
 
         public StatementNode build() {
