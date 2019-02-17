@@ -216,11 +216,11 @@ public abstract class BaseSquiggly {
 
 
     /**
-     * Get the node matcher.
+     * Get the expression matcher.
      *
-     * @return node matcher
+     * @return expression matcher
      */
-    public SquigglyExpressionMatcher getNodeMatcher() {
+    public SquigglyExpressionMatcher getExpressionMatcher() {
         return nodeMatcher;
     }
 

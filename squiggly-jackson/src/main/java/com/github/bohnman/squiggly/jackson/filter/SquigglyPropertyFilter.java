@@ -154,7 +154,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             throw new IllegalArgumentException("Currently, only a single statement is supported for property filters.");
         }
 
-        return squiggly.getNodeMatcher().match(path, filter, statements.get(0));
+        return squiggly.getExpressionMatcher().match(path, filter, statements.get(0));
     }
 
     private CoreJsonPath getPath(PropertyWriter writer, JsonStreamContext sc) {

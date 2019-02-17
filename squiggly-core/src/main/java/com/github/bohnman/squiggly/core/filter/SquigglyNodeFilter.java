@@ -101,7 +101,7 @@ public class SquigglyNodeFilter {
                 return jsonNode;
             }
 
-            ExpressionNode match = squiggly.getNodeMatcher().match(context.getObjectPath(), filter, expression);
+            ExpressionNode match = squiggly.getExpressionMatcher().match(context.getObjectPath(), filter, expression);
 
             if (match == null || match == SquigglyExpressionMatcher.NEVER_MATCH) {
                 return null;
