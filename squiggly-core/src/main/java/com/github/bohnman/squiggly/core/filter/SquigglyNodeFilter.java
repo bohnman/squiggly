@@ -74,7 +74,7 @@ public class SquigglyNodeFilter {
     }
 
     private <T> CoreJsonNode<T> applyFilter(CoreJsonNode<T> rootJsonNode, String filter, StatementNode statement) {
-        return applyFilter(rootJsonNode, filter, statement.getRootExpression());
+        return applyFilter(rootJsonNode, filter, statement.getRoot());
     }
 
 

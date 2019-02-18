@@ -40,7 +40,7 @@ public class FunctionNode extends BaseSquigglyNode {
             FunctionNodeType functionType,
             boolean ascending,
             boolean initial) {
-        super(context, SquigglyNodeType.FUNCTION);
+        super(context);
         this.name = notNull(name);
         this.arguments = Collections.unmodifiableList(notNull(arguments));
         this.ignoreNulls = ignoreNulls;

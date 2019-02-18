@@ -19,7 +19,7 @@ public class IfNode extends BaseSquigglyNode {
      * @param elseClause else logic
      */
     public IfNode(ParseContext parseContext, List<IfClause> ifClauses, ArgumentNode elseClause) {
-        super(parseContext, SquigglyNodeType.IF);
+        super(parseContext);
         this.ifClauses = ifClauses;
         this.elseClause = elseClause;
     }

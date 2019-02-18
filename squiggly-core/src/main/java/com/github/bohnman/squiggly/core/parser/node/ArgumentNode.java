@@ -25,7 +25,7 @@ public class ArgumentNode extends BaseSquigglyNode {
      * @param argumentType    argument type
      */
     public ArgumentNode(ParseContext context, int index, Object value, ArgumentNodeType argumentType) {
-        super(context, SquigglyNodeType.ARGUMENT);
+        super(context);
         isTrue(index >= 0, "index must be >= 0");
         this.index = index;
 

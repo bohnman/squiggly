@@ -37,7 +37,6 @@ import static java.util.stream.Collectors.toList;
 @ThreadSafe
 public class SquigglyParser {
 
-
     public static final String SELF_REFERENCE = "$";
     public static final String PARENT_REFERENCE = "$$";
 
@@ -1222,7 +1221,6 @@ public class SquigglyParser {
         private final ParseContext context;
         private SquigglyName name;
         private int modifiers;
-        private int stage;
         private int depth;
         @Nullable
         private Map<String, ExpressionNodeBuilder> children;
@@ -1260,7 +1258,7 @@ public class SquigglyParser {
                 }
             }
 
-            return new ExpressionNode(context, name, modifiers, childNodes, stage, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
+            return new ExpressionNode(context, name, modifiers, childNodes, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
         }
 
         public ParseContext getContext() {
@@ -1273,11 +1271,6 @@ public class SquigglyParser {
             }
 
             return children;
-        }
-
-        public ExpressionNodeBuilder stage(int stage) {
-            this.stage = stage;
-            return this;
         }
 
         public ExpressionNodeBuilder depth(int depth) {

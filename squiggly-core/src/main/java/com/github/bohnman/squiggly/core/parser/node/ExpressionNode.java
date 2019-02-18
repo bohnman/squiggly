@@ -20,7 +20,6 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
     private final List<FunctionNode> valueFunctions;
     private final Integer minDepth;
     private final Integer maxDepth;
-    private final int stage;
     private final int depth;
 
     /**
@@ -29,7 +28,6 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @param context        parser context
      * @param name           name of the node
      * @param children       child nodes
-     * @param stage          stage
      * @param keyFunctions   key functions
      * @param valueFunctions value functions
      * @param negated        whether or not the node has been negated
@@ -40,35 +38,28 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @param maxDepth       max depth
      * @see #isNested()
      */
-    public ExpressionNode(ParseContext context, SquigglyName name, int modifiers, List<ExpressionNode> children, int stage, int depth, List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions, Integer minDepth, Integer maxDepth) {
-        super(context, SquigglyNodeType.EXPRESSION);
+    public ExpressionNode(
+            ParseContext context,
+            SquigglyName name,
+            int modifiers,
+            List<ExpressionNode> children,
+            int depth,
+            List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions,
+            Integer minDepth,
+            Integer maxDepth) {
+        super(context);
         this.name = name;
         this.modifiers = modifiers;
         this.children = Collections.unmodifiableList(children);
         this.depth = depth;
-        this.stage = stage;
         this.keyFunctions = Collections.unmodifiableList(keyFunctions);
         this.valueFunctions = Collections.unmodifiableList(valueFunctions);
         this.minDepth = minDepth;
         this.maxDepth = maxDepth;
     }
 
-    public static void main(String[] args) {
-        System.out.println(Boolean.compare(true, false));
-    }
-
     @Override
     public int compareTo(ExpressionNode other) {
-//        int cmp;
-//
-//        if ((cmp = Integer.compare(stage, other.stage)) != 0) {
-//            return cmp;
-//        }
-//
-//        if ((cmp = Integer.compare(stage, other.stage)) != 0) {
-//            return cmp;
-//        }
-
         return Integer.compare(getSpecificity(), other.getSpecificity());
     }
 
@@ -107,15 +98,6 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      */
     public List<ExpressionNode> getChildren() {
         return children;
-    }
-
-    /**
-     * Gets the stage of the node.
-     *
-     * @return stage
-     */
-    public int getStage() {
-        return stage;
     }
 
     public int getDepth() {
@@ -245,7 +227,7 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @return ndoe
      */
     public ExpressionNode withName(SquigglyName newName) {
-        return new ExpressionNode(getContext(), newName, modifiers, children, stage, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
+        return new ExpressionNode(getContext(), newName, modifiers, children, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
     }
 
     /**
@@ -255,15 +237,15 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @return children
      */
     public ExpressionNode withChildren(List<ExpressionNode> newChildren) {
-        return new ExpressionNode(getContext(), name, modifiers, newChildren, stage, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
+        return new ExpressionNode(getContext(), name, modifiers, newChildren, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
     }
 
     public static ExpressionNode createNamed(SquigglyName name) {
-        return new ExpressionNode(new ParseContext(1, 1), name, 0, Collections.emptyList(), 0, 0, Collections.emptyList(), Collections.emptyList(), null, null);
+        return new ExpressionNode(new ParseContext(1, 1), name, 0, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), null, null);
     }
 
     public static ExpressionNode createNamedNested(SquigglyName name) {
-        return new ExpressionNode(new ParseContext(1, 1), name, Modifier.NESTED, Collections.emptyList(), 0, 0, Collections.emptyList(), Collections.emptyList(), null, null);
+        return new ExpressionNode(new ParseContext(1, 1), name, Modifier.NESTED, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), null, null);
     }
 
 

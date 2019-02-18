@@ -4,14 +4,14 @@ import com.github.bohnman.squiggly.core.parser.ParseContext;
 
 public class StatementNode extends BaseSquigglyNode {
 
-    private final ExpressionNode rootExpression;
+    private final ExpressionNode root;
 
-    public StatementNode(ParseContext context, ExpressionNode rootExpression) {
-        super(context, SquigglyNodeType.STATEMENT);
-        this.rootExpression = rootExpression;
+    public StatementNode(ParseContext context, ExpressionNode root) {
+        super(context);
+        this.root = root;
     }
 
-    public ExpressionNode getRootExpression() {
-        return rootExpression;
+    public ExpressionNode getRoot() {
+        return root;
     }
 }

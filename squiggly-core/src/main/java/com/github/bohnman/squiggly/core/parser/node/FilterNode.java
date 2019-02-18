@@ -12,7 +12,7 @@ public class FilterNode extends BaseSquigglyNode {
     private final List<StatementNode> statements;
 
     public FilterNode(ParseContext context, List<StatementNode> statements) {
-        super(context, SquigglyNodeType.FILTER);
+        super(context);
         this.statements = statements;
     }
 

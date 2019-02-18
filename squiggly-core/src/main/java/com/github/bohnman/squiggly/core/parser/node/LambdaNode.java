@@ -21,7 +21,7 @@ public class LambdaNode extends BaseSquigglyNode {
      * @param body      execution logic
      */
     public LambdaNode(ParseContext context, List<String> arguments, FunctionNode body) {
-        super(context, SquigglyNodeType.LAMBDA);
+        super(context);
         this.arguments = Collections.unmodifiableList(arguments);
         this.body = body;
     }

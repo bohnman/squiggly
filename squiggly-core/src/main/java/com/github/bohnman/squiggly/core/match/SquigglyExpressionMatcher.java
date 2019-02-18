@@ -61,7 +61,7 @@ public class SquigglyExpressionMatcher {
      * @return matched node or {@link #ALWAYS_MATCH} or {@link #NEVER_MATCH}
      */
     public ExpressionNode match(CoreJsonPath path, String filter, StatementNode statement) {
-        return match(path, filter, statement.getRootExpression());
+        return match(path, filter, statement.getRoot());
     }
 
     /**

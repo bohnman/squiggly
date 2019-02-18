@@ -19,7 +19,7 @@ public class IntRangeNode extends BaseSquigglyNode {
      * @param exclusiveEnd whether the end is exclusive or inclusive
      */
     public IntRangeNode(ParseContext context, ArgumentNode.Builder start, ArgumentNode.Builder end, boolean exclusiveEnd) {
-        super(context, SquigglyNodeType.INT_RANGE);
+        super(context);
         this.start = start == null ? null : start.index(0).build();
         this.end = end == null ? null : end.index(1).build();
         this.exclusiveEnd = exclusiveEnd;

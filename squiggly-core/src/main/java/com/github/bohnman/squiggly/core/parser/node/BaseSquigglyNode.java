@@ -5,11 +5,9 @@ import com.github.bohnman.squiggly.core.parser.ParseContext;
 public abstract class BaseSquigglyNode implements SquigglyNode {
 
     private final ParseContext context;
-    private final SquigglyNodeType type;
 
-    public BaseSquigglyNode(ParseContext context, SquigglyNodeType type) {
+    public BaseSquigglyNode(ParseContext context) {
         this.context = context;
-        this.type = type;
     }
 
     @Override
@@ -17,8 +15,4 @@ public abstract class BaseSquigglyNode implements SquigglyNode {
         return context;
     }
 
-    @Override
-    public SquigglyNodeType getType() {
-        return type;
-    }
 }
