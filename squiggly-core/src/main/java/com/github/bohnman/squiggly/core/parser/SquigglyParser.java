@@ -203,6 +203,11 @@ public class SquigglyParser {
                 return;
             }
 
+            if (ctx.deepInheritExpression() != null) {
+                handleDeepInheritExpression(ctx.deepInheritExpression(), parent);
+                return;
+            }
+
             throw new SquigglyParseException(parseContext(ctx), "Unhandled expression [%s].", ctx.getText());
 
         }
@@ -286,6 +291,10 @@ public class SquigglyParser {
                     node.deep(true).minDepth(minDepth).maxDepth(maxDepth);
                 }
             }
+        }
+
+        private void handleDeepInheritExpression(SquigglyGrammarParser.DeepInheritExpressionContext ctx, ExpressionNodeBuilder parent) {
+            expressionBuilder(ctx, DeepInheritName.get() , parent);
         }
 
         private List<ExpressionNodeBuilder> handleDeepArg(SquigglyGrammarParser.DeepArgContext ctx, ExpressionNodeBuilder parent) {
@@ -955,7 +964,6 @@ public class SquigglyParser {
 
             if (parent != null) {
                 node = parent.child(node);
-                node.depth(parent.depth + 1);
             }
 
             if (keyValueFieldArgChain != null) {
@@ -1361,6 +1369,8 @@ public class SquigglyParser {
             if (!childToAdd.dotPathed && dotPathed) {
                 dotPathed = false;
             }
+
+            childToAdd.depth(depth + 1);
 
             return childToAdd;
         }

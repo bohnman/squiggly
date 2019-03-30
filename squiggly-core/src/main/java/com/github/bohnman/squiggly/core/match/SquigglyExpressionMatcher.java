@@ -16,8 +16,6 @@ import com.github.bohnman.squiggly.core.view.PropertyView;
 
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
@@ -93,60 +91,6 @@ public class SquigglyExpressionMatcher {
         return matchInternal(path, node);
     }
 
-    private class MatchContext {
-        private int depth;
-        private int lastIndex;
-        private CoreJsonPath path;
-
-        @Nullable
-        private Set<String> viewStack;
-        private ExpressionNode parent;
-
-        @Nullable
-        private ExpressionNode viewNode;
-        private List<ExpressionNode> nodes;
-        private boolean allDeepChildren;
-
-        public MatchContext(CoreJsonPath path, ExpressionNode parent) {
-            this.path = path;
-            this.nodes = Collections.emptyList();
-            this.parent = null;
-            this.lastIndex = path.getElements().size() - 1;
-            descend(parent, 0);
-        }
-
-        public boolean isAllDeepChildren() {
-            return allDeepChildren;
-        }
-
-        public boolean isViewNodeSquiggly() {
-            return viewNode != null && viewNode.isNested();
-        }
-
-        public void descend(ExpressionNode parent, int newDepth) {
-            List<ExpressionNode> deepNodes = Stream.concat(nodes.stream(), parent.getChildren().stream())
-                    .filter(node -> node.isAvailableAtDepth(newDepth))
-                    .collect(Collectors.toList());
-            nodes = parent.getChildren().stream()
-//                    .filter(node -> !node.isDeep() || node.isAvailableAtDepth(newDepth))
-                    .collect(Collectors.toList());
-
-            if (newDepth > 0 && !parent.isDeep() && depth < lastIndex && nodes.isEmpty() && !parent.isEmptyNested() && squiggly.getConfig().isFilterImplicitlyIncludeBaseFields()) {
-                nodes = BASE_VIEW_NODES;
-            }
-
-//            nodes = Stream.concat(nodes.stream(), deepNodes.stream()).collect(Collectors.toList());
-
-            if (nodes.isEmpty() && !parent.isEmptyNested()) {
-                nodes = deepNodes;
-            }
-
-            this.depth = newDepth;
-            this.parent = parent;
-            this.allDeepChildren = deepNodes.size() > 0 && deepNodes.size() == nodes.size();
-        }
-    }
-
     private ExpressionNode matchInternal(CoreJsonPath path, ExpressionNode parent) {
         MatchContext context = new MatchContext(path, parent);
         ExpressionNode match = null;
@@ -154,9 +98,7 @@ public class SquigglyExpressionMatcher {
         int pathSize = path.getElements().size();
         int lastIdx = pathSize - 1;
 
-
         for (int i = 0; i < pathSize; i++) {
-            int depth = i;
             CoreJsonPathElement element = path.getElements().get(i);
 
             if (context.viewNode != null && !context.viewNode.isNested()) {
@@ -210,7 +152,7 @@ public class SquigglyExpressionMatcher {
             }
 
             if (i < lastIdx) {
-                context.descend(match, depth + 1);
+                context.descend(match);
             }
         }
 
@@ -338,6 +280,102 @@ public class SquigglyExpressionMatcher {
         }
 
         return squiggly.getBeanInfoIntrospector().introspect(beanClass).getPropertyNamesForView(viewName);
+    }
+
+    private class MatchContext {
+        private int depth = 0;
+        private int lastIndex;
+        private CoreJsonPath path;
+
+        @Nullable
+        private Set<String> viewStack;
+        private ExpressionNode parent;
+
+        @Nullable
+        private ExpressionNode viewNode;
+        private List<ExpressionNode> nodes;
+
+        public MatchContext(CoreJsonPath path, ExpressionNode parent) {
+            this.path = path;
+            this.nodes = Collections.emptyList();
+            this.parent = null;
+            this.lastIndex = path.getElements().size() - 1;
+            descend(parent);
+        }
+
+        public boolean isViewNodeSquiggly() {
+            return viewNode != null && viewNode.isNested();
+        }
+
+        public void descend(ExpressionNode parent) {
+            int newDepth = depth + 1;
+
+            nodes = descendNodes(parent, newDepth);
+
+
+            if (includeBaseViewNodes(parent, newDepth)) {
+                nodes = BASE_VIEW_NODES;
+            }
+
+//            if (nodes.isEmpty() && !parent.isEmptyNested()) {
+//                nodes = previousDeepNodes;
+//            } else {
+//                nodes = Stream.concat(nodes.stream(), previousDeepNodes.stream()).collect(Collectors.toList());
+//            }
+
+            this.depth = newDepth;
+            this.parent = parent;
+        }
+
+        private boolean includeBaseViewNodes(ExpressionNode parent, int newDepth) {
+            if (newDepth < 1) {
+                return false;
+            }
+
+            if (depth > lastIndex) {
+                return false;
+            }
+
+            if (parent.isDeep()) {
+                return false;
+            }
+
+            if (parent.isEmptyNested()) {
+                return false;
+            }
+
+            return squiggly.getConfig().isFilterImplicitlyIncludeBaseFields();
+        }
+
+        private List<ExpressionNode> descendNodes(ExpressionNode parent, int newDepth) {
+
+            List<ExpressionNode> childNodes = parent.getChildren();
+            List<ExpressionNode> previousNodes = nodes;
+
+            List<ExpressionNode> newNodes = new ArrayList<>(previousNodes.size() + childNodes.size());
+
+            boolean deepInherit = false;
+
+
+            for (ExpressionNode child : childNodes) {
+                if (child.isDeepInherit()) {
+                    deepInherit = true;
+                } else if (child.isAvailableAtDepth(newDepth)) {
+                    newNodes.add(child);
+                }
+            }
+
+            if (!previousNodes.isEmpty() && (deepInherit || newNodes.isEmpty())) {
+                for (ExpressionNode previousNode : previousNodes) {
+                    if (previousNode.isAvailableAtDepth(newDepth)) {
+                        newNodes.add(previousNode);
+                    }
+                }
+
+            }
+
+            return previousNodes;
+        }
     }
 
 

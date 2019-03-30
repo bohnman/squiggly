@@ -42,11 +42,15 @@ expression
     | fieldGroupExpression
     | dottedFieldExpression
     | deepExpression
+    | deepInheritExpression
     ;
 
 deepExpression
     : WildcardDeep (ParenLeft deepRange ParenRight)? (ParenLeft deepArg (Comma deepArg)*  ParenRight)?
-    | WildcardDeepInherit
+    ;
+
+deepInheritExpression
+    : Inherit
     ;
 
 deepArg
@@ -388,6 +392,7 @@ Elvis: '?:';
 End: 'end';
 GreaterThanEquals: '>=';
 If: 'if';
+Inherit: '...';
 Lambda: '->';
 LessThanEquals: '<=';
 Match: '=~';
@@ -412,7 +417,6 @@ Tilde: '~';
 Underscore: '_';
 WildcardShallow: '*';
 WildcardDeep: '**';
-WildcardDeepInherit: '***';
 Or: '||';
 //endregion
 

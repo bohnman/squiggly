@@ -3,7 +3,7 @@ package com.github.bohnman.squiggly.core.name;
 /**
  * Represents an exact name match.
  */
-public class ExactName implements SquigglyName {
+public class ExactName extends BaseSquigglyName {
 
     private final String name;
 
@@ -18,11 +18,6 @@ public class ExactName implements SquigglyName {
 
     @Override
     public String getName() {
-        return name;
-    }
-
-    @Override
-    public String getRawName() {
         return name;
     }
 

@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 /**
  * Represents a wildcard match.  For example: foo*
  */
-public class WildcardName implements SquigglyName {
+public class WildcardName extends BaseSquigglyName {
 
     private final String name;
     private final String rawName;
@@ -37,11 +37,6 @@ public class WildcardName implements SquigglyName {
     }
 
     @Override
-    public String getRawName() {
-        return name;
-    }
-
-    @Override
     public int getSpecificity() {
         return rawName.length() + 2;
     }
@@ -49,5 +44,10 @@ public class WildcardName implements SquigglyName {
     @Override
     public boolean matches(String name) {
         return pattern.matcher(name).matches();
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 /**
  * Represents a regex name match.
  */
-public class RegexName implements SquigglyName {
+public class RegexName extends BaseSquigglyName {
 
     private final String name;
     private final String rawName;
@@ -26,11 +26,6 @@ public class RegexName implements SquigglyName {
     @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public String getRawName() {
-        return rawName;
     }
 
     @Override

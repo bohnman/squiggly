@@ -143,6 +143,11 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
         return AnyDeepName.ID.equals(name.getName());
     }
 
+
+    public boolean isDeepInherit() {
+        return DeepInheritName.ID.equals(name.getName());
+    }
+
     /**
      * Says whether this node is *
      *
@@ -199,12 +204,16 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
     }
 
     /**
-     * Determines if the node is available at the supplied data
+     * Determines if the node is available at the supplied depth
      *
      * @param depth the depth
      * @return available
      */
     public boolean isAvailableAtDepth(int depth) {
+        if (this.depth == depth) {
+            return true;
+        }
+
         if (!isDeep()) {
             return false;
         }
