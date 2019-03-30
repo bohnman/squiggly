@@ -328,11 +328,16 @@ public class SquigglyExpressionMatcher {
         }
 
         private boolean includeBaseViewNodes(ExpressionNode parent, int newDepth) {
+
             if (newDepth < 1) {
                 return false;
             }
 
             if (depth > lastIndex) {
+                return false;
+            }
+
+            if (!nodes.isEmpty()) {
                 return false;
             }
 
@@ -374,7 +379,7 @@ public class SquigglyExpressionMatcher {
 
             }
 
-            return previousNodes;
+            return newNodes;
         }
     }
 
