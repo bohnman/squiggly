@@ -19,9 +19,4 @@ public enum FunctionNodeType {
      * A property retrieving function.
      */
     PROPERTY,
-
-    /**
-     * A function that performs a self assignment.  Eg. foo.=bar
-     */
-    SELF_ASSIGNMENT
 }

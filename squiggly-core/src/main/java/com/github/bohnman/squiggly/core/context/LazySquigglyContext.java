@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.core.context;
 
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
-import com.github.bohnman.squiggly.core.parser.node.SquigglyNode;
+import com.github.bohnman.squiggly.core.parser.node.FilterNode;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -20,7 +20,7 @@ public class LazySquigglyContext implements SquigglyContext {
     private final BaseSquiggly squiggly;
 
     @Nullable
-    private SquigglyNode node;
+    private FilterNode filterNode;
 
     /**
      * Construct the context with base information.
@@ -42,12 +42,12 @@ public class LazySquigglyContext implements SquigglyContext {
     }
 
     @Override
-    public SquigglyNode getNode() {
-        if (node == null) {
-            node = squiggly.getNodeNormalizer().normalize(squiggly.getParser().parsePropertyFilter(filter));
+    public FilterNode getParsedFilter() {
+        if (filterNode == null) {
+            filterNode = squiggly.getParser().parsePropertyFilter(filter);
         }
 
-        return node;
+        return filterNode;
     }
 
     @Override

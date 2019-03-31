@@ -5,9 +5,9 @@ import java.util.function.BiFunction;
 /**
  * Filter customizer utilities.
  */
-public class SquilggyFilterCustomizers {
+public class SquiggilyFilterCustomizers {
 
-    private SquilggyFilterCustomizers() {
+    private SquiggilyFilterCustomizers() {
     }
 
     /**

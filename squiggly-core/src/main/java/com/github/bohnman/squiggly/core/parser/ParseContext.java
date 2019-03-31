@@ -5,6 +5,8 @@ package com.github.bohnman.squiggly.core.parser;
  */
 public class ParseContext {
 
+    public static final ParseContext EMPTY = new ParseContext();
+
     private final int line;
     private final int column;
 

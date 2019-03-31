@@ -3,7 +3,7 @@ package com.github.bohnman.squiggly.core.name;
 /**
  * Represent a name that matches any node at the current nesting level.
  */
-public class AnyShallowName implements SquigglyName {
+public class AnyShallowName extends BaseSquigglyName {
 
     public static final String ID = "*";
     private static final AnyShallowName INSTANCE = new AnyShallowName();
@@ -14,13 +14,13 @@ public class AnyShallowName implements SquigglyName {
     }
 
     @Override
-    public String getRawName() {
-        return ID;
+    public int getSpecificity() {
+        return 1;
     }
 
     @Override
-    public int match(String name) {
-        return 1;
+    public boolean matches(String name) {
+        return true;
     }
 
     /**

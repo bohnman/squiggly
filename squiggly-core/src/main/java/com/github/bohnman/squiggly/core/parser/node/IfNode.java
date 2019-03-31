@@ -1,11 +1,13 @@
 package com.github.bohnman.squiggly.core.parser.node;
 
+import com.github.bohnman.squiggly.core.parser.ParseContext;
+
 import java.util.List;
 
 /**
  * Represents an if statement
  */
-public class IfNode {
+public class IfNode extends BaseSquigglyNode {
 
     private final List<IfClause> ifClauses;
     private final ArgumentNode elseClause;
@@ -16,7 +18,8 @@ public class IfNode {
      * @param ifClauses  test conditions
      * @param elseClause else logic
      */
-    public IfNode(List<IfClause> ifClauses, ArgumentNode elseClause) {
+    public IfNode(ParseContext parseContext, List<IfClause> ifClauses, ArgumentNode elseClause) {
+        super(parseContext);
         this.ifClauses = ifClauses;
         this.elseClause = elseClause;
     }

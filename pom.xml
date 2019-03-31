@@ -55,7 +55,7 @@
         <module>squiggly-core</module>
         <module>squiggly-gson</module>
         <module>squiggly-jackson</module>
-        <module>squiggly-kotlin-jackson</module>
+        <module>squiggly-jackson-kotlin</module>
         <module>squiggly-parent</module>
         <module>squiggly-spring-boot-starter-jackson</module>
     </modules>

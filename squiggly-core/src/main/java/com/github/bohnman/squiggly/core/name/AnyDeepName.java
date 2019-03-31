@@ -1,9 +1,11 @@
 package com.github.bohnman.squiggly.core.name;
 
+import com.github.bohnman.squiggly.core.parser.node.BaseSquigglyNode;
+
 /**
  * Indicates that the node name matches any node at any nesting level.
  */
-public class AnyDeepName implements SquigglyName {
+public class AnyDeepName extends BaseSquigglyName {
 
     public static final String ID = "**";
 
@@ -15,13 +17,13 @@ public class AnyDeepName implements SquigglyName {
     }
 
     @Override
-    public String getRawName() {
-        return ID;
+    public int getSpecificity() {
+        return 0;
     }
 
     @Override
-    public int match(String name) {
-        return 0;
+    public boolean matches(String name) {
+        return true;
     }
 
     /**

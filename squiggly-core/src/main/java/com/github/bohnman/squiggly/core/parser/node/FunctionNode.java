@@ -12,14 +12,14 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 /**
  * Represents a function call.
  */
-public class FunctionNode {
+public class FunctionNode extends BaseSquigglyNode {
 
-    private final ParseContext context;
     private final String name;
     private final List<ArgumentNode> arguments;
     private final boolean ignoreNulls;
-    private final FunctionNodeType type;
+    private final FunctionNodeType functionType;
     private final boolean ascending;
+    private final boolean initial;
 
     /**
      * Constuctor.
@@ -28,31 +28,25 @@ public class FunctionNode {
      * @param name        name of the function
      * @param arguments   function arguments
      * @param ignoreNulls ignore function if input is null
-     * @param type        function type
+     * @param functionType        function type
      * @param ascending   is sorted ascending
+     * @param initial     initial
      */
     public FunctionNode(
             ParseContext context,
             String name,
             List<ArgumentNode> arguments,
             boolean ignoreNulls,
-            FunctionNodeType type,
-            boolean ascending) {
-        this.context = notNull(context);
+            FunctionNodeType functionType,
+            boolean ascending,
+            boolean initial) {
+        super(context);
         this.name = notNull(name);
         this.arguments = Collections.unmodifiableList(notNull(arguments));
         this.ignoreNulls = ignoreNulls;
-        this.type = notNull(type);
+        this.functionType = notNull(functionType);
         this.ascending = ascending;
-    }
-
-    /**
-     * Get the parse context.
-     *
-     * @return parse context
-     */
-    public ParseContext getContext() {
-        return context;
+        this.initial = initial;
     }
 
     /**
@@ -87,8 +81,8 @@ public class FunctionNode {
      *
      * @return type
      */
-    public FunctionNodeType getType() {
-        return type;
+    public FunctionNodeType getFunctionType() {
+        return functionType;
     }
 
     /**
@@ -98,6 +92,10 @@ public class FunctionNode {
      */
     public boolean isAscending() {
         return ascending;
+    }
+
+    public boolean isInitial() {
+        return initial;
     }
 
     /**
@@ -130,6 +128,7 @@ public class FunctionNode {
 
         private FunctionNodeType type = FunctionNodeType.FUNCTION;
         private boolean ascending = true;
+        private boolean initial;
 
         private Builder() {
         }
@@ -202,12 +201,23 @@ public class FunctionNode {
         }
 
         /**
+         * Set the initial.
+         *
+         * @param initial initial
+         * @return builder
+         */
+        public Builder initial(boolean initial) {
+            this.initial = initial;
+            return this;
+        }
+
+        /**
          * Build the node.
          *
          * @return node
          */
         public FunctionNode build() {
-            return new FunctionNode(context, name, arguments, ignoreNulls, type, ascending);
+            return new FunctionNode(context, name, arguments, ignoreNulls, type, ascending, initial);
         }
     }
 }

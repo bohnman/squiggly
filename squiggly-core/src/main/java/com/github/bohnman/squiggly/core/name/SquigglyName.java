@@ -20,11 +20,17 @@ public interface SquigglyName {
     String getRawName();
 
     /**
-     * Match this node against the supplied name.  A -1 indicates no match.  A positive integer represents a match.
-     * The higher the positive integer, the more specificity there is to the match.
+     * Indicates how specific the name is.  The higher the value, the more specific.
      *
-     * @param name the name to match
-     * @return -1 if no match, otherwise a positive integer
+     * @return specificity
      */
-    int match(String name);
+    int getSpecificity();
+
+    /**
+     * Determines if the supplied name matches the current name.
+     *
+     * @param name a name
+     * @return true if matches, false otherwise
+     */
+    boolean matches(String name);
 }

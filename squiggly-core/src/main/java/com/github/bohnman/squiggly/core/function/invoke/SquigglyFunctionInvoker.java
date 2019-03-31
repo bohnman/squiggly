@@ -32,7 +32,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * Contains logic for executing a function.
@@ -70,7 +69,7 @@ public class SquigglyFunctionInvoker {
      * @return result
      */
     public Object invoke(@Nullable Object input, Iterable<FunctionNode> functionNodes) {
-        return invoke(input, null, functionNodes);
+        return invoke(input, input, null, functionNodes);
     }
 
     /**
@@ -81,7 +80,11 @@ public class SquigglyFunctionInvoker {
      * @param functionNodes nodes
      * @return result
      */
-    public Object invoke(@Nullable Object input, @Nullable Object parent, Iterable<FunctionNode> functionNodes) {
+    public Object invoke(@Nullable Object input, @Nullable Object child, @Nullable Object parent, Iterable<FunctionNode> functionNodes) {
+        input = unwrapJsonNode(input);
+        child = unwrapJsonNode(child);
+        parent = unwrapJsonNode(parent);
+
         Object value = input;
 
         for (FunctionNode functionNode : functionNodes) {
@@ -89,7 +92,7 @@ public class SquigglyFunctionInvoker {
                 break;
             }
 
-            value = invoke(value, parent, functionNode);
+            value = invoke(value, child, parent, functionNode);
         }
 
         return value;
@@ -103,7 +106,7 @@ public class SquigglyFunctionInvoker {
      * @return result
      */
     public Object invoke(@Nullable Object input, FunctionNode functionNode) {
-        return invoke(input, null, functionNode);
+        return invoke(input, input, null, functionNode);
     }
 
 
@@ -115,20 +118,21 @@ public class SquigglyFunctionInvoker {
      * @param functionNode node
      * @return result
      */
-    public Object invoke(@Nullable Object input, @Nullable Object parent, FunctionNode functionNode) {
-        if (functionNode.getType().equals(FunctionNodeType.PROPERTY)) {
-            return invokeProperty(input, functionNode);
+    public Object invoke(@Nullable Object input, Object child, @Nullable Object parent, FunctionNode functionNode) {
+        input = unwrapJsonNode(input);
+        child = unwrapJsonNode(child);
+        parent = unwrapJsonNode(parent);
+
+        if (functionNode.getFunctionType().equals(FunctionNodeType.PROPERTY)) {
+            return invokeProperty(input, child, parent, functionNode);
         }
 
-        if (functionNode.getType().equals(FunctionNodeType.ASSIGNMENT)) {
-            return invokeAssignment(parent, parent, functionNode);
+        if (functionNode.getFunctionType().equals(FunctionNodeType.ASSIGNMENT)) {
+            return invokeAssignment(input, child, parent, functionNode);
         }
 
-        if (functionNode.getType().equals(FunctionNodeType.SELF_ASSIGNMENT)) {
-            return invokeAssignment(input, parent, functionNode);
-        }
 
-        return invokeNormalFunction(input, functionNode);
+        return invokeNormalFunction(input, child, parent, functionNode);
     }
 
     private boolean isNull(Object value) {
@@ -143,7 +147,7 @@ public class SquigglyFunctionInvoker {
         return false;
     }
 
-    private Object invokeNormalFunction(Object input, FunctionNode functionNode) {
+    private Object invokeNormalFunction(Object input, Object child, Object parent, FunctionNode functionNode) {
 
         List<SquigglyFunction<Object>> functions = squiggly.getFunctionRepository().findByName(functionNode.getName());
 
@@ -151,9 +155,9 @@ public class SquigglyFunctionInvoker {
             throw new SquigglyParseException(functionNode.getContext(), "Unrecognized function [%s]", functionNode.getName());
         }
 
-        List<Object> parameters = toParameters(functionNode, input);
+        List<Object> parameters = toParameters(functionNode, input, child, parent);
 
-        FunctionMatchRequest request = new FunctionMatchRequest(functionNode, input, parameters, functions);
+        FunctionMatchRequest request = new FunctionMatchRequest(functionNode, input, child, parent, parameters, functions);
         FunctionMatchResult result = matcher.apply(request);
 
         SquigglyFunction<Object> winner = result.getWinner();
@@ -175,37 +179,46 @@ public class SquigglyFunctionInvoker {
         return Predicate.class.isAssignableFrom(type) || Function.class.isAssignableFrom(type);
     }
 
-    private Object invokeAssignment(Object input, Object parent, FunctionNode functionNode) {
+    private Object invokeAssignment(Object input, Object child, Object parent, FunctionNode functionNode) {
         List<ArgumentNode> argumentNodes = functionNode.getArguments();
 
         CoreAssert.isTrue(argumentNodes.size() == 2);
         ArgumentNode lastArg = argumentNodes.get(1);
 
         if (SystemFunctionName.ASSIGN.getFunctionName().equals(functionNode.getName())) {
-            if (lastArg.getType() == ArgumentNodeType.FUNCTION_CHAIN) {
-                return invoke(input, parent, (List<FunctionNode>) lastArg.getValue());
+            if (lastArg.getArgumentType() == ArgumentNodeType.FUNCTION_CHAIN) {
+                return invoke(input, child, parent, (List<FunctionNode>) lastArg.getValue());
             } else {
-                return getValue(lastArg, input);
+                return getValue(lastArg, input, child, parent);
             }
         }
 
-        return invokeNormalFunction(input, functionNode);
+        return invokeNormalFunction(input, child, parent, functionNode);
     }
 
-    private Object invokeProperty(Object input, FunctionNode functionNode) {
-        Object object = getValue(functionNode.getArguments().get(0), input);
-        Object key = getValue(functionNode.getArguments().get(1), input);
+    private Object invokeProperty(Object input, Object child, Object parent, FunctionNode functionNode) {
+        Object key = getValue(functionNode.getArguments().get(1), input, child, parent);
 
-        if (SquigglyParser.OP_DOLLAR.equals(key)) {
-            return input;
+        if (SquigglyParser.SELF_REFERENCE.equals(key)) {
+            return child;
         }
+
+        if (SquigglyParser.PARENT_REFERENCE.equals(key)) {
+            return parent;
+        }
+
+        if (functionNode.isInitial()) {
+            input = parent;
+        }
+
+        Object object = getValue(functionNode.getArguments().get(0), input, child, parent);
 
         if (object == null) {
             return null;
         }
 
         if (object instanceof CoreJsonNode) {
-            object = ((CoreJsonNode) input).getValue();
+            object = ((CoreJsonNode) object).getValue();
         }
 
         if (key instanceof Function) {
@@ -292,33 +305,33 @@ public class SquigglyFunctionInvoker {
         return squiggly.getConversionService().convert(source, targetType);
     }
 
-    private List<Object> toParameters(FunctionNode functionNode, Object input) {
+    private List<Object> toParameters(FunctionNode functionNode, Object input, Object child, Object parent) {
         return functionNode.getArguments()
                 .stream()
-                .map(argumentNode -> getValue(argumentNode, input))
+                .map(argumentNode -> getValue(argumentNode, input, child, parent))
                 .collect(Collectors.toList());
     }
 
 
     @SuppressWarnings("unchecked")
-    private Object getValue(ArgumentNode argumentNode, Object input) {
-        switch (argumentNode.getType()) {
+    private Object getValue(ArgumentNode argumentNode, Object input, Object child, Object parent) {
+        switch (argumentNode.getArgumentType()) {
             case ARRAY_DECLARATION:
-                return buildArrayDeclaration(input, (List<ArgumentNode>) argumentNode.getValue());
+                return buildArrayDeclaration(input, child, parent, (List<ArgumentNode>) argumentNode.getValue());
             case ARRAY_RANGE_DECLARATION:
-                return buildArrayRangeDeclartion(input, (IntRangeNode) argumentNode.getValue(), argumentNode.getContext());
+                return buildArrayRangeDeclartion(input, child, parent, (IntRangeNode) argumentNode.getValue(), argumentNode.getContext());
             case FUNCTION_CHAIN:
-                return buildFunctionChain((List<FunctionNode>) argumentNode.getValue());
+                return buildFunctionChain(child, parent, (List<FunctionNode>) argumentNode.getValue());
             case LAMBDA:
                 return buildLambda((LambdaNode) argumentNode.getValue());
             case IF:
-                return invokeIf(input, (IfNode) argumentNode.getValue());
+                return invokeIf(input, child, parent, (IfNode) argumentNode.getValue());
             case INPUT:
                 return input;
             case INT_RANGE:
-                return buildIntRange(input, (IntRangeNode) argumentNode.getValue());
+                return buildIntRange(input, child, parent, (IntRangeNode) argumentNode.getValue());
             case OBJECT_DECLARATION:
-                return buildObjectDeclaration(input, (List<CorePair<ArgumentNode, ArgumentNode>>) argumentNode.getValue());
+                return buildObjectDeclaration(input, child, parent, (List<CorePair<ArgumentNode, ArgumentNode>>) argumentNode.getValue());
             case VARIABLE:
                 return variableResolver.resolveVariable(argumentNode.getValue().toString());
             default:
@@ -326,9 +339,9 @@ public class SquigglyFunctionInvoker {
         }
     }
 
-    private CoreIntRange buildIntRange(Object input, IntRangeNode rangeNode) {
-        Integer start = (rangeNode.getStart() == null) ? null : getValue(rangeNode.getStart(), input, Integer.class);
-        Integer end = (rangeNode.getEnd() == null) ? null : getValue(rangeNode.getEnd(), input, Integer.class);
+    private CoreIntRange buildIntRange(Object input, Object child, Object parent, IntRangeNode rangeNode) {
+        Integer start = (rangeNode.getStart() == null) ? null : getValue(rangeNode.getStart(), input, child, parent, Integer.class);
+        Integer end = (rangeNode.getEnd() == null) ? null : getValue(rangeNode.getEnd(), input, child, parent, Integer.class);
 
         if (start == null) {
             return rangeNode.isExclusiveEnd() ? CoreIntRange.emptyExclusive() : CoreIntRange.emptyInclusive();
@@ -341,20 +354,20 @@ public class SquigglyFunctionInvoker {
         return (end == null) ? CoreIntRange.inclusiveInclusive(start) : CoreIntRange.inclusiveInclusive(start, end);
     }
 
-    private Object invokeIf(Object input, IfNode ifNode) {
+    private Object invokeIf(Object input, Object child, Object parent, IfNode ifNode) {
         for (IfNode.IfClause ifClause : ifNode.getIfClauses()) {
-            Object condition = invokeAndGetValue(ifClause.getCondition(), input);
+            Object condition = invokeAndGetValue(ifClause.getCondition(), input, child, parent);
 
             if (CoreConversions.toBoolean(condition)) {
-                return invokeAndGetValue(ifClause.getValue(), input);
+                return invokeAndGetValue(ifClause.getValue(), input, child, parent);
             }
         }
 
-        return invokeAndGetValue(ifNode.getElseClause(), input);
+        return invokeAndGetValue(ifNode.getElseClause(), input, child, parent);
     }
 
-    private Object invokeAndGetValue(ArgumentNode arg, Object input) {
-        Object value = getValue(arg, input);
+    private Object invokeAndGetValue(ArgumentNode arg, Object input, Object child, Object parent) {
+        Object value = getValue(arg, input, child, parent);
 
         if (value instanceof Function) {
             return ((Function) value).apply(input);
@@ -363,12 +376,12 @@ public class SquigglyFunctionInvoker {
         return value;
     }
 
-    private List<Object> buildArrayDeclaration(Object input, List<ArgumentNode> elements) {
-        return elements.stream().map(arg -> invokeAndGetValue(arg, input)).collect(Collectors.toList());
+    private List<Object> buildArrayDeclaration(Object input, Object child, Object parent, List<ArgumentNode> elements) {
+        return elements.stream().map(arg -> invokeAndGetValue(arg, input, child, parent)).collect(Collectors.toList());
     }
 
-    private Object buildArrayRangeDeclartion(Object input, IntRangeNode rangeNode, ParseContext context) {
-        CoreIntRange range = buildIntRange(input, rangeNode);
+    private Object buildArrayRangeDeclartion(Object input, Object child, Object parent, IntRangeNode rangeNode, ParseContext context) {
+        CoreIntRange range = buildIntRange(input, child, parent, rangeNode);
 
         Integer start = range.getStart();
         Integer end = range.getEnd();
@@ -400,18 +413,18 @@ public class SquigglyFunctionInvoker {
         return list;
     }
 
-    private Function buildFunctionChain(List<FunctionNode> functionNodes) {
+    private Function buildFunctionChain(Object child, Object parent, List<FunctionNode> functionNodes) {
         if (functionNodes.isEmpty()) {
-            return new FunctionChain(Collections.emptyList());
+            return new FunctionChain(child, parent, Collections.emptyList());
         }
 
         Function function;
         FunctionNode firstFunctionNode = functionNodes.get(0);
 
-        if (firstFunctionNode.getType() == FunctionNodeType.PROPERTY) {
-            function = new Property(firstFunctionNode.isAscending(), functionNodes);
+        if (firstFunctionNode.getFunctionType() == FunctionNodeType.PROPERTY) {
+            function = new Property(child, parent, firstFunctionNode.isAscending(), functionNodes);
         } else {
-            function = new FunctionChain(functionNodes);
+            function = new FunctionChain(child, parent, functionNodes);
         }
 
         return function;
@@ -440,29 +453,33 @@ public class SquigglyFunctionInvoker {
             }
 
             if (varBuilder.isEmpty()) {
-                return invoke(input, lambdaNode.getBody());
+                return invoke(input, input, input, lambdaNode.getBody());
             }
 
             Map<String, Object> varMap = Collections.unmodifiableMap(varBuilder);
 
             SquigglyVariableResolver variableResolver = new CompositeVariableResolver(new MapVariableResolver(varMap), this.variableResolver);
             SquigglyFunctionInvoker invoker = new SquigglyFunctionInvoker(squiggly, variableResolver);
-            return invoker.invoke(input, lambdaNode.getBody());
+            return invoker.invoke(input, input, input, lambdaNode.getBody());
         };
     }
 
-    private Map<Object, Object> buildObjectDeclaration(Object input, List<CorePair<ArgumentNode, ArgumentNode>> pairs) {
-        return pairs.stream()
-                .collect(toMap(
-                        pair -> invokeAndGetValue(pair.getLeft(), input),
-                        pair -> invokeAndGetValue(pair.getRight(), input),
-                        (a, b) -> b
-                ));
+    private Map<Object, Object> buildObjectDeclaration(Object input, Object child, Object parent, List<CorePair<ArgumentNode, ArgumentNode>> pairs) {
+        Map<Object, Object> map = new HashMap<>(pairs.size());
+
+        for (CorePair<ArgumentNode, ArgumentNode> pair : pairs) {
+            map.put(
+                    invokeAndGetValue(pair.getLeft(), input, child, parent),
+                    invokeAndGetValue(pair.getRight(), input, child, parent)
+            );
+        }
+
+        return map;
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <T> T getValue(ArgumentNode argumentNode, Object input, Class<T> targetType) {
-        return squiggly.getConversionService().convert(getValue(argumentNode, input), targetType);
+    private <T> T getValue(ArgumentNode argumentNode, Object input, Object child, Object parent, Class<T> targetType) {
+        return squiggly.getConversionService().convert(getValue(argumentNode, input, child, parent), targetType);
     }
 
     private boolean isSquiggly(SquigglyParameter parameter) {
@@ -472,15 +489,19 @@ public class SquigglyFunctionInvoker {
     private class FunctionChain implements FunctionPredicateBridge {
 
         private final List<FunctionNode> functionNodes;
+        private final Object child;
+        private final Object parent;
 
-        public FunctionChain(List<FunctionNode> functionNodes) {
+        public FunctionChain(Object child, Object parent, List<FunctionNode> functionNodes) {
+            this.child = child;
+            this.parent = parent;
             this.functionNodes = functionNodes;
         }
 
         @Override
         public Object apply(Object input) {
             if (functionNodes.isEmpty()) return null;
-            return invoke(input, functionNodes);
+            return invoke(input, child, parent, functionNodes);
         }
     }
 
@@ -488,8 +509,12 @@ public class SquigglyFunctionInvoker {
     private class Property implements CoreProperty {
         private final boolean ascending;
         private final List<FunctionNode> functionNodes;
+        private final Object child;
+        private final Object parent;
 
-        public Property(boolean ascending, List<FunctionNode> functionNodes) {
+        public Property(Object child, Object parent, boolean ascending, List<FunctionNode> functionNodes) {
+            this.child = child;
+            this.parent = parent;
             this.ascending = ascending;
             this.functionNodes = functionNodes;
         }
@@ -501,7 +526,7 @@ public class SquigglyFunctionInvoker {
 
         @Override
         public Object apply(Object input) {
-            return invoke(input, functionNodes);
+            return invoke(input, child, parent, functionNodes);
         }
     }
 

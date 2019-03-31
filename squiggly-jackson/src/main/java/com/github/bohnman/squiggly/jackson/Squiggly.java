@@ -61,7 +61,8 @@ public class Squiggly extends BaseSquiggly {
         };
     }
 
-    public JsonNode apply(JsonNode node, String... filters) {
+    public  JsonNode apply(ObjectMapper mapper, Object object, String... filters) {
+        JsonNode node = object instanceof JsonNode ? (JsonNode) object : mapper.valueToTree(object);
         return apply(new JacksonJsonNode(node), filters).getRawNode();
     }
 

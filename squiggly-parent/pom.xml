@@ -30,7 +30,7 @@
         <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
         <maven-javadoc-plugin.version>2.9.1</maven-javadoc-plugin.version>
         <maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
-        <package-info-maven-plugin.version>1.0.1</package-info-maven-plugin.version>
+        <package-info-maven-plugin.version>1.1.0</package-info-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
         <squiggly.version>2.0.0-SNAPSHOT</squiggly.version>
         <maven-shade-plugin.version>3.1.0</maven-shade-plugin.version>

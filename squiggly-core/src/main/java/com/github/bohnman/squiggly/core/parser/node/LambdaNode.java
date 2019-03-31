@@ -8,9 +8,8 @@ import java.util.List;
 /**
  * Represents a lambda call.
  */
-public class LambdaNode {
+public class LambdaNode extends BaseSquigglyNode {
 
-    private final ParseContext context;
     private final List<String> arguments;
     private final FunctionNode body;
 
@@ -22,18 +21,9 @@ public class LambdaNode {
      * @param body      execution logic
      */
     public LambdaNode(ParseContext context, List<String> arguments, FunctionNode body) {
-        this.context = context;
+        super(context);
         this.arguments = Collections.unmodifiableList(arguments);
         this.body = body;
-    }
-
-    /**
-     * Gets the parse context.
-     *
-     * @return parse context
-     */
-    public ParseContext getContext() {
-        return context;
     }
 
     /**
