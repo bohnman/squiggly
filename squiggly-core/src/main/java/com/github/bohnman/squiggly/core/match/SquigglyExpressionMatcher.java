@@ -121,16 +121,6 @@ public class SquigglyExpressionMatcher {
 
             match = findBestNode(context, element, pathSize);
 
-//            if (match == null && context.isAllDeepChildren() && (element.isChildPathProbable() || i < lastIdx)) {
-//                if (i < lastIdx) {
-//                    context.descend(context.parent, depth + 1);
-//                    continue;
-//                } else if (element.isChildPathProbable()) {
-//                    match = ALWAYS_MATCH;
-//                    continue;
-//                }
-//            }
-
             if (match == null && isJsonUnwrapped(element)) {
                 match = ALWAYS_MATCH;
             }
@@ -141,10 +131,6 @@ public class SquigglyExpressionMatcher {
 
             if (match.isAnyDeep()) {
                 return match;
-            }
-
-            if (match.isAnyShallow()) {
-                context.viewNode = match;
             }
 
             if (match.isNegated()) {

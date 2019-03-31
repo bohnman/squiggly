@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.jackson.filter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.bohnman.core.json.jackson.CoreObjectMappers;
@@ -32,15 +33,18 @@ public class SquigglyPropertyFilterTest {
     public static final String BASE_PATH = "com/github/bohnman/squiggly/jackson/filter/SquigglyPropertyFilterTest";
 
     private Issue issue;
+
+
     @Nullable
     private ObjectMapper objectMapper;
+    private ObjectMapper rawObjectMapper = new ObjectMapper();
 
     @Nullable
     private Squiggly squiggly;
-    private ObjectMapper rawObjectMapper = new ObjectMapper();
 
     public SquigglyPropertyFilterTest() {
         rawObjectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+        rawObjectMapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
     }
 
     @Before
@@ -48,6 +52,7 @@ public class SquigglyPropertyFilterTest {
         issue = buildIssue();
         objectMapper = new ObjectMapper();
         objectMapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+        objectMapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
     }
 
     private Issue buildIssue() {
@@ -82,27 +87,20 @@ public class SquigglyPropertyFilterTest {
         filter("*");
         String raw = regexRemove(stringifyRaw(), ",\"userId\":\"[a-zA-Z0-9-_]+\"");
         raw = regexRemove(raw, ",\"user\":\\{.*?\\}");
-        raw = regexRemove(raw, ",\"entityType\":\"User\"");
+        raw = regexRemove(raw, "\"entityType\":\"User\",");
         assertEquals(raw, stringify());
     }
 
     @Test
     public void testBaseView() {
         filter("base");
-        String raw = regexRemove(stringifyRaw(), ",\"actions\":.*") + "}";
-        raw = regexRemove(raw, ",\"entityType\":\"User\"");
+        String raw = stringifyRaw();
+        raw = regexRemove(raw, "\"actions\":\\[.*?\\],");
+        raw = regexRemove(raw, "\"entityType\":\"User\",");
+        raw = regexRemove(raw, "\"properties\":\\{.*?\\},");
         assertEquals(raw, stringify());
     }
 
-    @Test
-    public void testFullView() {
-        filter("full");
-        String raw = regexRemove(stringifyRaw(), ",\"userId\":\"[a-zA-Z0-9-_]+\"");
-        raw = regexRemove(raw, ",\"user\":\\{.*?\\}");
-        raw = regexRemove(raw, ",\"entityType\":\"User\"");
-
-        assertEquals(raw, stringify());
-    }
 
     @Test
     public void testEmpty() {
@@ -111,9 +109,22 @@ public class SquigglyPropertyFilterTest {
     }
 
     @Test
+    public void testFullView() {
+        filter("full");
+        String raw = regexRemove(stringifyRaw(), ",\"userId\":\"[a-zA-Z0-9-_]+\"");
+        raw = regexRemove(raw, ",\"user\":\\{.*?\\}");
+        raw = regexRemove(raw, "\"entityType\":\"User\",");
+
+        assertEquals(raw, stringify());
+    }
+
+    @Test
     public void testSingleField() {
         filter("id");
         assertEquals("{\"id\":\"" + issue.getId() + "\"}", stringify());
+
+        filter("assignee");
+        assertEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
     }
 
     @Test
@@ -125,7 +136,7 @@ public class SquigglyPropertyFilterTest {
     @Test
     public void testRegex() {
         filter("~iss[a-z]e.*~");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
+        assertEquals("{\"issueDetails\":\"" + issue.getIssueDetails() + "\",\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
     }
 
     @Test
@@ -137,19 +148,7 @@ public class SquigglyPropertyFilterTest {
     @Test
     public void testRegexTraditional() {
         filter("/iss[a-z]e.*/");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
-    }
-
-    @Test
-    public void testWildCardSingle() {
-        filter("issueSummar?");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
-    }
-
-    @Test
-    public void testWildCardStart() {
-        filter("issue*");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
+        assertEquals("{\"issueDetails\":\"" + issue.getIssueDetails() + "\",\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
     }
 
     @Test
@@ -161,35 +160,41 @@ public class SquigglyPropertyFilterTest {
     @Test
     public void testWildCardMiddle() {
         filter("*ue*");
-        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\",\"issueDetails\":\"" + issue.getIssueDetails() + "\"}", stringify());
+        assertEquals("{\"issueDetails\":\"" + issue.getIssueDetails() + "\",\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
     }
-
 
     @Test
-    public void testDotPath() {
-        filter("id,actions.user.firstName");
-        assertEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"user\":{\"firstName\":\"Jorah\"}},{\"user\":{\"firstName\":\"Daario\"}}]}", stringify());
+    public void testWildCardSingle() {
+        filter("issueSummar?");
+        assertEquals("{\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
     }
+
+    @Test
+    public void testWildCardStart() {
+        filter("issue*");
+        assertEquals("{\"issueDetails\":\"" + issue.getIssueDetails() + "\",\"issueSummary\":\"" + issue.getIssueSummary() + "\"}", stringify());
+    }
+
 
     @Test
     public void testNegativeDotPath() {
         filter("id,-actions.user.firstName");
-        assertEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"lastName\":\"Mormont\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"lastName\":\"Naharis\"}}]}", stringify());
+        assertEquals("{\"actions\":[{\"id\":null,\"text\":\"I'm going to let Daario get this one..\",\"type\":\"COMMENT\",\"user\":{\"lastName\":\"Mormont\"}},{\"id\":null,\"text\":\"All set.\",\"type\":\"CLOSE\",\"user\":{\"lastName\":\"Naharis\"}}],\"id\":\"ISSUE-1\"}", stringify());
     }
 
     @Test
     public void testNegativeDotPaths() {
         filter("-actions.user.firstName,-actions.user.lastName");
-        assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\",\"reporter\":{\"firstName\":\"Daenerys\",\"lastName\":\"Targaryen\"},\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"},\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{}}]}", stringify());
+        assertEquals("{\"actions\":[{\"id\":null,\"text\":\"I'm going to let Daario get this one..\",\"type\":\"COMMENT\",\"user\":{}},{\"id\":null,\"text\":\"All set.\",\"type\":\"CLOSE\",\"user\":{}}],\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"},\"id\":\"ISSUE-1\",\"issueDetails\":\"I need my dragons fed pronto.\",\"issueSummary\":\"Dragons Need Fed\",\"reporter\":{\"firstName\":\"Daenerys\",\"lastName\":\"Targaryen\"}}", stringify());
     }
 
     @Test
     public void testNestedDotPath() {
         filter("id,actions.user(firstName),issueSummary");
-        assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"actions\":[{\"user\":{\"firstName\":\"Jorah\"}},{\"user\":{\"firstName\":\"Daario\"}}]}", stringify());
+        assertEquals("{\"actions\":[{\"user\":{\"firstName\":\"Jorah\"}},{\"user\":{\"firstName\":\"Daario\"}}],\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\"}", stringify());
 
         filter("id,actions.user()");
-        assertEquals("{\"id\":\"ISSUE-1\",\"actions\":[{\"user\":{}},{\"user\":{}}]}", stringify());
+        assertEquals("{\"actions\":[{\"user\":{}},{\"user\":{}}],\"id\":\"ISSUE-1\"}", stringify());
     }
 
     @Test
@@ -201,10 +206,10 @@ public class SquigglyPropertyFilterTest {
         assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"items\":[{\"items\":[{\"id\":\"ITEM-5\"}]}]}]}]}", stringify(Item.testItem()));
 
         filter("id,items.items(-items.id)");
-        assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"name\":\"Milkshake\",\"items\":[{\"name\":\"Hoverboard\",\"items\":[{\"id\":\"ITEM-5\",\"name\":\"Binoculars\",\"items\":[]}]}]}]}]}", stringify(Item.testItem()));
+        assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"items\":[{\"items\":[{\"id\":\"ITEM-5\",\"items\":[],\"name\":\"Binoculars\"}],\"name\":\"Hoverboard\"}],\"name\":\"Milkshake\"}]}]}", stringify(Item.testItem()));
 
         filter("id,items.items(items(-id,-name),id)");
-        assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"items\":[{\"items\":[{\"id\":\"ITEM-5\",\"name\":\"Binoculars\",\"items\":[]}]}]}]}]}", stringify(Item.testItem()));
+        assertEquals("{\"id\":\"ITEM-1\",\"items\":[{\"items\":[{\"id\":\"ITEM-3\",\"items\":[{\"items\":[{\"id\":\"ITEM-5\",\"items\":[],\"name\":\"Binoculars\"}]}]}]}]}", stringify(Item.testItem()));
 
         fileTest("company-list.json", "deep-nested-01-filter.txt", "deep-nested-01-expected.json");
         fileTest("task-list.json", "deep-nested-02-filter.txt", "deep-nested-02-expected.json");
@@ -216,7 +221,7 @@ public class SquigglyPropertyFilterTest {
         filter("other");
         String raw = regexRemove(stringifyRaw(), ",\"user\":\\{.*?\\}");
         raw = regexRemove(raw, ",\"properties\":\\{.*?\\}");
-        raw = regexRemove(raw, ",\"entityType\":\"User\"");
+        raw = regexRemove(raw, "\"entityType\":\"User\",");
         assertEquals(raw, stringify());
     }
 
@@ -224,12 +229,6 @@ public class SquigglyPropertyFilterTest {
     public void testNestedEmpty() {
         filter("assignee()");
         assertEquals("{\"assignee\":{}}", stringify());
-    }
-
-    @Test
-    public void testAssignee() {
-        filter("assignee");
-        assertEquals("{\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}}", stringify());
     }
 
     @Test
@@ -241,13 +240,14 @@ public class SquigglyPropertyFilterTest {
     @Test
     public void testNestedMultiple() {
         filter("actions(type,text)");
-        assertEquals("{\"actions\":[{\"type\":\"" + issue.getActions().get(0).getType() + "\",\"text\":\"" + issue.getActions().get(0).getText() + "\"},{\"type\":\"" + issue.getActions().get(1).getType() + "\",\"text\":\"" + issue.getActions().get(1).getText() + "\"}]}", stringify());
+
+        assertEquals("{\"actions\":[{\"text\":\"" + issue.getActions().get(0).getText() + "\",\"type\":\"" + issue.getActions().get(0).getType() + "\"},{\"text\":\"" + issue.getActions().get(1).getText() + "\",\"type\":\"" + issue.getActions().get(1).getType() + "\"}]}", stringify());
     }
 
     @Test
     public void testMultipleNestedSingle() {
         filter("(reporter,assignee)(lastName)");
-        assertEquals("{\"reporter\":{\"lastName\":\"" + issue.getReporter().getLastName() + "\"},\"assignee\":{\"lastName\":\"" + issue.getAssignee().getLastName() + "\"}}", stringify());
+        assertEquals("{\"assignee\":{\"lastName\":\"" + issue.getAssignee().getLastName() + "\"},\"reporter\":{\"lastName\":\"" + issue.getReporter().getLastName() + "\"}}", stringify());
     }
 
     @Test
@@ -335,7 +335,7 @@ public class SquigglyPropertyFilterTest {
     @Test
     public void testFilterExclusion() {
         filter("**,reporter(-firstName)");
-        assertEquals("{\"id\":\"ISSUE-1\",\"issueSummary\":\"Dragons Need Fed\",\"issueDetails\":\"I need my dragons fed pronto.\",\"reporter\":{\"lastName\":\"Targaryen\"},\"assignee\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"},\"actions\":[{\"id\":null,\"type\":\"COMMENT\",\"text\":\"I'm going to let Daario get this one..\",\"user\":{\"firstName\":\"Jorah\",\"lastName\":\"Mormont\",\"entityType\":\"User\"}},{\"id\":null,\"type\":\"CLOSE\",\"text\":\"All set.\",\"user\":{\"firstName\":\"Daario\",\"lastName\":\"Naharis\",\"entityType\":\"User\"}}],\"properties\":{\"email\":\"motherofdragons@got.com\",\"priority\":\"1\"}}", stringify());
+        assertEquals("{\"actions\":[{\"id\":null,\"text\":\"I'm going to let Daario get this one..\",\"type\":\"COMMENT\",\"user\":{\"entityType\":\"User\",\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"}},{\"id\":null,\"text\":\"All set.\",\"type\":\"CLOSE\",\"user\":{\"entityType\":\"User\",\"firstName\":\"Daario\",\"lastName\":\"Naharis\"}}],\"assignee\":{\"entityType\":\"User\",\"firstName\":\"Jorah\",\"lastName\":\"Mormont\"},\"id\":\"ISSUE-1\",\"issueDetails\":\"I need my dragons fed pronto.\",\"issueSummary\":\"Dragons Need Fed\",\"properties\":{\"email\":\"motherofdragons@got.com\",\"priority\":\"1\"},\"reporter\":{\"lastName\":\"Targaryen\"}}", stringify());
     }
 
 
@@ -361,8 +361,11 @@ public class SquigglyPropertyFilterTest {
     // TODO: finish
     @Test
     public void testDeep() {
-        filter("**(*,firstName='charlie')");
-        assertEquals("{s}", stringify());
+//        filter("**(other)");
+//        assertEquals("{s}", stringify());
+
+        filter("**(*,firstName='Tony')");
+        assertEquals(regexReplace(stringifyRaw(), "(\"firstName\":)\".*?\"", "$1\"Tony\""), stringify());
     }
 
     private void setFieldValue(Object object, String fieldName, boolean value) {
@@ -395,15 +398,13 @@ public class SquigglyPropertyFilterTest {
         }
     }
 
-    private String regexRemove(String input, String regex) {
+    private String regexReplace(String input, String regex, String replacement) {
         Matcher matcher = regex(input, regex);
-        StringBuffer sb = new StringBuffer();
+        return matcher.replaceAll(replacement);
+    }
 
-        while (matcher.find()) {
-            matcher.appendReplacement(sb, "");
-        }
-        matcher.appendTail(sb);
-        return sb.toString();
+    private String regexRemove(String input, String regex) {
+        return regexReplace(input, regex, "");
     }
 
     private Matcher regex(String input, String regex) {

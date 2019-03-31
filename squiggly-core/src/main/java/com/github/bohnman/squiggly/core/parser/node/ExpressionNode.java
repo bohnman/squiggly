@@ -1,6 +1,9 @@
 package com.github.bohnman.squiggly.core.parser.node;
 
-import com.github.bohnman.squiggly.core.name.*;
+import com.github.bohnman.squiggly.core.name.AnyDeepName;
+import com.github.bohnman.squiggly.core.name.AnyShallowName;
+import com.github.bohnman.squiggly.core.name.DeepInheritName;
+import com.github.bohnman.squiggly.core.name.SquigglyName;
 import com.github.bohnman.squiggly.core.parser.ParseContext;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -60,7 +63,19 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
 
     @Override
     public int compareTo(ExpressionNode other) {
-        return Integer.compare(getSpecificity(), other.getSpecificity());
+        int cmp = Integer.compare(depth, other.depth);
+
+        if (cmp == 0) {
+            int thisShallow = isDeep() ? 0 : 1;
+            int otherShallow = other.isDeep() ? 0 : 1;
+            cmp = Integer.compare(thisShallow, otherShallow);
+        }
+
+        if (cmp == 0) {
+            cmp = Integer.compare(getSpecificity(), other.getSpecificity());
+        }
+
+        return cmp;
     }
 
     /**
