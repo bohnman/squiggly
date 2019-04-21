@@ -83,7 +83,11 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
             return false;
         }
 
-        int status = response.getStatus();
+        return isFilteringEnabled(request, response);
+    }
+
+    protected boolean isFilteringEnabled(HttpServletRequest request, HttpServletResponse response) {
+        int status = getResponseStatusCode(request, response);
 
         if (!isSuccessStatusCode(status)) {
             return false;
@@ -103,11 +107,11 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
             return false;
         }
 
-        if (defaultFilter != null) {
-            return true;
-        }
+        return defaultFilter != null;
+    }
 
-        return false;
+    protected int getResponseStatusCode(HttpServletRequest request, HttpServletResponse response) {
+        return response.getStatus();
     }
 
  protected boolean isSuccessStatusCode(int status) {
