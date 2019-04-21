@@ -1,3 +1,8 @@
+# 1.3.17 (2019-04-21)
+
+* RequestSquigglyContextProvider: adding hook method to get the response status code
+* General: using AnyDeepName.ID instead of "**"
+
 # 1.3.16 (2019-02-04)
 
 * Adding abilty to use a dash in a field - issue #60
