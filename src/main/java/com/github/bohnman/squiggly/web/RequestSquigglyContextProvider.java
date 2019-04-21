@@ -1,6 +1,7 @@
 package com.github.bohnman.squiggly.web;
 
 import com.github.bohnman.squiggly.context.provider.AbstractSquigglyContextProvider;
+import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
 import com.google.common.base.MoreObjects;
 
@@ -62,7 +63,11 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
             return false;
         }
 
-        int status = response.getStatus();
+        return isFilteringEnabled(request, response);
+    }
+
+    protected boolean isFilteringEnabled(HttpServletRequest request, HttpServletResponse response) {
+        int status = getResponseStatusCode(request, response);
 
         if (!isSuccessStatusCode(status)) {
             return false;
@@ -70,7 +75,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
 
         String filter = getFilter(request);
 
-        if ("**".equals(filter)) {
+        if (AnyDeepName.ID.equals(filter)) {
             return false;
         }
 
@@ -78,15 +83,15 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
             return true;
         }
 
-        if ("**".equals(defaultFilter)) {
+        if (AnyDeepName.ID.equals(defaultFilter)) {
             return false;
         }
 
-        if (defaultFilter != null) {
-            return true;
-        }
+        return defaultFilter != null;
+    }
 
-        return false;
+    protected int getResponseStatusCode(HttpServletRequest request, HttpServletResponse response) {
+        return response.getStatus();
     }
 
     protected boolean isSuccessStatusCode(int status) {
@@ -97,7 +102,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         @SuppressWarnings("RedundantStringConstructorCall")
         private static final String NULL = new String();
         public static final String REQUEST_KEY = FilterCache.class.getName();
-        private final Map<Class, String> map = new HashMap<Class, String>();
+        private final Map<Class, String> map = new HashMap<>();
 
         public static FilterCache getOrCreate(HttpServletRequest request) {
             FilterCache cache = (FilterCache) request.getAttribute(REQUEST_KEY);

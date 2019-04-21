@@ -1,5 +1,6 @@
 package com.github.bohnman.squiggly.context.provider;
 
+import com.github.bohnman.squiggly.name.AnyDeepName;
 import com.github.bohnman.squiggly.parser.SquigglyParser;
 import net.jcip.annotations.ThreadSafe;
 
@@ -18,15 +19,7 @@ public class SimpleSquigglyContextProvider extends AbstractSquigglyContextProvid
 
     @Override
     public boolean isFilteringEnabled() {
-        if (filter == null) {
-            return false;
-        }
-
-        if ("**".equals(filter)) {
-            return false;
-        }
-
-        return true;
+        return filter != null && !AnyDeepName.ID.equals(filter);
     }
 
     @Override
