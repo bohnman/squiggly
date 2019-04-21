@@ -114,7 +114,7 @@ public class RequestSquigglyContextProvider extends AbstractSquigglyContextProvi
         return response.getStatus();
     }
 
- protected boolean isSuccessStatusCode(int status) {
+    protected boolean isSuccessStatusCode(int status) {
         return status >= HttpServletResponse.SC_OK && status < HttpServletResponse.SC_MULTIPLE_CHOICES;
     }
 
