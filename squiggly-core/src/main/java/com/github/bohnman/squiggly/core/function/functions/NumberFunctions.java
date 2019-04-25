@@ -4,7 +4,7 @@ import com.github.bohnman.core.collect.CoreIndexedIterableWrapper;
 import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
+import com.github.bohnman.squiggly.core.function.annotations.SquigglyFunctionMethod;
 
 import java.text.DecimalFormat;
 import java.text.ParseException;

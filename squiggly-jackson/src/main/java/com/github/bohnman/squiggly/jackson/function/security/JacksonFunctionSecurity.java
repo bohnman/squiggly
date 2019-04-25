@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import com.github.bohnman.core.range.CoreIntRange;
-import com.github.bohnman.squiggly.core.function.security.SquigglyFunctionSecurity;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctionSecurity;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

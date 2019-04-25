@@ -1,12 +1,12 @@
 package com.github.bohnman.squiggly.jackson
 
-import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider
+import com.github.bohnman.squiggly.core.filter.contextproviders.SimpleFilterContextProvider
 import com.github.bohnman.squiggly.core.convert.ConverterRecord
 import com.github.bohnman.squiggly.core.function.FunctionExecutionRequest
 import com.github.bohnman.squiggly.core.function.SquigglyFunction
 import com.github.bohnman.squiggly.core.function.SquigglyParameter
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionClass
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod
+import com.github.bohnman.squiggly.core.function.annotations.SquigglyFunctionClass
+import com.github.bohnman.squiggly.core.function.annotations.SquigglyFunctionMethod
 import com.github.bohnman.squiggly.jackson.config.SquigglyCustomizer
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -26,7 +26,7 @@ import kotlin.reflect.jvm.javaType
  * @param filter the filter string
  */
 fun squiggly(filter: String, init: Squiggly.Builder.() -> Unit): Squiggly =
-        squigglyBuilder(init).context(SimpleSquigglyContextProvider(filter)).build()
+        squigglyBuilder(init).filterContext(SimpleFilterContextProvider(filter)).build()
 
 /**
  * Create Squiggly using a builder.

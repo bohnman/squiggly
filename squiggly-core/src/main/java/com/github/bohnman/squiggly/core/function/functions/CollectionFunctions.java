@@ -10,11 +10,11 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
-import com.github.bohnman.squiggly.core.function.value.BaseCollectionValueHandler;
-import com.github.bohnman.squiggly.core.function.value.BaseStreamingCollectionValueHandler;
-import com.github.bohnman.squiggly.core.function.value.CollectionReturningValueHandler;
-import com.github.bohnman.squiggly.core.function.value.ValueHandler;
+import com.github.bohnman.squiggly.core.function.annotations.SquigglyFunctionMethod;
+import com.github.bohnman.squiggly.core.function.valuehandlers.BaseCollectionValueHandler;
+import com.github.bohnman.squiggly.core.function.valuehandlers.BaseStreamingCollectionValueHandler;
+import com.github.bohnman.squiggly.core.function.valuehandlers.CollectionReturningValueHandler;
+import com.github.bohnman.squiggly.core.function.ValueHandler;
 
 import java.util.*;
 import java.util.function.Function;
@@ -145,6 +145,7 @@ public class CollectionFunctions {
 
         return new BaseCollectionValueHandler<Object>(size) {
 
+            @SuppressWarnings("RedundantOperationOnEmptyContainer")
             @Override
             protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 int wrapperSize = wrapper.size();
@@ -722,7 +723,6 @@ public class CollectionFunctions {
      */
     public static Object maxBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Object>() {
-            @SuppressWarnings("RedundantCast")
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())
@@ -759,7 +759,6 @@ public class CollectionFunctions {
      */
     public static Object minBy(Object value, CoreLambda lambda) {
         return new BaseStreamingCollectionValueHandler<Object>() {
-            @SuppressWarnings({"RedundantCast", "ComparatorCombinators"})
             @Override
             protected Stream<Object> createStream(CoreIndexedIterableWrapper<Object, ?> wrapper) {
                 return IntStream.range(0, wrapper.size())

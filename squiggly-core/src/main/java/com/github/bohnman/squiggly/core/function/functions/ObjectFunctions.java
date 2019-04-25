@@ -6,8 +6,8 @@ import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.library.CoreLibraries;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
-import com.github.bohnman.squiggly.core.function.value.ValueHandler;
+import com.github.bohnman.squiggly.core.function.annotations.SquigglyFunctionMethod;
+import com.github.bohnman.squiggly.core.function.ValueHandler;
 
 import java.time.*;
 import java.util.Calendar;

@@ -2,15 +2,15 @@ package com.github.bohnman.squiggly.spring.boot.starter.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
-import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
-import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
-import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.core.config.SquigglyConfigSource;
+import com.github.bohnman.squiggly.core.filter.contextproviders.SimpleFilterContextProvider;
+import com.github.bohnman.squiggly.core.filter.SquigglyFilterContextProvider;
 import com.github.bohnman.squiggly.core.convert.SquigglyConverterRegistry;
 import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
-import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterRepository;
-import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
+import com.github.bohnman.squiggly.core.filter.SquigglyFilterRepository;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctionRepository;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
-import com.github.bohnman.squiggly.core.variable.ThreadLocalVariableResolver;
+import com.github.bohnman.squiggly.core.variable.resolvers.ThreadLocalVariableResolver;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.jackson.config.SquigglyCustomizer;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
@@ -71,12 +71,12 @@ public class SquigglyAutoConfiguration {
     public Squiggly squiggly(
             BeanFactory beanFactory,
             SquigglyConfig config,
-            SquigglyContextProvider contextProvider,
+            SquigglyFilterContextProvider contextProvider,
             SquigglyJacksonSerializer serializer
     ) {
         Squiggly.Builder builder = Squiggly.builder()
                 .config(config)
-                .context(contextProvider)
+                .filterContext(contextProvider)
                 .serializer(serializer);
 
         if (converterRegistry != null) {
@@ -159,8 +159,8 @@ public class SquigglyAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnNotWebApplication
-    public SquigglyContextProvider squigglySimpleContextProvider(SquigglyConfig config) {
-        return new SimpleSquigglyContextProvider(config.getString("squiggly.spring.boot.static-filter")) {
+    public SquigglyFilterContextProvider squigglySimpleContextProvider(SquigglyConfig config) {
+        return new SimpleFilterContextProvider(config.getString("squiggly.spring.boot.static-filter")) {
             @Override
             @Nullable
             protected String customizeFilter(@Nullable String filter, @Nullable Class beanClass) {

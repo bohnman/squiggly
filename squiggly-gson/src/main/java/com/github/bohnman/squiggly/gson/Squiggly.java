@@ -1,12 +1,12 @@
 package com.github.bohnman.squiggly.gson;
 
 import com.github.bohnman.squiggly.core.BaseSquiggly;
-import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
-import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.core.filter.contextproviders.SimpleFilterContextProvider;
+import com.github.bohnman.squiggly.core.filter.SquigglyFilterContextProvider;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
-import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
-import com.github.bohnman.squiggly.gson.function.GsonFunctions;
-import com.github.bohnman.squiggly.gson.json.GsonJsonNode;
+import com.github.bohnman.squiggly.core.function.functions.SquigglyFunctions;
+import com.github.bohnman.squiggly.gson.function.functions.GsonFunctions;
+import com.github.bohnman.squiggly.gson.json.nodes.GsonJsonNode;
 import com.google.gson.JsonElement;
 
 import java.util.List;
@@ -56,7 +56,7 @@ public class Squiggly extends BaseSquiggly {
      * @param contextProvider context provider
      * @return squigly
      */
-    public static Squiggly init(SquigglyContextProvider contextProvider) {
+    public static Squiggly init(SquigglyFilterContextProvider contextProvider) {
         return builder(contextProvider).build();
     }
 
@@ -76,7 +76,7 @@ public class Squiggly extends BaseSquiggly {
      * @return builder
      */
     public static Builder builder(String filter) {
-        return builder().context(new SimpleSquigglyContextProvider(filter));
+        return builder().filterContext(new SimpleFilterContextProvider(filter));
     }
 
     /**
@@ -85,8 +85,8 @@ public class Squiggly extends BaseSquiggly {
      * @param contextProvider context provider
      * @return builder
      */
-    public static Builder builder(SquigglyContextProvider contextProvider) {
-        return builder().context(contextProvider);
+    public static Builder builder(SquigglyFilterContextProvider contextProvider) {
+        return builder().filterContext(contextProvider);
     }
 
     /**

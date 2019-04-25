@@ -6,7 +6,7 @@ import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
+import com.github.bohnman.squiggly.core.function.annotations.SquigglyFunctionMethod;
 
 import java.util.Arrays;
 import java.util.Collections;

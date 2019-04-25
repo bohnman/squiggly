@@ -17,7 +17,7 @@ import com.github.bohnman.squiggly.cli.printer.SyntaxHighlightingJsonGenerator;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.function.functions.CoreJsonNodeFunctions;
 import com.github.bohnman.squiggly.jackson.Squiggly;
-import com.github.bohnman.squiggly.jackson.json.JacksonJsonNode;
+import com.github.bohnman.squiggly.jackson.json.nodes.JacksonJsonNode;
 
 import java.io.*;
 import java.util.ArrayList;

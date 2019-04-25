@@ -6,13 +6,13 @@ import com.github.bohnman.core.json.path.CoreJsonPath;
 import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
-import com.github.bohnman.squiggly.core.bean.BeanInfo;
-import com.github.bohnman.squiggly.core.metric.source.CoreCacheSquigglyMetricsSource;
-import com.github.bohnman.squiggly.core.name.AnyDeepName;
-import com.github.bohnman.squiggly.core.name.ExactName;
-import com.github.bohnman.squiggly.core.parser.node.ExpressionNode;
-import com.github.bohnman.squiggly.core.parser.node.StatementNode;
-import com.github.bohnman.squiggly.core.view.PropertyView;
+import com.github.bohnman.squiggly.core.object.ObjectDescriptor;
+import com.github.bohnman.squiggly.core.metric.sources.CoreCacheMetricsSource;
+import com.github.bohnman.squiggly.core.name.names.AnyDeepName;
+import com.github.bohnman.squiggly.core.name.names.ExactName;
+import com.github.bohnman.squiggly.core.parse.nodes.ExpressionNode;
+import com.github.bohnman.squiggly.core.parse.nodes.StatementNode;
+import com.github.bohnman.squiggly.core.view.annotations.PropertyView;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -48,7 +48,7 @@ public class SquigglyExpressionMatcher {
     public SquigglyExpressionMatcher(BaseSquiggly squiggly) {
         this.squiggly = notNull(squiggly);
         this.matchCache = CoreCacheBuilder.from(squiggly.getConfig().getFilterPathCacheSpec()).build();
-        squiggly.getMetrics().add(new CoreCacheSquigglyMetricsSource("squiggly.filter.path-cache.", matchCache));
+        squiggly.getMetrics().add(new CoreCacheMetricsSource("squiggly.filter.path-cache.", matchCache));
     }
 
     /**
@@ -175,7 +175,7 @@ public class SquigglyExpressionMatcher {
 
 
     private boolean isJsonUnwrapped(CoreJsonPathElement element) {
-        BeanInfo info = squiggly.getBeanInfoIntrospector().introspect(element.getBeanClass());
+        ObjectDescriptor info = squiggly.getObjectIntrospector().introspect(element.getBeanClass());
         return info.isUnwrapped(element.getName());
     }
 
@@ -265,7 +265,7 @@ public class SquigglyExpressionMatcher {
             return Collections.emptySet();
         }
 
-        return squiggly.getBeanInfoIntrospector().introspect(beanClass).getPropertyNamesForView(viewName);
+        return squiggly.getObjectIntrospector().introspect(beanClass).getPropertyNamesForView(viewName);
     }
 
     private class MatchContext {

@@ -6,10 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
-import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
-import com.github.bohnman.squiggly.core.context.provider.ThreadLocalSquigglyContextProvider;
+import com.github.bohnman.squiggly.core.filter.SquigglyFilterContextProvider;
+import com.github.bohnman.squiggly.core.filter.contextproviders.ThreadLocalFilterContextProvider;
 import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
-import com.github.bohnman.squiggly.core.holder.SquigglyFilterHolder;
+import com.github.bohnman.squiggly.core.filter.support.SquigglyFilterHolder;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariablesHolder;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,6 @@ import java.util.Map;
 /**
  * Configuration registered when the WebFlux api is in the project.
  */
-@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 @Configuration
 @ConditionalOnWebApplication
 @ConditionalOnClass(DispatcherHandler.class)
@@ -62,8 +61,8 @@ public class SquigglyWebFluxAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public SquigglyContextProvider squigglyRequestContextProvider() {
-        return new ThreadLocalSquigglyContextProvider() {
+    public SquigglyFilterContextProvider squigglyRequestContextProvider() {
+        return new ThreadLocalFilterContextProvider() {
             @Nullable
             @Override
             protected String customizeFilter(@Nullable String filter, @Nullable Class beanClass) {
@@ -96,7 +95,7 @@ public class SquigglyWebFluxAutoConfiguration {
     /**
      * Registers a json encoder that can use squiggly.
      */
-    @SuppressWarnings({"NullableProblems", "SpringJavaInjectionPointsAutowiringInspection"})
+    @SuppressWarnings({"NullableProblems"})
     @Configuration
     public static class WebFluxConfig extends WebFluxConfigurationSupport {
 

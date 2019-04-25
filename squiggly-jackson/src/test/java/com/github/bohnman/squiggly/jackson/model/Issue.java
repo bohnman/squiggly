@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.jackson.model;
 
-import com.github.bohnman.squiggly.core.view.FullView;
-import com.github.bohnman.squiggly.core.view.PropertyView;
+import com.github.bohnman.squiggly.core.view.annotations.FullView;
+import com.github.bohnman.squiggly.core.view.annotations.PropertyView;
 
 import java.util.List;
 import java.util.Map;

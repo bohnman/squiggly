@@ -5,9 +5,9 @@ import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.squiggly.core.config.source.CompositeConfigSource;
-import com.github.bohnman.squiggly.core.config.source.PropertiesConfigSource;
-import com.github.bohnman.squiggly.core.config.source.SquigglyConfigSource;
+import com.github.bohnman.squiggly.core.config.sources.CompositeConfigSource;
+import com.github.bohnman.squiggly.core.config.sources.PropertiesConfigSource;
+import com.github.bohnman.squiggly.core.view.annotations.PropertyView;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -285,7 +285,7 @@ public class SquigglyConfig {
      * Determines whether or not to include base fields for nested objects
      *
      * @return true if includes, false if not
-     * @see com.github.bohnman.squiggly.core.view.PropertyView
+     * @see PropertyView
      */
     public boolean isFilterImplicitlyIncludeBaseFields() {
         return filterImplicitlyIncludeBaseFields;
@@ -334,7 +334,7 @@ public class SquigglyConfig {
      * Get the {@link CoreCacheBuilderSpec} of the node cache in the squiggly parser.
      *
      * @return spec
-     * @see com.github.bohnman.squiggly.core.parser.SquigglyParser
+     * @see com.github.bohnman.squiggly.core.parse.SquigglyParser
      */
     public CoreCacheBuilderSpec getParserNodeCacheSpec() {
         return parserNodeCacheSpec;

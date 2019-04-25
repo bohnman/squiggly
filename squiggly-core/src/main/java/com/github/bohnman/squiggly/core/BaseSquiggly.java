@@ -3,29 +3,32 @@ package com.github.bohnman.squiggly.core;
 import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
-import com.github.bohnman.squiggly.core.bean.BeanInfoIntrospector;
+import com.github.bohnman.squiggly.core.filter.contextproviders.SimpleFilterContextProvider;
+import com.github.bohnman.squiggly.core.object.ObjectIntrospector;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
 import com.github.bohnman.squiggly.core.config.SystemFunctionName;
-import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
-import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.core.filter.SquigglyFilterContextProvider;
 import com.github.bohnman.squiggly.core.convert.*;
-import com.github.bohnman.squiggly.core.filter.SquigglyNodeFilter;
-import com.github.bohnman.squiggly.core.filter.repository.CompositeFilterRepository;
-import com.github.bohnman.squiggly.core.filter.repository.MapFilterRepository;
-import com.github.bohnman.squiggly.core.filter.repository.SquigglyFilterRepository;
+import com.github.bohnman.squiggly.core.convert.converters.SystemConverters;
+import com.github.bohnman.squiggly.core.convert.registries.ListConverterRegistry;
+import com.github.bohnman.squiggly.core.convert.services.PrimaryConversionService;
+import com.github.bohnman.squiggly.core.json.node.SquigglyNodeFilter;
+import com.github.bohnman.squiggly.core.filter.repositories.CompositeFilterRepository;
+import com.github.bohnman.squiggly.core.filter.repositories.MapFilterRepository;
+import com.github.bohnman.squiggly.core.filter.SquigglyFilterRepository;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
-import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
+import com.github.bohnman.squiggly.core.function.functions.SquigglyFunctions;
 import com.github.bohnman.squiggly.core.function.functions.DefaultFunctions;
-import com.github.bohnman.squiggly.core.function.invoke.SquigglyFunctionInvoker;
-import com.github.bohnman.squiggly.core.function.repository.CompositeFunctionRepository;
-import com.github.bohnman.squiggly.core.function.repository.MapFunctionRepository;
-import com.github.bohnman.squiggly.core.function.repository.SquigglyFunctionRepository;
-import com.github.bohnman.squiggly.core.function.security.SquigglyFunctionSecurity;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
+import com.github.bohnman.squiggly.core.function.repositories.CompositeFunctionRepository;
+import com.github.bohnman.squiggly.core.function.repositories.MapFunctionRepository;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctionRepository;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctionSecurity;
 import com.github.bohnman.squiggly.core.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
-import com.github.bohnman.squiggly.core.parser.SquigglyParser;
-import com.github.bohnman.squiggly.core.variable.CompositeVariableResolver;
-import com.github.bohnman.squiggly.core.variable.MapVariableResolver;
+import com.github.bohnman.squiggly.core.parse.SquigglyParser;
+import com.github.bohnman.squiggly.core.variable.resolvers.CompositeVariableResolver;
+import com.github.bohnman.squiggly.core.variable.resolvers.MapVariableResolver;
 import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
 
 import javax.annotation.Nullable;
@@ -38,10 +41,10 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 public abstract class BaseSquiggly {
 
 
-    private final BeanInfoIntrospector beanInfoIntrospector;
+    private final ObjectIntrospector objectIntrospector;
     private final SquigglyConfig config;
     private final SquigglyConversionService conversionService;
-    private final SquigglyContextProvider contextProvider;
+    private final SquigglyFilterContextProvider contextProvider;
     private final SquigglyFilterRepository filterRepository;
     private final SquigglyFunctionInvoker functionInvoker;
     private final SquigglyFunctionRepository functionRepository;
@@ -54,12 +57,12 @@ public abstract class BaseSquiggly {
     private final Function<Object, Object> serviceLocator;
 
     protected BaseSquiggly(BaseSquiggly.BaseBuilder builder) {
-        this(builder, new BeanInfoIntrospector(builder.getBuiltConfig(), builder.getBuiltMetrics()));
+        this(builder, new ObjectIntrospector(builder.getBuiltConfig(), builder.getBuiltMetrics()));
     }
 
     @SuppressWarnings("unchecked")
-    protected BaseSquiggly(BaseSquiggly.BaseBuilder builder, BeanInfoIntrospector beanInfoIntrospector) {
-        this.beanInfoIntrospector = notNull(beanInfoIntrospector);
+    protected BaseSquiggly(BaseSquiggly.BaseBuilder builder, ObjectIntrospector objectIntrospector) {
+        this.objectIntrospector = notNull(objectIntrospector);
         this.config = notNull(builder.builtConfig);
         this.conversionService = notNull(builder.builtConversionService);
         this.contextProvider = notNull(builder.builtContextProvider);
@@ -138,8 +141,8 @@ public abstract class BaseSquiggly {
      *
      * @return bean info introspector
      */
-    public BeanInfoIntrospector getBeanInfoIntrospector() {
-        return beanInfoIntrospector;
+    public ObjectIntrospector getObjectIntrospector() {
+        return objectIntrospector;
     }
 
     /**
@@ -165,7 +168,7 @@ public abstract class BaseSquiggly {
      *
      * @return context provider
      */
-    public SquigglyContextProvider getContextProvider() {
+    public SquigglyFilterContextProvider getContextProvider() {
         return contextProvider;
     }
 
@@ -264,7 +267,7 @@ public abstract class BaseSquiggly {
         protected SquigglyConfig config;
 
         @Nullable
-        protected SquigglyContextProvider contextProvider;
+        protected SquigglyFilterContextProvider filterContextProvider;
 
         @Nullable
         protected Function<SquigglyConverterRegistry, SquigglyConversionService> conversionService;
@@ -304,7 +307,7 @@ public abstract class BaseSquiggly {
         protected SquigglyConfig builtConfig;
 
         @Nullable
-        protected SquigglyContextProvider builtContextProvider;
+        protected SquigglyFilterContextProvider builtContextProvider;
 
         @Nullable
         protected SquigglyConversionService builtConversionService;
@@ -341,17 +344,6 @@ public abstract class BaseSquiggly {
          */
         public B config(SquigglyConfig config) {
             this.config = config;
-            return getThis();
-        }
-
-        /**
-         * Set a context provider.
-         *
-         * @param contextProvider the context provider
-         * @return builder
-         */
-        public B context(SquigglyContextProvider contextProvider) {
-            this.contextProvider = contextProvider;
             return getThis();
         }
 
@@ -417,6 +409,17 @@ public abstract class BaseSquiggly {
          */
         public <S, T> B converter(Class<S> source, Class<T> target, Function<S, T> converter, int order) {
             this.converterRecords.add(new ConverterRecord(source, target, converter, order));
+            return getThis();
+        }
+
+        /**
+         * Set a context provider.
+         *
+         * @param contextProvider the context provider
+         * @return builder
+         */
+        public B filterContext(SquigglyFilterContextProvider contextProvider) {
+            this.filterContextProvider = contextProvider;
             return getThis();
         }
 
@@ -605,7 +608,7 @@ public abstract class BaseSquiggly {
         }
 
         @Nullable
-        public SquigglyContextProvider getBuiltContextProvider() {
+        public SquigglyFilterContextProvider getBuiltContextProvider() {
             return builtContextProvider;
         }
 
@@ -642,11 +645,11 @@ public abstract class BaseSquiggly {
         protected abstract S newInstance();
 
 
-        private SquigglyContextProvider buildContextProvider() {
-            SquigglyContextProvider contextProvider = this.contextProvider;
+        private SquigglyFilterContextProvider buildContextProvider() {
+            SquigglyFilterContextProvider contextProvider = this.filterContextProvider;
 
             if (contextProvider == null) {
-                contextProvider = new SimpleSquigglyContextProvider();
+                contextProvider = new SimpleFilterContextProvider();
             }
             return contextProvider;
         }

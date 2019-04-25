@@ -11,12 +11,12 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.std.MapProperty;
 import com.github.bohnman.core.json.path.CoreJsonPath;
 import com.github.bohnman.core.json.path.CoreJsonPathElement;
-import com.github.bohnman.squiggly.core.context.SquigglyContext;
-import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
-import com.github.bohnman.squiggly.core.function.invoke.SquigglyFunctionInvoker;
-import com.github.bohnman.squiggly.core.parser.node.ExpressionNode;
-import com.github.bohnman.squiggly.core.parser.node.FilterNode;
-import com.github.bohnman.squiggly.core.parser.node.StatementNode;
+import com.github.bohnman.squiggly.core.filter.SquigglyFilterContext;
+import com.github.bohnman.squiggly.core.filter.contextproviders.SimpleFilterContextProvider;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
+import com.github.bohnman.squiggly.core.parse.nodes.ExpressionNode;
+import com.github.bohnman.squiggly.core.parse.nodes.FilterNode;
+import com.github.bohnman.squiggly.core.parse.nodes.StatementNode;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 
 import javax.annotation.Nullable;
@@ -157,7 +157,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
         CoreJsonPath path = getPath(writer, streamContext);
 //        System.out.println("PATH: " + path);
-        SquigglyContext context = squiggly.getContextProvider().getContext(path.getFirst().getBeanClass(), squiggly);
+        SquigglyFilterContext context = squiggly.getContextProvider().getContext(path.getFirst().getBeanClass(), squiggly);
 
         String filter = context.getFilter();
         FilterNode parsedFilter = context.getParsedFilter();
@@ -226,7 +226,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
         String filter = "**";
         boolean usePropertyFilter = true;
-        SimpleSquigglyContextProvider contextProvider = new SimpleSquigglyContextProvider(filter) {
+        SimpleFilterContextProvider contextProvider = new SimpleFilterContextProvider(filter) {
             @Override
             public boolean isFilteringEnabled() {
                 return usePropertyFilter;

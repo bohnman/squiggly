@@ -3,10 +3,10 @@ package com.github.bohnman.squiggly.spring.boot.starter.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.core.collect.CoreIterables;
 import com.github.bohnman.squiggly.core.config.SquigglyConfig;
-import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
+import com.github.bohnman.squiggly.core.filter.SquigglyFilterContextProvider;
 import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
-import com.github.bohnman.squiggly.core.web.SquigglyRequest;
-import com.github.bohnman.squiggly.core.web.SquigglyRequestFilter;
+import com.github.bohnman.squiggly.core.web.servlet.SquigglyRequest;
+import com.github.bohnman.squiggly.core.web.servlet.SquigglyRequestFilter;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -53,7 +53,7 @@ public class SquigglyWebAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public SquigglyContextProvider squigglyRequestContextProvider(SquigglyConfig config) {
+    public SquigglyFilterContextProvider squigglyRequestContextProvider(SquigglyConfig config) {
         return filterCustomizer == null ?
                 SquigglyRequest.context(config.getFilterRequestParam())
                 : SquigglyRequest.context(config.getFilterRequestParam(), filterCustomizer);

@@ -11,10 +11,10 @@ import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
-import com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod;
-import com.github.bohnman.squiggly.core.function.value.BaseCollectionValueHandler;
-import com.github.bohnman.squiggly.core.function.value.CollectionReturningValueHandler;
-import com.github.bohnman.squiggly.core.function.value.ValueHandler;
+import com.github.bohnman.squiggly.core.function.annotations.SquigglyFunctionMethod;
+import com.github.bohnman.squiggly.core.function.valuehandlers.BaseCollectionValueHandler;
+import com.github.bohnman.squiggly.core.function.valuehandlers.CollectionReturningValueHandler;
+import com.github.bohnman.squiggly.core.function.ValueHandler;
 
 import javax.annotation.Nullable;
 import java.beans.PropertyDescriptor;
@@ -802,7 +802,6 @@ public class MixedFunctions {
             return originalValue;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public int compareTo(@Nullable Object o) {
             if (o == null) return 1;

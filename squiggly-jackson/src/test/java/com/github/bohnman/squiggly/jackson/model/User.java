@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.jackson.model;
 
-import com.github.bohnman.squiggly.core.view.FullView;
+import com.github.bohnman.squiggly.core.view.annotations.FullView;
 
 public class User {
 

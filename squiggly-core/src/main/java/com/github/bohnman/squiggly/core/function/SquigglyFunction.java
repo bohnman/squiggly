@@ -49,7 +49,7 @@ public interface SquigglyFunction<T> extends Function<FunctionExecutionRequest, 
 
         /**
          * Only register functions with the
-         * {@link com.github.bohnman.squiggly.core.function.annotation.SquigglyFunctionMethod} annotation.
+         * {@link com.github.bohnman.squiggly.core.function.annotations.SquigglyFunctionMethod} annotation.
          */
         MANUAL
     }

@@ -1,7 +1,6 @@
 package com.github.bohnman.squiggly.core.metric;
 
-import com.github.bohnman.squiggly.core.metric.source.CompositeSquigglyMetricsSource;
-import com.github.bohnman.squiggly.core.metric.source.SquigglyMetricsSource;
+import com.github.bohnman.squiggly.core.metric.sources.CompositeMetricsSource;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.SortedMap;
@@ -13,7 +12,7 @@ import java.util.TreeMap;
 @ThreadSafe
 public class SquigglyMetrics {
 
-    private final CompositeSquigglyMetricsSource metricsSource = new CompositeSquigglyMetricsSource();
+    private final CompositeMetricsSource metricsSource = new CompositeMetricsSource();
 
     /**
      * Adds a new source to the metrics.

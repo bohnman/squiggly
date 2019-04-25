@@ -7,18 +7,18 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.core.BaseSquiggly;
-import com.github.bohnman.squiggly.core.context.provider.SimpleSquigglyContextProvider;
-import com.github.bohnman.squiggly.core.context.provider.SquigglyContextProvider;
-import com.github.bohnman.squiggly.core.filter.SquigglyNodeFilter;
+import com.github.bohnman.squiggly.core.filter.contextproviders.SimpleFilterContextProvider;
+import com.github.bohnman.squiggly.core.filter.SquigglyFilterContextProvider;
+import com.github.bohnman.squiggly.core.json.node.SquigglyNodeFilter;
 import com.github.bohnman.squiggly.core.function.SquigglyFunction;
-import com.github.bohnman.squiggly.core.function.SquigglyFunctions;
-import com.github.bohnman.squiggly.core.function.security.SquigglyFunctionSecurity;
-import com.github.bohnman.squiggly.jackson.bean.JacksonBeanInfoIntrospector;
+import com.github.bohnman.squiggly.core.function.functions.SquigglyFunctions;
+import com.github.bohnman.squiggly.core.function.SquigglyFunctionSecurity;
+import com.github.bohnman.squiggly.jackson.object.introspectors.JacksonObjectIntrospector;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilter;
 import com.github.bohnman.squiggly.jackson.filter.SquigglyPropertyFilterMixin;
-import com.github.bohnman.squiggly.jackson.function.JacksonFunctions;
+import com.github.bohnman.squiggly.jackson.function.functions.JacksonFunctions;
 import com.github.bohnman.squiggly.jackson.function.security.JacksonFunctionSecurity;
-import com.github.bohnman.squiggly.jackson.json.JacksonJsonNode;
+import com.github.bohnman.squiggly.jackson.json.nodes.JacksonJsonNode;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
 
 import javax.annotation.Nullable;
@@ -40,7 +40,7 @@ public class Squiggly extends BaseSquiggly {
     private volatile boolean propertyFilterApplied;
 
     private Squiggly(Builder builder) {
-        super(builder, new JacksonBeanInfoIntrospector(builder.getBuiltConfig(), builder.getBuiltMetrics()));
+        super(builder, new JacksonObjectIntrospector(builder.getBuiltConfig(), builder.getBuiltMetrics()));
         this.filter = new SquigglyPropertyFilter(this);
         this.serializer = notNull(builder.builtSerializer);
     }
@@ -150,7 +150,7 @@ public class Squiggly extends BaseSquiggly {
      * @return builder
      */
     public static Builder builder(String filter) {
-        return builder().context(new SimpleSquigglyContextProvider(filter));
+        return builder().filterContext(new SimpleFilterContextProvider(filter));
     }
 
     /**
@@ -159,8 +159,8 @@ public class Squiggly extends BaseSquiggly {
      * @param contextProvider context provider
      * @return builder
      */
-    public static Builder builder(SquigglyContextProvider contextProvider) {
-        return builder().context(contextProvider);
+    public static Builder builder(SquigglyFilterContextProvider contextProvider) {
+        return builder().filterContext(contextProvider);
     }
 
 
@@ -172,7 +172,7 @@ public class Squiggly extends BaseSquiggly {
         return builder(filter).build();
     }
 
-    public static Squiggly init(SquigglyContextProvider provider) {
+    public static Squiggly init(SquigglyFilterContextProvider provider) {
         return builder(provider).build();
     }
 
@@ -186,7 +186,7 @@ public class Squiggly extends BaseSquiggly {
      * @throws IllegalStateException if the filter was unable to be registered
      */
     public static ObjectMapper init(ObjectMapper mapper, String filter) throws IllegalStateException {
-        return init(mapper, new SimpleSquigglyContextProvider(filter));
+        return init(mapper, new SimpleFilterContextProvider(filter));
     }
 
     /**
@@ -197,7 +197,7 @@ public class Squiggly extends BaseSquiggly {
      * @throws IllegalStateException if the filter was unable to be registered
      */
     public static void init(Iterable<ObjectMapper> mappers, String filter) throws IllegalStateException {
-        init(mappers, new SimpleSquigglyContextProvider(filter));
+        init(mappers, new SimpleFilterContextProvider(filter));
     }
 
     /**
@@ -208,7 +208,7 @@ public class Squiggly extends BaseSquiggly {
      * @return object mapper, mainly for convenience
      * @throws IllegalStateException if the filter was unable to be registered
      */
-    public static ObjectMapper init(ObjectMapper mapper, SquigglyContextProvider contextProvider) throws IllegalStateException {
+    public static ObjectMapper init(ObjectMapper mapper, SquigglyFilterContextProvider contextProvider) throws IllegalStateException {
         return builder(contextProvider).build().apply(mapper);
     }
 
@@ -219,7 +219,7 @@ public class Squiggly extends BaseSquiggly {
      * @param contextProvider the context provider to use
      * @throws IllegalStateException if the filter was unable to be registered
      */
-    public static void init(Iterable<ObjectMapper> mappers, SquigglyContextProvider contextProvider) {
+    public static void init(Iterable<ObjectMapper> mappers, SquigglyFilterContextProvider contextProvider) {
         builder(contextProvider).build().applyAll(mappers);
     }
 
