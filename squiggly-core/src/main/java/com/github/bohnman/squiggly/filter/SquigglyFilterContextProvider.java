@@ -1,20 +1,20 @@
 package com.github.bohnman.squiggly.filter;
 
-import com.github.bohnman.squiggly.BaseSquiggly;
+import com.github.bohnman.squiggly.engine.SquigglyEngine;
 
 /**
  * Used for supplying a parseable context
  */
-public interface SquigglyFilterContextProvider<S extends BaseSquiggly> {
+public interface SquigglyFilterContextProvider {
 
     /**
      * Get the context.
      *
-     * @param beanClass the class of the top-level bean being filtered
-     * @param squiggly  squiggly object
+     * @param objectClass the class of the top-level bean being filtered
+     * @param engine    squiggly object
      * @return context
      */
-    SquigglyFilterContext getContext(Class beanClass, S squiggly);
+    SquigglyFilterContext getContext(Class objectClass, SquigglyEngine engine);
 
     /**
      * Hook method to enable/disable filtering.
@@ -25,3 +25,6 @@ public interface SquigglyFilterContextProvider<S extends BaseSquiggly> {
         return true;
     }
 }
+
+
+// Squiggly.init(engine, modules)

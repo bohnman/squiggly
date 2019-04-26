@@ -7,7 +7,6 @@ import com.github.bohnman.squiggly.function.SquigglyFunction
 import com.github.bohnman.squiggly.function.SquigglyParameter
 import com.github.bohnman.squiggly.function.SquigglyFunctionClass
 import com.github.bohnman.squiggly.function.SquigglyFunctionMethod
-import com.github.bohnman.squiggly.jackson.config.SquigglyCustomizer
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -46,9 +45,9 @@ fun squigglyBuilder(init: Squiggly.Builder.() -> Unit): Squiggly.Builder {
 /**
  * Create a customizer using a builder.
  */
-fun squigglyCustomizer(init: Squiggly.Builder.() -> Unit): SquigglyCustomizer {
-    return squigglyCustomizer(init)
-}
+//fun squigglyCustomizer(init: Squiggly.Builder.() -> Unit): SquigglyCustomizer {
+//    return squigglyCustomizer(init)
+//}
 
 // Extensions
 

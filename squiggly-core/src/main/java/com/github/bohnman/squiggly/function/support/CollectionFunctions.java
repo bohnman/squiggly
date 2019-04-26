@@ -9,7 +9,7 @@ import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.BaseSquiggly;
+import com.github.bohnman.squiggly.engine.SquigglyEngine;
 import com.github.bohnman.squiggly.function.SquigglyFunctionMethod;
 import com.github.bohnman.squiggly.function.ValueHandler;
 
@@ -1046,7 +1046,7 @@ public class CollectionFunctions {
      * @param value collection-like object
      * @return map
      */
-    public static Map<?, ?> toMap(BaseSquiggly squiggly, Object value) {
+    public static Map<?, ?> toMap(SquigglyEngine squiggly, Object value) {
         return new ValueHandler<Map<?, ?>>() {
             @Override
             protected Map<?, ?> handleNull() {

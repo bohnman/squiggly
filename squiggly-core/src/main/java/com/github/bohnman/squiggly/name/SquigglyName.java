@@ -13,13 +13,6 @@ public interface SquigglyName {
     String getName();
 
     /**
-     * Gets the raw value of the node.
-     *
-     * @return raw name
-     */
-    String getRawName();
-
-    /**
      * Indicates how specific the name is.  The higher the value, the more specific.
      *
      * @return specificity

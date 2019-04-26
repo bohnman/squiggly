@@ -9,7 +9,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Provider implementation that just takes a fixed filter expression.
  */
 @ThreadSafe
-public class SimpleFilterContextProvider extends AbstractFilterContextProvider {
+public class SimpleFilterContextProvider extends BaseFilterContextProvider {
 
     private final String filter;
 
@@ -43,7 +43,7 @@ public class SimpleFilterContextProvider extends AbstractFilterContextProvider {
     }
 
     @Override
-    protected String provideFilter(Class beanClass) {
+    protected String provideFilter(Class objectClass) {
         return filter;
     }
 }

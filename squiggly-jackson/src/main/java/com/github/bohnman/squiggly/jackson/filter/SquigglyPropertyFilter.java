@@ -14,10 +14,10 @@ import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.squiggly.filter.SquigglyFilterContext;
 import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider;
 import com.github.bohnman.squiggly.function.SquigglyFunctionInvoker;
+import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.parse.support.ExpressionNode;
 import com.github.bohnman.squiggly.parse.support.FilterNode;
 import com.github.bohnman.squiggly.parse.support.StatementNode;
-import com.github.bohnman.squiggly.jackson.Squiggly;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;

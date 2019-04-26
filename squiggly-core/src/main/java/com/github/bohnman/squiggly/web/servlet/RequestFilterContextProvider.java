@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.web.servlet;
 
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.filter.support.AbstractFilterContextProvider;
+import com.github.bohnman.squiggly.filter.support.BaseFilterContextProvider;
 import com.github.bohnman.squiggly.name.support.AnyDeepName;
 
 import javax.annotation.Nullable;
@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Custom context provider that gets the filter expression from a servlet request.
  */
-public class RequestFilterContextProvider extends AbstractFilterContextProvider {
+public class RequestFilterContextProvider extends BaseFilterContextProvider {
 
     public static final String DEFAULT_PARAM = "fields";
     private String filterParam;
@@ -49,16 +49,16 @@ public class RequestFilterContextProvider extends AbstractFilterContextProvider 
 
     @Nullable
     @Override
-    protected String getFilter(Class beanClass) {
+    protected String getFilter(Class objectClass) {
         HttpServletRequest request = getRequest();
 
         FilterCache cache = FilterCache.getOrCreate(request);
-        String filter = cache.get(beanClass);
+        String filter = cache.get(objectClass);
 
         if (filter == null) {
             filter = CoreObjects.firstNonNull(getFilter(request), defaultFilter);
-            filter = customizeFilter(filter, request, beanClass);
-            cache.put(beanClass, filter);
+            filter = customizeFilter(filter, request, objectClass);
+            cache.put(objectClass, filter);
         }
 
         return filter;
@@ -66,7 +66,7 @@ public class RequestFilterContextProvider extends AbstractFilterContextProvider 
 
     @Nullable
     @Override
-    protected String provideFilter(Class beanClass) {
+    protected String provideFilter(Class objectClass) {
         throw new UnsupportedOperationException();
     }
 
@@ -162,7 +162,7 @@ public class RequestFilterContextProvider extends AbstractFilterContextProvider 
         return customizeFilter(filter, beanClass);
     }
 
-    protected String customizeFilter(@Nullable String filter, @Nullable Class beanClass) {
+    protected String customizeFilter(@Nullable String filter, @Nullable Class objectClass) {
         return filter;
     }
 

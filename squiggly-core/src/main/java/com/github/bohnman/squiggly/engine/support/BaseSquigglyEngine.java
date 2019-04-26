@@ -1,10 +1,12 @@
-package com.github.bohnman.squiggly;
+package com.github.bohnman.squiggly.engine.support;
 
 import com.github.bohnman.core.collect.CoreStreams;
 import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.convert.support.PrimaryConversionService;
+import com.github.bohnman.squiggly.engine.SquigglyEngine;
+import com.github.bohnman.squiggly.engine.SquigglyEngineInitializer;
 import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider;
 import com.github.bohnman.squiggly.function.*;
 import com.github.bohnman.squiggly.introspect.ObjectIntrospector;
@@ -34,7 +36,7 @@ import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
-public abstract class BaseSquiggly {
+public abstract class BaseSquigglyEngine implements SquigglyEngine {
 
 
     private final ObjectIntrospector objectIntrospector;
@@ -52,12 +54,12 @@ public abstract class BaseSquiggly {
     private final SquigglyVariableResolver variableResolver;
     private final Function<Object, Object> serviceLocator;
 
-    protected BaseSquiggly(BaseSquiggly.BaseBuilder builder) {
+    protected BaseSquigglyEngine(Builder builder) {
         this(builder, new ObjectIntrospector(builder.getBuiltConfig(), builder.getBuiltMetrics()));
     }
 
     @SuppressWarnings("unchecked")
-    protected BaseSquiggly(BaseSquiggly.BaseBuilder builder, ObjectIntrospector objectIntrospector) {
+    protected BaseSquigglyEngine(Builder builder, ObjectIntrospector objectIntrospector) {
         this.objectIntrospector = notNull(objectIntrospector);
         this.config = notNull(builder.builtConfig);
         this.conversionService = notNull(builder.builtConversionService);
@@ -70,8 +72,8 @@ public abstract class BaseSquiggly {
         this.variableResolver = notNull(builder.builtVariableResolver);
         this.functionInvoker = new SquigglyFunctionInvoker(this);
         this.nodeMatcher = new SquigglyExpressionMatcher(this);
-        this.nodeFilter = createNodeFilter();
         this.serviceLocator = notNull(builder.builtServiceLocator);
+        this.nodeFilter = createNodeFilter();
     }
 
     protected SquigglyNodeFilter createNodeFilter() {
@@ -79,7 +81,8 @@ public abstract class BaseSquiggly {
     }
 
 
-    public <T> CoreJsonNode<T> apply(CoreJsonNode<T> node, String... filters) {
+    @Override
+    public <T> CoreJsonNode<T> filter(CoreJsonNode<T> node, String... filters) {
         return nodeFilter.apply(node, filters);
     }
 
@@ -90,6 +93,7 @@ public abstract class BaseSquiggly {
      * @param <T>  return type expected
      * @return object or null
      */
+    @Override
     @Nullable
     public <T> T find(Class<T> type) {
         return find(type, type);
@@ -103,6 +107,7 @@ public abstract class BaseSquiggly {
      * @param <T>  return type expected
      * @return object or null
      */
+    @Override
     @SuppressWarnings("unchecked")
     @Nullable
     public <T> T find(Object key, Class<T> type) {
@@ -116,6 +121,7 @@ public abstract class BaseSquiggly {
      * @param <T>  return type expected
      * @return object or null
      */
+    @Override
     public <T> T get(Class<T> type) {
         return get(type, type);
     }
@@ -128,6 +134,7 @@ public abstract class BaseSquiggly {
      * @param <T>  return type expected
      * @return object or null
      */
+    @Override
     public <T> T get(Object key, Class<T> type) {
         return Objects.requireNonNull(find(key, type));
     }
@@ -137,6 +144,7 @@ public abstract class BaseSquiggly {
      *
      * @return bean info introspector
      */
+    @Override
     public ObjectIntrospector getObjectIntrospector() {
         return objectIntrospector;
     }
@@ -146,6 +154,7 @@ public abstract class BaseSquiggly {
      *
      * @return config
      */
+    @Override
     public SquigglyConfig getConfig() {
         return config;
     }
@@ -155,6 +164,7 @@ public abstract class BaseSquiggly {
      *
      * @return conversion service
      */
+    @Override
     public SquigglyConversionService getConversionService() {
         return conversionService;
     }
@@ -164,6 +174,7 @@ public abstract class BaseSquiggly {
      *
      * @return context provider
      */
+    @Override
     public SquigglyFilterContextProvider getContextProvider() {
         return contextProvider;
     }
@@ -173,6 +184,7 @@ public abstract class BaseSquiggly {
      *
      * @return filter repo
      */
+    @Override
     public SquigglyFilterRepository getFilterRepository() {
         return filterRepository;
     }
@@ -182,6 +194,7 @@ public abstract class BaseSquiggly {
      *
      * @return function invoker
      */
+    @Override
     public SquigglyFunctionInvoker getFunctionInvoker() {
         return functionInvoker;
     }
@@ -191,6 +204,7 @@ public abstract class BaseSquiggly {
      *
      * @return repo
      */
+    @Override
     public SquigglyFunctionRepository getFunctionRepository() {
         return functionRepository;
     }
@@ -200,6 +214,7 @@ public abstract class BaseSquiggly {
      *
      * @return security
      */
+    @Override
     public SquigglyFunctionSecurity getFunctionSecurity() {
         return functionSecurity;
     }
@@ -209,6 +224,7 @@ public abstract class BaseSquiggly {
      *
      * @return metrics
      */
+    @Override
     public SquigglyMetrics getMetrics() {
         return metrics;
     }
@@ -219,6 +235,7 @@ public abstract class BaseSquiggly {
      *
      * @return expression matcher
      */
+    @Override
     public SquigglyExpressionMatcher getExpressionMatcher() {
         return nodeMatcher;
     }
@@ -228,6 +245,7 @@ public abstract class BaseSquiggly {
      *
      * @return node filter
      */
+    @Override
     public SquigglyNodeFilter getNodeFilter() {
         return nodeFilter;
     }
@@ -237,6 +255,7 @@ public abstract class BaseSquiggly {
      *
      * @return parser
      */
+    @Override
     public SquigglyParser getParser() {
         return parser;
     }
@@ -246,6 +265,7 @@ public abstract class BaseSquiggly {
      *
      * @return variable resolver
      */
+    @Override
     public SquigglyVariableResolver getVariableResolver() {
         return variableResolver;
     }
@@ -257,7 +277,7 @@ public abstract class BaseSquiggly {
      * @param <S> the squiggly type
      */
     @SuppressWarnings("TypeParameterHidesVisibleType")
-    public abstract static class BaseBuilder<B extends BaseBuilder<B, S>, S extends BaseSquiggly> {
+    public abstract static class Builder<B extends Builder<B, S>, S extends SquigglyEngine> implements SquigglyEngineInitializer<B> {
 
         @Nullable
         protected SquigglyConfig config;
@@ -329,7 +349,7 @@ public abstract class BaseSquiggly {
         @Nullable
         protected Function<Object, Object> builtServiceLocator;
 
-        protected BaseBuilder() {
+        protected Builder() {
         }
 
         /**
@@ -338,6 +358,7 @@ public abstract class BaseSquiggly {
          * @param config the config
          * @return builder
          */
+        @Override
         public B config(SquigglyConfig config) {
             this.config = config;
             return getThis();
@@ -349,6 +370,7 @@ public abstract class BaseSquiggly {
          * @param converterRegistry converter registry
          * @return builder
          */
+        @Override
         public B converterRegistry(SquigglyConverterRegistry converterRegistry) {
             this.converterRegistry = converterRegistry;
             return getThis();
@@ -360,6 +382,7 @@ public abstract class BaseSquiggly {
          * @param factory factory method
          * @return builder
          */
+        @Override
         public B conversionService(Function<SquigglyConverterRegistry, SquigglyConversionService> factory) {
             this.conversionService = factory;
             return getThis();
@@ -371,6 +394,7 @@ public abstract class BaseSquiggly {
          * @param record converter record
          * @return builder
          */
+        @Override
         public B converter(ConverterRecord record) {
             CoreAssert.notNull(record);
             converterRecords.add(record);
@@ -387,6 +411,7 @@ public abstract class BaseSquiggly {
          * @param <T>       target type
          * @return builder
          */
+        @Override
         public <S, T> B converter(Class<S> source, Class<T> target, Function<S, T> converter) {
             this.converterRecords.add(new ConverterRecord(source, target, converter, converterRecords.size()));
             return getThis();
@@ -403,6 +428,7 @@ public abstract class BaseSquiggly {
          * @param <T>       target type
          * @return builder
          */
+        @Override
         public <S, T> B converter(Class<S> source, Class<T> target, Function<S, T> converter, int order) {
             this.converterRecords.add(new ConverterRecord(source, target, converter, order));
             return getThis();
@@ -414,6 +440,7 @@ public abstract class BaseSquiggly {
          * @param contextProvider the context provider
          * @return builder
          */
+        @Override
         public B filterContext(SquigglyFilterContextProvider contextProvider) {
             this.filterContextProvider = contextProvider;
             return getThis();
@@ -425,6 +452,7 @@ public abstract class BaseSquiggly {
          * @param filterRepository filter repository
          * @return builder
          */
+        @Override
         public B filterRepository(SquigglyFilterRepository filterRepository) {
             this.filterRepository = filterRepository;
             return getThis();
@@ -436,6 +464,7 @@ public abstract class BaseSquiggly {
          * @param functionRepository function repository
          * @return builder
          */
+        @Override
         public B functionRepository(SquigglyFunctionRepository functionRepository) {
             this.functionRepository = functionRepository;
             return getThis();
@@ -447,6 +476,7 @@ public abstract class BaseSquiggly {
          * @param functionSecurity function security
          * @return builder
          */
+        @Override
         public B functionSecurity(SquigglyFunctionSecurity functionSecurity) {
             this.functionSecurity = functionSecurity;
             return getThis();
@@ -458,6 +488,7 @@ public abstract class BaseSquiggly {
          * @param function a function
          * @return builder
          */
+        @Override
         public B function(SquigglyFunction<?> function) {
             this.functions.add(notNull(function));
             return getThis();
@@ -469,6 +500,7 @@ public abstract class BaseSquiggly {
          * @param functions functions
          * @return builder
          */
+        @Override
         public B functions(SquigglyFunction<?>... functions) {
             Arrays.stream(functions).forEach(this::function);
             return getThis();
@@ -480,6 +512,7 @@ public abstract class BaseSquiggly {
          * @param functions functions
          * @return builder
          */
+        @Override
         public B functions(Iterable<SquigglyFunction<?>> functions) {
             CoreStreams.of(functions).forEach(this::function);
             return getThis();
@@ -492,6 +525,7 @@ public abstract class BaseSquiggly {
          * @return builder
          */
         @SuppressWarnings("UnnecessaryLocalVariable")
+        @Override
         public B function(Class<?>... functionClass) {
             return functions(functionClass);
         }
@@ -503,6 +537,7 @@ public abstract class BaseSquiggly {
          * @return builder
          */
         @SuppressWarnings("UnnecessaryLocalVariable")
+        @Override
         public B functions(Class<?>... classes) {
             Object[] owners = classes;
             return functions(SquigglyFunctions.create(owners));
@@ -515,6 +550,7 @@ public abstract class BaseSquiggly {
          * @param registerDefaultConverters flag
          * @return true/false
          */
+        @Override
         public B registerDefaultConverters(boolean registerDefaultConverters) {
             this.registerDefaultConverters = registerDefaultConverters;
             return getThis();
@@ -526,6 +562,7 @@ public abstract class BaseSquiggly {
          * @param registerDefaultFunctions flag
          * @return true/false
          */
+        @Override
         public B registerDefaultFunctions(boolean registerDefaultFunctions) {
             this.registerDefaultFunctions = registerDefaultFunctions;
             return getThis();
@@ -538,6 +575,7 @@ public abstract class BaseSquiggly {
          * @param filter filter
          * @return builder
          */
+        @Override
         public B savedFilter(String name, String filter) {
             savedFilters.put(name, filter);
             return getThis();
@@ -549,6 +587,7 @@ public abstract class BaseSquiggly {
          * @param serviceLocator service locator
          * @return builder
          */
+        @Override
         public B serviceLocator(Function<Object, Object> serviceLocator) {
             this.serviceLocator = serviceLocator;
             return getThis();
@@ -560,6 +599,7 @@ public abstract class BaseSquiggly {
          * @param variableResolver variable resolver
          * @return builder
          */
+        @Override
         public B variableResolver(SquigglyVariableResolver variableResolver) {
             this.variableResolver = variableResolver;
             return getThis();
@@ -572,6 +612,7 @@ public abstract class BaseSquiggly {
          * @param value value
          * @return builder
          */
+        @Override
         public B variable(String name, Object value) {
             variables.put(name, value);
             return getThis();

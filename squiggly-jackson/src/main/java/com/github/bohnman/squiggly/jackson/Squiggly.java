@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.BaseSquiggly;
+import com.github.bohnman.squiggly.engine.support.BaseSquigglyEngine;
 import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider;
 import com.github.bohnman.squiggly.filter.SquigglyFilterContextProvider;
 import com.github.bohnman.squiggly.filter.SquigglyNodeFilter;
@@ -33,7 +33,7 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
  * Provides various way of registering a {@link SquigglyPropertyFilter} with a Jackson ObjectMapper.
  */
 @ThreadSafe
-public class Squiggly extends BaseSquiggly {
+public class Squiggly extends BaseSquigglyEngine {
 
     private final SquigglyPropertyFilter filter;
     private final SquigglyJacksonSerializer serializer;
@@ -63,7 +63,7 @@ public class Squiggly extends BaseSquiggly {
 
     public  JsonNode apply(ObjectMapper mapper, Object object, String... filters) {
         JsonNode node = object instanceof JsonNode ? (JsonNode) object : mapper.valueToTree(object);
-        return apply(new JacksonJsonNode(node), filters).getRawNode();
+        return filter(new JacksonJsonNode(node), filters).getRawNode();
     }
 
     /**
@@ -227,7 +227,7 @@ public class Squiggly extends BaseSquiggly {
     /**
      * Helper class that configures squiggly
      */
-    public static class Builder extends BaseBuilder<Builder, Squiggly> {
+    public static class Builder extends BaseSquigglyEngine.Builder<Builder, Squiggly> {
 
         @Nullable
         private SquigglyJacksonSerializer serializer;

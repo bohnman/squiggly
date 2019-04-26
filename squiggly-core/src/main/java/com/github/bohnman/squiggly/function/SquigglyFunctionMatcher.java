@@ -6,7 +6,7 @@ import com.github.bohnman.core.function.FunctionPredicateBridge;
 import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.BaseSquiggly;
+import com.github.bohnman.squiggly.engine.SquigglyEngine;
 import com.github.bohnman.squiggly.convert.ConverterRecord;
 import com.github.bohnman.squiggly.function.FunctionMatchResult.Score;
 
@@ -22,14 +22,14 @@ import static java.util.stream.Collectors.toList;
  */
 public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, FunctionMatchResult> {
 
-    private final BaseSquiggly squiggly;
+    private final SquigglyEngine squiggly;
 
     /**
      * Constructor.
      *
      * @param squiggly squiggly
      */
-    public SquigglyFunctionMatcher(BaseSquiggly squiggly) {
+    public SquigglyFunctionMatcher(SquigglyEngine squiggly) {
         this.squiggly = CoreAssert.notNull(squiggly);
     }
 
@@ -276,7 +276,7 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
     }
 
     private boolean isSquiggly(SquigglyParameter parameter) {
-        return !parameter.isVarArgs() && parameter.getType().isAssignableFrom(squiggly.getClass()) && BaseSquiggly.class.isAssignableFrom(parameter.getType());
+        return !parameter.isVarArgs() && parameter.getType().isAssignableFrom(squiggly.getClass()) && SquigglyEngine.class.isAssignableFrom(parameter.getType());
     }
 
 }

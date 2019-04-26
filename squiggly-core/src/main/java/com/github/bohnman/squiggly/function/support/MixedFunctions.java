@@ -10,7 +10,7 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.BaseSquiggly;
+import com.github.bohnman.squiggly.engine.SquigglyEngine;
 import com.github.bohnman.squiggly.function.SquigglyFunctionMethod;
 import com.github.bohnman.squiggly.function.ValueHandler;
 
@@ -95,7 +95,7 @@ public class MixedFunctions {
      * @param key      the key
      * @return value at the key or null
      */
-    public static Object get(BaseSquiggly squiggly, Object value, Object key) {
+    public static Object get(SquigglyEngine squiggly, Object value, Object key) {
         if (key == null) {
             return null;
         }
@@ -142,7 +142,7 @@ public class MixedFunctions {
      * @param key      map key or index
      * @return true if has
      */
-    public static boolean has(BaseSquiggly squiggly, Object value, Object key) {
+    public static boolean has(SquigglyEngine squiggly, Object value, Object key) {
         if (value == null || key == null) {
             return false;
         }
@@ -221,7 +221,7 @@ public class MixedFunctions {
      * @param value    collection/map/pojo
      * @return keys
      */
-    public static Object keys(BaseSquiggly squiggly, Object value) {
+    public static Object keys(SquigglyEngine squiggly, Object value) {
         return new BaseCollectionValueHandler<Object>() {
             @Override
             protected Object handleIndexedCollectionWrapper(CoreIndexedIterableWrapper<Object, ?> wrapper) {
@@ -312,7 +312,7 @@ public class MixedFunctions {
      * @param pattern  regex
      * @return true if match
      */
-    public static boolean match(BaseSquiggly squiggly, Object value, Pattern pattern) {
+    public static boolean match(SquigglyEngine squiggly, Object value, Pattern pattern) {
         return new ValueHandler<Boolean>(pattern) {
             @Override
             protected Boolean handleNull() {
@@ -348,7 +348,7 @@ public class MixedFunctions {
      * @return true if no match
      */
     @SquigglyFunctionMethod(aliases = "nmatch")
-    public static boolean notMatch(BaseSquiggly squiggly, Object value, Pattern pattern) {
+    public static boolean notMatch(SquigglyEngine squiggly, Object value, Pattern pattern) {
         return !match(squiggly, value, pattern);
     }
 
@@ -361,7 +361,7 @@ public class MixedFunctions {
      * @param keys     int/string/intrange
      * @return all items that match the keys
      */
-    public static Object pick(BaseSquiggly squiggly, Object value, Object... keys) {
+    public static Object pick(SquigglyEngine squiggly, Object value, Object... keys) {
 
         if (keys.length == 0) {
             return value;
@@ -415,7 +415,7 @@ public class MixedFunctions {
      * @param keys  int/string/intrange
      * @return all items that do not match the keys
      */
-    public static Object pickExcept(BaseSquiggly squiggly, Object value, Object... keys) {
+    public static Object pickExcept(SquigglyEngine squiggly, Object value, Object... keys) {
         if (keys.length == 0) {
             return value;
         }
@@ -511,7 +511,7 @@ public class MixedFunctions {
      * @return size
      */
     @SquigglyFunctionMethod(aliases = {"length", "count", "countBy"})
-    public static int size(BaseSquiggly squiggly, Object value) {
+    public static int size(SquigglyEngine squiggly, Object value) {
         return new ValueHandler<Integer>() {
             @Override
             protected Integer handleArrayWrapper(CoreArrayWrapper wrapper) {
@@ -701,7 +701,7 @@ public class MixedFunctions {
      * @param value collection/map/pojo
      * @return values
      */
-    public static Object values(BaseSquiggly squiggly, Object value) {
+    public static Object values(SquigglyEngine squiggly, Object value) {
         return new BaseCollectionValueHandler<Object>() {
             @Override
             protected Object handleArray(Object array) {
@@ -726,7 +726,7 @@ public class MixedFunctions {
     }
 
     @SuppressWarnings("unchecked")
-    static Map<String, Object> toMap(BaseSquiggly squiggly, Object value) {
+    static Map<String, Object> toMap(SquigglyEngine squiggly, Object value) {
         if (value == null || value instanceof String) {
             return Collections.emptyMap();
         }

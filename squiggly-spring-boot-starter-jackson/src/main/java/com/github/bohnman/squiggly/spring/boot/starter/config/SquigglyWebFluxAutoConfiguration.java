@@ -10,8 +10,8 @@ import com.github.bohnman.squiggly.filter.SquigglyFilterContextProvider;
 import com.github.bohnman.squiggly.filter.support.ThreadLocalFilterContextProvider;
 import com.github.bohnman.squiggly.filter.SquigglyFilterCustomizer;
 import com.github.bohnman.squiggly.filter.support.SquigglyFilterHolder;
-import com.github.bohnman.squiggly.variable.support.SquigglyVariablesHolder;
 import com.github.bohnman.squiggly.jackson.Squiggly;
+import com.github.bohnman.squiggly.variable.support.SquigglyVariablesHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -65,8 +65,8 @@ public class SquigglyWebFluxAutoConfiguration {
         return new ThreadLocalFilterContextProvider() {
             @Nullable
             @Override
-            protected String customizeFilter(@Nullable String filter, @Nullable Class beanClass) {
-                return (filterCustomizer == null) ? filter : filterCustomizer.apply(filter, beanClass);
+            protected String customizeFilter(@Nullable String filter, @Nullable Class objectClass) {
+                return (filterCustomizer == null) ? filter : filterCustomizer.apply(filter, objectClass);
             }
         };
     }

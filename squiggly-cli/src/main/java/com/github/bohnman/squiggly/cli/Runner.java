@@ -119,7 +119,7 @@ public class Runner implements Runnable {
     }
 
     private void apply(JsonNode tree, List<JsonNode> nodes) throws IOException {
-        CoreJsonNode<JsonNode> result = squiggly.apply(new JacksonJsonNode(tree), config.getFilter());
+        CoreJsonNode<JsonNode> result = squiggly.filter(new JacksonJsonNode(tree), config.getFilter());
 
         if (config.isFlatten()) {
             result = CoreJsonNodeFunctions.flatten(result);

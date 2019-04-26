@@ -3,7 +3,7 @@ package com.github.bohnman.squiggly.filter;
 import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.BaseSquiggly;
+import com.github.bohnman.squiggly.engine.SquigglyEngine;
 import com.github.bohnman.squiggly.parse.support.ExpressionNode;
 import com.github.bohnman.squiggly.parse.support.FilterNode;
 import com.github.bohnman.squiggly.parse.support.StatementNode;
@@ -16,14 +16,14 @@ import java.util.Objects;
 @SuppressWarnings("unchecked")
 public class SquigglyNodeFilter {
 
-    private final BaseSquiggly squiggly;
+    private final SquigglyEngine squiggly;
 
     /**
      * Constructor.
      *
      * @param squiggly the squiggly configurator
      */
-    public SquigglyNodeFilter(BaseSquiggly squiggly) {
+    public SquigglyNodeFilter(SquigglyEngine squiggly) {
         this.squiggly = CoreAssert.notNull(squiggly);
     }
 

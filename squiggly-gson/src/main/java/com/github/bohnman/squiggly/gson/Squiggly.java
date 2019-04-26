@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.gson;
 
-import com.github.bohnman.squiggly.BaseSquiggly;
-import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider;
+import com.github.bohnman.squiggly.engine.support.BaseSquigglyEngine;
 import com.github.bohnman.squiggly.filter.SquigglyFilterContextProvider;
+import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider;
 import com.github.bohnman.squiggly.function.SquigglyFunction;
 import com.github.bohnman.squiggly.function.support.SquigglyFunctions;
 import com.github.bohnman.squiggly.gson.function.functions.GsonFunctions;
@@ -14,9 +14,9 @@ import java.util.List;
 /**
  * Entry point for apply Squiggly to the Gson library.
  */
-public class Squiggly extends BaseSquiggly {
+public class Squiggly extends BaseSquigglyEngine {
 
-    private Squiggly(BaseBuilder builder) {
+    private Squiggly(Builder builder) {
         super(builder);
     }
 
@@ -28,7 +28,7 @@ public class Squiggly extends BaseSquiggly {
      * @return transformed element
      */
     public JsonElement apply(JsonElement element, String... filters) {
-        return apply(new GsonJsonNode(element), filters).getRawNode();
+        return filter(new GsonJsonNode(element), filters).getRawNode();
     }
 
     /**
@@ -92,7 +92,7 @@ public class Squiggly extends BaseSquiggly {
     /**
      * Custom builder class.
      */
-    public static class Builder extends BaseBuilder<Builder, Squiggly> {
+    public static class Builder extends BaseSquigglyEngine.Builder<Builder, Squiggly> {
 
         @Override
         protected void applyDefaultFunctions(List<SquigglyFunction<?>> functions) {

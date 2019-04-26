@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.filter.support;
 
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.BaseSquiggly;
+import com.github.bohnman.squiggly.engine.SquigglyEngine;
 import com.github.bohnman.squiggly.filter.SquigglyFilterContext;
 import com.github.bohnman.squiggly.parse.support.FilterNode;
 
@@ -18,7 +18,7 @@ public class LazySquigglyFilterContext implements SquigglyFilterContext {
 
     private final Class beanClass;
     private final String filter;
-    private final BaseSquiggly squiggly;
+    private final SquigglyEngine squiggly;
 
     @Nullable
     private FilterNode filterNode;
@@ -30,16 +30,14 @@ public class LazySquigglyFilterContext implements SquigglyFilterContext {
      * @param squiggly  squiggly configurator
      * @param filter    filter
      */
-    public LazySquigglyFilterContext(Class beanClass, BaseSquiggly squiggly, String filter) {
+    public LazySquigglyFilterContext(Class beanClass, SquigglyEngine squiggly, String filter) {
         this.beanClass = notNull(beanClass);
         this.squiggly = notNull(squiggly);
         notNull(filter);
         this.filter = notNull(CoreObjects.firstNonNull(squiggly.getFilterRepository().findByName(filter), filter));
     }
 
-    @Override
-    public Class
-    getBeanClass() {
+    public Class getBeanClass() {
         return beanClass;
     }
 

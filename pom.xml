@@ -57,6 +57,6 @@
         <module>squiggly-jackson</module>
         <module>squiggly-jackson-kotlin</module>
         <module>squiggly-parent</module>
-        <module>squiggly-spring-boot-starter-jackson</module>
+<!--        <module>squiggly-spring-boot-starter-jackson</module>-->
     </modules>
 </project>

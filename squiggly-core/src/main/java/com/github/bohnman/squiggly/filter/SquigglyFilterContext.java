@@ -8,13 +8,6 @@ import com.github.bohnman.squiggly.parse.support.FilterNode;
 public interface SquigglyFilterContext {
 
     /**
-     * Get the top-level bean class being filtered.
-     *
-     * @return bean class
-     */
-    Class getBeanClass();
-
-    /**
      * Get the parsed node.
      *
      * @return nodes

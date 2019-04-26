@@ -9,9 +9,9 @@ import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
 import com.github.bohnman.squiggly.filter.SquigglyFilterCustomizer;
 import com.github.bohnman.squiggly.filter.SquigglyFilterRepository;
 import com.github.bohnman.squiggly.function.SquigglyFunctionRepository;
+import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.variable.SquigglyVariableResolver;
 import com.github.bohnman.squiggly.variable.support.ThreadLocalVariableResolver;
-import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.jackson.config.SquigglyCustomizer;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
 import org.springframework.beans.factory.BeanFactory;
@@ -163,8 +163,8 @@ public class SquigglyAutoConfiguration {
         return new SimpleFilterContextProvider(config.getString("squiggly.spring.boot.static-filter")) {
             @Override
             @Nullable
-            protected String customizeFilter(@Nullable String filter, @Nullable Class beanClass) {
-                return filterCustomizer == null ? filter : filterCustomizer.apply(filter, beanClass);
+            protected String customizeFilter(@Nullable String filter, @Nullable Class objectClass) {
+                return filterCustomizer == null ? filter : filterCustomizer.apply(filter, objectClass);
             }
         };
     }

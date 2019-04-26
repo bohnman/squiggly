@@ -5,7 +5,7 @@ import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.json.path.CoreJsonPath;
 import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.BaseSquiggly;
+import com.github.bohnman.squiggly.engine.SquigglyEngine;
 import com.github.bohnman.squiggly.introspect.ObjectDescriptor;
 import com.github.bohnman.squiggly.metric.support.CoreCacheMetricsSource;
 import com.github.bohnman.squiggly.name.support.AnyDeepName;
@@ -37,7 +37,7 @@ public class SquigglyExpressionMatcher {
     private static final List<ExpressionNode> BASE_VIEW_NODES = Collections.singletonList(ExpressionNode.createNamedNested(new ExactName(PropertyView.BASE_VIEW)));
 
     private final CoreCache<CorePair<CoreJsonPath, String>, ExpressionNode> matchCache;
-    private final BaseSquiggly squiggly;
+    private final SquigglyEngine squiggly;
 
 
     /**
@@ -45,7 +45,7 @@ public class SquigglyExpressionMatcher {
      *
      * @param squiggly configurator
      */
-    public SquigglyExpressionMatcher(BaseSquiggly squiggly) {
+    public SquigglyExpressionMatcher(SquigglyEngine squiggly) {
         this.squiggly = notNull(squiggly);
         this.matchCache = CoreCacheBuilder.from(squiggly.getConfig().getFilterPathCacheSpec()).build();
         squiggly.getMetrics().add(new CoreCacheMetricsSource("squiggly.filter.path-cache.", matchCache));

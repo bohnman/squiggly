@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
  *
  * @see SquigglyFilterHolder
  */
-public class ThreadLocalFilterContextProvider extends AbstractFilterContextProvider {
+public class ThreadLocalFilterContextProvider extends BaseFilterContextProvider {
 
     private final String defaultFilter;
 
@@ -31,7 +31,7 @@ public class ThreadLocalFilterContextProvider extends AbstractFilterContextProvi
 
     @Nullable
     @Override
-    protected String provideFilter(Class beanClass) {
+    protected String provideFilter(Class objectClass) {
         return CoreObjects.firstNonNull(SquigglyFilterHolder.get(), defaultFilter);
     }
 

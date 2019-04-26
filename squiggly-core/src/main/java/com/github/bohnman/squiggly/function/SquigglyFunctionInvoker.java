@@ -12,7 +12,7 @@ import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.BaseSquiggly;
+import com.github.bohnman.squiggly.engine.SquigglyEngine;
 import com.github.bohnman.squiggly.parse.ParseContext;
 import com.github.bohnman.squiggly.parse.SquigglyParseException;
 import com.github.bohnman.squiggly.parse.SquigglyParser;
@@ -35,7 +35,7 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 @SuppressWarnings("unchecked")
 public class SquigglyFunctionInvoker {
 
-    private final BaseSquiggly squiggly;
+    private final SquigglyEngine squiggly;
     private final SquigglyFunctionMatcher matcher;
     private final SquigglyVariableResolver variableResolver;
 
@@ -45,12 +45,12 @@ public class SquigglyFunctionInvoker {
      * @param squiggly squiggly
      */
     public SquigglyFunctionInvoker(
-            BaseSquiggly squiggly) {
+            SquigglyEngine squiggly) {
         this(squiggly, squiggly.getVariableResolver());
     }
 
     private SquigglyFunctionInvoker(
-            BaseSquiggly squiggly,
+            SquigglyEngine squiggly,
             SquigglyVariableResolver variableResolver) {
         this.matcher = new SquigglyFunctionMatcher(squiggly);
         this.squiggly = notNull(squiggly);
@@ -479,7 +479,7 @@ public class SquigglyFunctionInvoker {
     }
 
     private boolean isSquiggly(SquigglyParameter parameter) {
-        return !parameter.isVarArgs() && parameter.getType().isAssignableFrom(squiggly.getClass()) && BaseSquiggly.class.isAssignableFrom(parameter.getType());
+        return !parameter.isVarArgs() && parameter.getType().isAssignableFrom(squiggly.getClass()) && SquigglyEngine.class.isAssignableFrom(parameter.getType());
     }
 
     private class FunctionChain implements FunctionPredicateBridge {
