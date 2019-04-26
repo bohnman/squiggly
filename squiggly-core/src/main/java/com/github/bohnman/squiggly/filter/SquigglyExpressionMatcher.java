@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.match;
+package com.github.bohnman.squiggly.filter;
 
 import com.github.bohnman.core.cache.CoreCache;
 import com.github.bohnman.core.cache.CoreCacheBuilder;

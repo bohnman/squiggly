@@ -9,7 +9,7 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.BaseSquiggly;
 import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider;
 import com.github.bohnman.squiggly.filter.SquigglyFilterContextProvider;
-import com.github.bohnman.squiggly.json.SquigglyNodeFilter;
+import com.github.bohnman.squiggly.filter.SquigglyNodeFilter;
 import com.github.bohnman.squiggly.function.SquigglyFunction;
 import com.github.bohnman.squiggly.function.support.SquigglyFunctions;
 import com.github.bohnman.squiggly.function.SquigglyFunctionSecurity;

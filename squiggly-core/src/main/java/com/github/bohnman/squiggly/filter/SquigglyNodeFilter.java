@@ -1,11 +1,9 @@
-package com.github.bohnman.squiggly.json;
+package com.github.bohnman.squiggly.filter;
 
 import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.squiggly.BaseSquiggly;
-import com.github.bohnman.squiggly.filter.SquigglyFilterContext;
-import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.parse.support.ExpressionNode;
 import com.github.bohnman.squiggly.parse.support.FilterNode;
 import com.github.bohnman.squiggly.parse.support.StatementNode;

@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static com.github.bohnman.squiggly.match.SquigglyExpressionMatcher.ALWAYS_MATCH;
-import static com.github.bohnman.squiggly.match.SquigglyExpressionMatcher.NEVER_MATCH;
+import static com.github.bohnman.squiggly.filter.SquigglyExpressionMatcher.ALWAYS_MATCH;
+import static com.github.bohnman.squiggly.filter.SquigglyExpressionMatcher.NEVER_MATCH;
 
 
 /**
