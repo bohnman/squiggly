@@ -12,10 +12,10 @@ import com.github.bohnman.core.io.OutputStreamWrapper;
 import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.squiggly.cli.config.RunnerConfig;
-import com.github.bohnman.squiggly.cli.printer.SyntaxHighlighter;
-import com.github.bohnman.squiggly.cli.printer.SyntaxHighlightingJsonGenerator;
-import com.github.bohnman.squiggly.core.config.SquigglyConfig;
-import com.github.bohnman.squiggly.core.function.functions.CoreJsonNodeFunctions;
+import com.github.bohnman.squiggly.cli.text.SyntaxHighlighter;
+import com.github.bohnman.squiggly.cli.text.SyntaxHighlightingJsonGenerator;
+import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.function.support.CoreJsonNodeFunctions;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.jackson.json.nodes.JacksonJsonNode;
 

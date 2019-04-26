@@ -11,12 +11,12 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.std.MapProperty;
 import com.github.bohnman.core.json.path.CoreJsonPath;
 import com.github.bohnman.core.json.path.CoreJsonPathElement;
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterContext;
-import com.github.bohnman.squiggly.core.filter.contextproviders.SimpleFilterContextProvider;
-import com.github.bohnman.squiggly.core.function.SquigglyFunctionInvoker;
-import com.github.bohnman.squiggly.core.parse.nodes.ExpressionNode;
-import com.github.bohnman.squiggly.core.parse.nodes.FilterNode;
-import com.github.bohnman.squiggly.core.parse.nodes.StatementNode;
+import com.github.bohnman.squiggly.filter.SquigglyFilterContext;
+import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider;
+import com.github.bohnman.squiggly.function.SquigglyFunctionInvoker;
+import com.github.bohnman.squiggly.parse.support.ExpressionNode;
+import com.github.bohnman.squiggly.parse.support.FilterNode;
+import com.github.bohnman.squiggly.parse.support.StatementNode;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 
 import javax.annotation.Nullable;
@@ -31,8 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static com.github.bohnman.squiggly.core.match.SquigglyExpressionMatcher.ALWAYS_MATCH;
-import static com.github.bohnman.squiggly.core.match.SquigglyExpressionMatcher.NEVER_MATCH;
+import static com.github.bohnman.squiggly.match.SquigglyExpressionMatcher.ALWAYS_MATCH;
+import static com.github.bohnman.squiggly.match.SquigglyExpressionMatcher.NEVER_MATCH;
 
 
 /**

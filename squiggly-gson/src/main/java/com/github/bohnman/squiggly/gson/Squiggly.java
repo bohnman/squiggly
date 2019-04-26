@@ -1,10 +1,10 @@
 package com.github.bohnman.squiggly.gson;
 
-import com.github.bohnman.squiggly.core.BaseSquiggly;
-import com.github.bohnman.squiggly.core.filter.contextproviders.SimpleFilterContextProvider;
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterContextProvider;
-import com.github.bohnman.squiggly.core.function.SquigglyFunction;
-import com.github.bohnman.squiggly.core.function.functions.SquigglyFunctions;
+import com.github.bohnman.squiggly.BaseSquiggly;
+import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider;
+import com.github.bohnman.squiggly.filter.SquigglyFilterContextProvider;
+import com.github.bohnman.squiggly.function.SquigglyFunction;
+import com.github.bohnman.squiggly.function.support.SquigglyFunctions;
 import com.github.bohnman.squiggly.gson.function.functions.GsonFunctions;
 import com.github.bohnman.squiggly.gson.json.nodes.GsonJsonNode;
 import com.google.gson.JsonElement;

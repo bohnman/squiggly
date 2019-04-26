@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.examples.springboot.webfluxfunctional;
 
 
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
-import com.github.bohnman.squiggly.core.filter.SquilggyFilterCustomizers;
+import com.github.bohnman.squiggly.filter.SquigglyFilterCustomizer;
+import com.github.bohnman.squiggly.filter.SquilggyFilterCustomizers;
 import com.github.bohnman.squiggly.examples.springboot.webfluxfunctional.web.IssueHandler;
 import com.github.bohnman.squiggly.examples.springboot.webfluxfunctional.web.ListResponse;
 import org.springframework.boot.SpringApplication;

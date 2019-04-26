@@ -3,9 +3,9 @@ package com.github.bohnman.squiggly.jackson.object.introspectors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.squiggly.core.object.ObjectIntrospector;
-import com.github.bohnman.squiggly.core.config.SquigglyConfig;
-import com.github.bohnman.squiggly.core.metric.SquigglyMetrics;
+import com.github.bohnman.squiggly.introspect.ObjectIntrospector;
+import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

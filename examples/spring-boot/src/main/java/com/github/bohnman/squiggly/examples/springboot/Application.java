@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.examples.springboot;
 
 
-import com.github.bohnman.squiggly.core.filter.support.SquiggilyFilterCustomizers;
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
+import com.github.bohnman.squiggly.filter.support.SquiggilyFilterCustomizers;
+import com.github.bohnman.squiggly.filter.SquigglyFilterCustomizer;
 import com.github.bohnman.squiggly.examples.springboot.web.ListResponse;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

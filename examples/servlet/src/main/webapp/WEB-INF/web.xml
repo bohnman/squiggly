@@ -8,7 +8,7 @@
 
     <filter>
         <filter-name>Squiggly</filter-name>
-        <filter-class>com.github.bohnman.squiggly.core.web.servlet.SquigglyRequestFilter</filter-class>
+        <filter-class>com.github.bohnman.squiggly.web.servlet.SquigglyRequestFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>Squiggly</filter-name>

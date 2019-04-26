@@ -1,12 +1,12 @@
 package com.github.bohnman.squiggly.jackson
 
-import com.github.bohnman.squiggly.core.filter.contextproviders.SimpleFilterContextProvider
-import com.github.bohnman.squiggly.core.convert.ConverterRecord
-import com.github.bohnman.squiggly.core.function.FunctionExecutionRequest
-import com.github.bohnman.squiggly.core.function.SquigglyFunction
-import com.github.bohnman.squiggly.core.function.SquigglyParameter
-import com.github.bohnman.squiggly.core.function.annotations.SquigglyFunctionClass
-import com.github.bohnman.squiggly.core.function.annotations.SquigglyFunctionMethod
+import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider
+import com.github.bohnman.squiggly.convert.ConverterRecord
+import com.github.bohnman.squiggly.function.FunctionExecutionRequest
+import com.github.bohnman.squiggly.function.SquigglyFunction
+import com.github.bohnman.squiggly.function.SquigglyParameter
+import com.github.bohnman.squiggly.function.SquigglyFunctionClass
+import com.github.bohnman.squiggly.function.SquigglyFunctionMethod
 import com.github.bohnman.squiggly.jackson.config.SquigglyCustomizer
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass

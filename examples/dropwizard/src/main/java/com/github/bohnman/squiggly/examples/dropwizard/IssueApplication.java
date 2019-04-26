@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.examples.dropwizard;
 
 import com.github.bohnman.squiggly.Squiggly;
-import com.github.bohnman.squiggly.core.web.RequestSquigglyContextProvider;
-import com.github.bohnman.squiggly.core.web.SquigglyRequestFilter;
+import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
+import com.github.bohnman.squiggly.web.SquigglyRequestFilter;
 import com.github.bohnman.squiggly.examples.dropwizard.web.IssueResource;
 import com.github.bohnman.squiggly.examples.dropwizard.web.ListResponse;
 import io.dropwizard.Application;

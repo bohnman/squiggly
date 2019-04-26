@@ -7,8 +7,8 @@ import com.beust.jcommander.ParameterException;
 import com.github.bohnman.core.encoding.CoreCharsets;
 import com.github.bohnman.core.io.CoreIo;
 import com.github.bohnman.core.vcs.GitInfo;
-import com.github.bohnman.squiggly.core.config.sources.PropertiesConfigSource;
-import com.github.bohnman.squiggly.core.config.SquigglyConfigSource;
+import com.github.bohnman.squiggly.config.support.PropertiesConfigSource;
+import com.github.bohnman.squiggly.config.SquigglyConfigSource;
 
 import java.io.File;
 import java.io.FileInputStream;

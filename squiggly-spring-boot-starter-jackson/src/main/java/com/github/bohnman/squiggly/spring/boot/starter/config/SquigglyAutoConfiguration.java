@@ -1,16 +1,16 @@
 package com.github.bohnman.squiggly.spring.boot.starter.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.squiggly.core.config.SquigglyConfig;
-import com.github.bohnman.squiggly.core.config.SquigglyConfigSource;
-import com.github.bohnman.squiggly.core.filter.contextproviders.SimpleFilterContextProvider;
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterContextProvider;
-import com.github.bohnman.squiggly.core.convert.SquigglyConverterRegistry;
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterRepository;
-import com.github.bohnman.squiggly.core.function.SquigglyFunctionRepository;
-import com.github.bohnman.squiggly.core.variable.SquigglyVariableResolver;
-import com.github.bohnman.squiggly.core.variable.resolvers.ThreadLocalVariableResolver;
+import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.config.SquigglyConfigSource;
+import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider;
+import com.github.bohnman.squiggly.filter.SquigglyFilterContextProvider;
+import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
+import com.github.bohnman.squiggly.filter.SquigglyFilterCustomizer;
+import com.github.bohnman.squiggly.filter.SquigglyFilterRepository;
+import com.github.bohnman.squiggly.function.SquigglyFunctionRepository;
+import com.github.bohnman.squiggly.variable.SquigglyVariableResolver;
+import com.github.bohnman.squiggly.variable.support.ThreadLocalVariableResolver;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import com.github.bohnman.squiggly.jackson.config.SquigglyCustomizer;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;

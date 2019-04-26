@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.examples.servlet.model;
 
-import com.github.bohnman.squiggly.core.view.PropertyView;
+import com.github.bohnman.squiggly.view.PropertyView;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

@@ -2,11 +2,11 @@ package com.github.bohnman.squiggly.spring.boot.starter.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bohnman.core.collect.CoreIterables;
-import com.github.bohnman.squiggly.core.config.SquigglyConfig;
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterContextProvider;
-import com.github.bohnman.squiggly.core.filter.SquigglyFilterCustomizer;
-import com.github.bohnman.squiggly.core.web.servlet.SquigglyRequest;
-import com.github.bohnman.squiggly.core.web.servlet.SquigglyRequestFilter;
+import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.filter.SquigglyFilterContextProvider;
+import com.github.bohnman.squiggly.filter.SquigglyFilterCustomizer;
+import com.github.bohnman.squiggly.web.servlet.SquigglyRequest;
+import com.github.bohnman.squiggly.web.servlet.SquigglyRequestFilter;
 import com.github.bohnman.squiggly.jackson.Squiggly;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
