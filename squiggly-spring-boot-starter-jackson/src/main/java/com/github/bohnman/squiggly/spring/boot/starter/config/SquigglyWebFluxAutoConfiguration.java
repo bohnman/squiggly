@@ -65,7 +65,7 @@ public class SquigglyWebFluxAutoConfiguration {
         return new ThreadLocalFilterContextProvider() {
             @Nullable
             @Override
-            protected String customizeFilter(@Nullable String filter, @Nullable Class objectClass) {
+            protected String customizeFilter(@Nullable String filter, @Nullable Class<?> objectClass) {
                 return (filterCustomizer == null) ? filter : filterCustomizer.apply(filter, objectClass);
             }
         };

@@ -163,7 +163,7 @@ public class SquigglyAutoConfiguration {
         return new SimpleFilterContextProvider(config.getString("squiggly.spring.boot.static-filter")) {
             @Override
             @Nullable
-            protected String customizeFilter(@Nullable String filter, @Nullable Class objectClass) {
+            protected String customizeFilter(@Nullable String filter, @Nullable Class<?> objectClass) {
                 return filterCustomizer == null ? filter : filterCustomizer.apply(filter, objectClass);
             }
         };

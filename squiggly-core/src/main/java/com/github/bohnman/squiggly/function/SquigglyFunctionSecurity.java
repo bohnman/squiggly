@@ -19,5 +19,5 @@ public interface SquigglyFunctionSecurity {
      * @param type owner type
      * @return true if viewable.
      */
-    boolean isPropertyViewable(@Nullable Object key, @Nonnull Class type);
+    boolean isPropertyViewable(@Nullable Object key, @Nonnull Class<?> type);
 }

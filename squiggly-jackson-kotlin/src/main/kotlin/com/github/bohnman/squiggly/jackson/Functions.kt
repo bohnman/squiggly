@@ -1,10 +1,10 @@
 package com.github.bohnman.squiggly.jackson
 
-import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider
+import com.github.bohnman.squiggly.filter.support.StaticFilterProvider
 import com.github.bohnman.squiggly.convert.ConverterRecord
 import com.github.bohnman.squiggly.function.FunctionExecutionRequest
 import com.github.bohnman.squiggly.function.SquigglyFunction
-import com.github.bohnman.squiggly.function.SquigglyParameter
+import com.github.bohnman.squiggly.function.SquigglyFunctionParameter
 import com.github.bohnman.squiggly.function.SquigglyFunctionClass
 import com.github.bohnman.squiggly.function.SquigglyFunctionMethod
 import kotlin.reflect.KCallable
@@ -24,20 +24,20 @@ import kotlin.reflect.jvm.javaType
  *
  * @param filter the filter string
  */
-fun squiggly(filter: String, init: Squiggly.Builder.() -> Unit): Squiggly =
-        squigglyBuilder(init).filterContext(SimpleFilterContextProvider(filter)).build()
+fun squiggly(filter: String, init: SquigglyJackson.Builder.() -> Unit): SquigglyJackson =
+        squigglyBuilder(init).filterContextProvider(StaticFilterProvider(filter)).build()
 
 /**
  * Create Squiggly using a builder.
  */
-fun squiggly(init: Squiggly.Builder.() -> Unit): Squiggly =
+fun squiggly(init: SquigglyJackson.Builder.() -> Unit): SquigglyJackson =
         squigglyBuilder(init).build()
 
 /**
  * Create and return a builder.
  */
-fun squigglyBuilder(init: Squiggly.Builder.() -> Unit): Squiggly.Builder {
-    val builder = Squiggly.builder()
+fun squigglyBuilder(init: SquigglyJackson.Builder.() -> Unit): SquigglyJackson.Builder {
+    val builder = SquigglyJackson.builder()
     builder.init()
     return builder
 }
@@ -58,7 +58,7 @@ fun squigglyBuilder(init: Squiggly.Builder.() -> Unit): Squiggly.Builder {
  * @param target target class
  * @param function converter function
  */
-fun <S : Any, T: Any> Squiggly.Builder.converter(source: KClass<S>, target: KClass<T>, function: (S) -> T): Squiggly.Builder {
+fun <S : Any, T: Any> SquigglyJackson.Builder.converter(source: KClass<S>, target: KClass<T>, function: (S) -> T): SquigglyJackson.Builder {
     return converter(source.java, target.java, function)
 }
 
@@ -67,7 +67,7 @@ fun <S : Any, T: Any> Squiggly.Builder.converter(source: KClass<S>, target: KCla
  *
  * @param function converter function
  */
-inline fun <reified S : Any, reified T: Any> Squiggly.Builder.converter(noinline function: (S) -> T): Squiggly.Builder {
+inline fun <reified S : Any, reified T: Any> SquigglyJackson.Builder.converter(noinline function: (S) -> T): SquigglyJackson.Builder {
     return converter(S::class.java, T::class.java, function)
 }
 
@@ -76,7 +76,7 @@ inline fun <reified S : Any, reified T: Any> Squiggly.Builder.converter(noinline
  *
  * @param callable a callable
  */
-fun Squiggly.Builder.converter(callable: KCallable<*>): Squiggly.Builder {
+fun SquigglyJackson.Builder.converter(callable: KCallable<*>): SquigglyJackson.Builder {
     check(callable.valueParameters.size == 1){ "${callable.name} must have a single parameter"}
     check(!callable.valueParameters[0].isVararg) { "${callable.name} is varags, which is not supported"}
 
@@ -92,7 +92,7 @@ fun Squiggly.Builder.converter(callable: KCallable<*>): Squiggly.Builder {
  *
  * @param callable function
  */
-fun Squiggly.Builder.function(callable: KCallable<*>): Squiggly.Builder {
+fun SquigglyJackson.Builder.function(callable: KCallable<*>): SquigglyJackson.Builder {
     return function(callable, null)
 }
 
@@ -101,7 +101,7 @@ fun Squiggly.Builder.function(callable: KCallable<*>): Squiggly.Builder {
  *
  * @param callables functions
  */
-fun Squiggly.Builder.functions(vararg callables: KCallable<*>): Squiggly.Builder {
+fun SquigglyJackson.Builder.functions(vararg callables: KCallable<*>): SquigglyJackson.Builder {
     callables.forEach { function(it) }
     return this
 }
@@ -112,7 +112,7 @@ fun Squiggly.Builder.functions(vararg callables: KCallable<*>): Squiggly.Builder
  * @param callable function
  * @param owner owner object
  */
-fun Squiggly.Builder.function(callable: KCallable<*>, owner: Any?): Squiggly.Builder {
+fun SquigglyJackson.Builder.function(callable: KCallable<*>, owner: Any?): SquigglyJackson.Builder {
     return function(CallableSquigglyFunction(callable, owner))
 }
 
@@ -121,7 +121,7 @@ fun Squiggly.Builder.function(callable: KCallable<*>, owner: Any?): Squiggly.Bui
  *
  * @param kclass class whose functions will be registered.
  */
-fun Squiggly.Builder.function(kclass: KClass<*>): Squiggly.Builder {
+fun SquigglyJackson.Builder.function(kclass: KClass<*>): SquigglyJackson.Builder {
     return function(kclass, mutableSetOf())
 }
 
@@ -130,13 +130,13 @@ fun Squiggly.Builder.function(kclass: KClass<*>): Squiggly.Builder {
  *
  * @param kclasses classes
  */
-fun Squiggly.Builder.functions(vararg kclasses: KClass<*>): Squiggly.Builder {
+fun SquigglyJackson.Builder.functions(vararg kclasses: KClass<*>): SquigglyJackson.Builder {
     kclasses.forEach { function(it) }
     return this
 }
 
 
-private fun Squiggly.Builder.function(kclass: KClass<*>, processed: MutableSet<KClass<*>>): Squiggly.Builder {
+private fun SquigglyJackson.Builder.function(kclass: KClass<*>, processed: MutableSet<KClass<*>>): SquigglyJackson.Builder {
     if (processed.contains(kclass)) {
         return this
     }
@@ -169,7 +169,7 @@ private fun inferJavaClass(type: KType) : Class<*> {
 private class CallableSquigglyFunction(private val callable: KCallable<*>, private val owner: Any?, private val prefix: String = "") : SquigglyFunction<Any> {
     private val name: String
     private val returnType: Class<*>
-    private val parameters: List<SquigglyParameter>
+    private val parameters: List<SquigglyFunctionParameter>
     private val aliases: List<String>
 
     init {
@@ -183,7 +183,7 @@ private class CallableSquigglyFunction(private val callable: KCallable<*>, priva
 
         parameters = callable.valueParameters
                 .map {
-                    SquigglyParameter.builder(inferJavaClass(it.type))
+                    SquigglyFunctionParameter.builder(inferJavaClass(it.type))
                             .varArgs(it.isVararg)
                             .build()
                 }
@@ -202,7 +202,7 @@ private class CallableSquigglyFunction(private val callable: KCallable<*>, priva
         return returnType
     }
 
-    override fun getParameters(): MutableList<SquigglyParameter> {
+    override fun getParameters(): MutableList<SquigglyFunctionParameter> {
         return parameters.toMutableList()
     }
 

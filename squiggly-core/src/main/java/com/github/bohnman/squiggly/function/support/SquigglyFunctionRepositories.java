@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.function.support;
 
 import com.github.bohnman.squiggly.function.SquigglyFunction;
-import com.github.bohnman.squiggly.function.SquigglyFunctionRepository;
+import com.github.bohnman.squiggly.function.SquigglyFunctionSource;
 
 /**
  * Function repo utilities.
@@ -17,8 +17,8 @@ public class SquigglyFunctionRepositories {
      * @param functions functions
      * @return repo
      */
-    public static SquigglyFunctionRepository of(Iterable<SquigglyFunction<?>> functions) {
-        return new MapFunctionRepository(functions);
+    public static SquigglyFunctionSource of(Iterable<SquigglyFunction<?>> functions) {
+        return new MapFunctionSource(functions);
     }
 
     /**
@@ -27,8 +27,8 @@ public class SquigglyFunctionRepositories {
      * @param functions functions
      * @return repo
      */
-    public static SquigglyFunctionRepository of(SquigglyFunction<?>... functions) {
-        return new MapFunctionRepository(functions);
+    public static SquigglyFunctionSource of(SquigglyFunction<?>... functions) {
+        return new MapFunctionSource(functions);
     }
 
     /**
@@ -38,7 +38,7 @@ public class SquigglyFunctionRepositories {
      * @return repo
      */
     @SuppressWarnings({"UnnecessaryLocalVariable"})
-    public static SquigglyFunctionRepository ofClasses(Class<?>... classes) {
+    public static SquigglyFunctionSource ofClasses(Class<?>... classes) {
         return ofClasses(SquigglyFunction.RegistrationStrategy.AUTO, classes);
     }
 
@@ -51,7 +51,7 @@ public class SquigglyFunctionRepositories {
      */
 
     @SuppressWarnings({"UnnecessaryLocalVariable"})
-    public static SquigglyFunctionRepository ofClasses(SquigglyFunction.RegistrationStrategy registrationStrategy, Class<?>... classes) {
+    public static SquigglyFunctionSource ofClasses(SquigglyFunction.RegistrationStrategy registrationStrategy, Class<?>... classes) {
         Object[] classObjects = classes;
         return of(SquigglyFunctions.create(registrationStrategy, classObjects));
     }

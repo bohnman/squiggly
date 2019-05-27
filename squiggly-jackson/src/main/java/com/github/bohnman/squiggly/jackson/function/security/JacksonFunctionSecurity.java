@@ -20,7 +20,7 @@ public class JacksonFunctionSecurity implements SquigglyFunctionSecurity {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public boolean isPropertyViewable(@Nullable Object key, @Nonnull Class type) {
+    public boolean isPropertyViewable(@Nullable Object key, @Nonnull Class<?> type) {
         if (key == null) {
             return true;
         }

@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.function.support;
 
 import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.squiggly.function.SquigglyFunction;
-import com.github.bohnman.squiggly.function.SquigglyParameter;
+import com.github.bohnman.squiggly.function.SquigglyFunctionParameter;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,7 +20,7 @@ public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T>
 
     private final String name;
     private final Class<?> returnType;
-    private final List<SquigglyParameter> parameters;
+    private final List<SquigglyFunctionParameter> parameters;
     private final List<String> aliases;
 
     /**
@@ -30,7 +30,7 @@ public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T>
      * @param returnType return type
      * @param parameters function params
      */
-    public AbstractSquigglyFunction(String name, Class<?> returnType, List<SquigglyParameter> parameters) {
+    public AbstractSquigglyFunction(String name, Class<?> returnType, List<SquigglyFunctionParameter> parameters) {
         this(name, returnType, parameters, Collections.emptyList());
     }
 
@@ -42,7 +42,7 @@ public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T>
      * @param parameters function params
      * @param aliases    function aliases
      */
-    public AbstractSquigglyFunction(String name, Class<?> returnType, List<SquigglyParameter> parameters, String... aliases) {
+    public AbstractSquigglyFunction(String name, Class<?> returnType, List<SquigglyFunctionParameter> parameters, String... aliases) {
         this(name, returnType, parameters, Arrays.asList(aliases));
     }
 
@@ -54,14 +54,14 @@ public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T>
      * @param parameters function params
      * @param aliases    function aliases
      */
-    public AbstractSquigglyFunction(String name, Class<?> returnType, List<SquigglyParameter> parameters, Iterable<String> aliases) {
+    public AbstractSquigglyFunction(String name, Class<?> returnType, List<SquigglyFunctionParameter> parameters, Iterable<String> aliases) {
         this.name = notNull(name);
         this.returnType = notNull(returnType);
 
         int paramSize = parameters.size();
 
         for (int i = 0; i < paramSize; i++) {
-            SquigglyParameter param = parameters.get(i);
+            SquigglyFunctionParameter param = parameters.get(i);
 
             if (param.isVarArgs()) {
                 if (i < (paramSize - 1)) {
@@ -89,7 +89,7 @@ public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T>
     }
 
     @Override
-    public List<SquigglyParameter> getParameters() {
+    public List<SquigglyFunctionParameter> getParameters() {
         return parameters;
     }
 

@@ -3,30 +3,25 @@ package com.github.bohnman.squiggly.jackson.filter;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.core.util.JsonGeneratorDelegate;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.std.MapProperty;
-import com.github.bohnman.core.json.path.CoreJsonPath;
-import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.squiggly.filter.SquigglyFilterContext;
-import com.github.bohnman.squiggly.filter.support.SimpleFilterContextProvider;
 import com.github.bohnman.squiggly.function.SquigglyFunctionInvoker;
-import com.github.bohnman.squiggly.jackson.Squiggly;
-import com.github.bohnman.squiggly.parse.support.ExpressionNode;
-import com.github.bohnman.squiggly.parse.support.FilterNode;
-import com.github.bohnman.squiggly.parse.support.StatementNode;
+import com.github.bohnman.squiggly.jackson.SquigglyJackson;
+import com.github.bohnman.squiggly.node.support.ExpressionNode;
+import com.github.bohnman.squiggly.node.support.FilterNode;
+import com.github.bohnman.squiggly.node.support.StatementNode;
+import com.github.bohnman.squiggly.path.SquigglyObjectPath;
+import com.github.bohnman.squiggly.path.SquigglyObjectPathElement;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -77,14 +72,12 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
     public static final String FILTER_ID = "squigglyFilter";
 
-    private final Squiggly squiggly;
-
     /**
      * Constructor.
      *
      * @param squiggly squiggly
      */
-    public SquigglyPropertyFilter(Squiggly squiggly) {
+    public SquigglyPropertyFilter(SquigglyJackson squiggly) {
         this.squiggly = notNull(squiggly);
     }
 
@@ -155,12 +148,12 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             return ALWAYS_MATCH;
         }
 
-        CoreJsonPath path = getPath(writer, streamContext);
+        SquigglyObjectPath path = getPath(writer, streamContext);
 //        System.out.println("PATH: " + path);
-        SquigglyFilterContext context = squiggly.getContextProvider().getContext(path.getFirst().getBeanClass(), squiggly);
+        SquigglyFilterContext context = squiggly.getContextProvider().getContext(path.getFirst().getObjectClass(), squiggly.getFilterRepository(), squiggly.getParser());
 
         String filter = context.getFilter();
-        FilterNode parsedFilter = context.getParsedFilter();
+        FilterNode parsedFilter = context.getFilterNode();
         List<StatementNode> statements = parsedFilter.getStatements();
 
         if (statements.isEmpty()) {
@@ -174,124 +167,108 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         return squiggly.getExpressionMatcher().match(path, filter, statements.get(0));
     }
 
-    private CoreJsonPath getPath(PropertyWriter writer, JsonStreamContext sc) {
-        LinkedList<CoreJsonPathElement> elements = new LinkedList<>();
+    private SquigglyObjectPath getPath(PropertyWriter writer, JsonStreamContext sc) {
+        LinkedList<SquigglyObjectPathElement> elements = new LinkedList<>();
 
         if (sc != null) {
-            elements.add(new CoreJsonPathElement(writer.getName(), sc.getCurrentValue(), getValue(sc.getCurrentValue(), writer)));
+            elements.add(SquigglyObjectPathElement.create(writer.getName(), sc.getCurrentValue()));
             sc = sc.getParent();
         }
 
         while (sc != null) {
             if (sc.getCurrentName() != null && sc.getCurrentValue() != null) {
-                elements.addFirst(new CoreJsonPathElement(sc.getCurrentName(), sc.getCurrentValue()));
+                elements.addFirst(SquigglyObjectPathElement.create(sc.getCurrentName(), sc.getCurrentValue()));
             }
             sc = sc.getParent();
         }
 
-        return new CoreJsonPath(elements);
-    }
-
-    private Object getValue(Object pojo, PropertyWriter writer) {
-        if (writer instanceof BeanPropertyWriter) {
-            try {
-                return ((BeanPropertyWriter) writer).get(pojo);
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
-        if (writer instanceof MapProperty && pojo instanceof Map) {
-            return ((Map) pojo).get(writer.getName());
-        }
-
-        return null;
+        return new SquigglyObjectPath(elements);
     }
 
     private JsonStreamContext getStreamContext(JsonGenerator jgen) {
         return jgen.getOutputContext();
     }
 
-    public static void main(String[] args) throws IOException {
-
-//        Map<String, Object> map = new HashMap<>();
-//        map.put("foo", "bar");
-
-//        String filter = "name=name.firstName";
-//        String filter = "nickNames@filter(::$.name.@equals('rbohn'))";
-        Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");
-//        Person person = new Person(new Name("Ryan", "Bohn"));
-//        Person person = new Person(null);
-//        mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
-
-        String filter = "**";
-        boolean usePropertyFilter = true;
-        SimpleFilterContextProvider contextProvider = new SimpleFilterContextProvider(filter) {
-            @Override
-            public boolean isFilteringEnabled() {
-                return usePropertyFilter;
-            }
-        };
-        Squiggly squiggly = Squiggly.builder(contextProvider).build();
-        Object input = person;
-        FilterNode filterNode;
-
-        if (usePropertyFilter) {
-            filterNode = squiggly.getParser().parsePropertyFilter(filter);
-        } else {
-            filterNode = squiggly.getParser().parseNodeFilter(filter);
-        }
-
-        PrintStream out = System.out;
-        PrintStream err = System.err;
-
-        out.println("================================================================================");
-        out.println("Parse Tree");
-        out.println("================================================================================");
-        out.println(squiggly.apply(new ObjectMapper()).writeValueAsString(filterNode));
-
-        out.println();
-        out.println("================================================================================");
-        out.println("Result");
-        out.println("================================================================================");
-
-        if (usePropertyFilter) {
-            out.println(squiggly.apply(new ObjectMapper()).writeValueAsString(input));
-        } else {
-            out.println(squiggly.apply(new ObjectMapper()));
-        }
-        out.println();
-    }
-
-//    public static class Person {
-//        private final Name name;
+//    public static void main(String[] args) throws IOException {
 //
-//        public Person(Name name) {
-//            this.name = name;
+////        Map<String, Object> map = new HashMap<>();
+////        map.put("foo", "bar");
+//
+////        String filter = "name=name.firstName";
+////        String filter = "nickNames@filter(::$.name.@equals('rbohn'))";
+//        Person person = new Person("Ryan", "Bohn", 38, "rbohn", "bohnman", "doogie");
+////        Person person = new Person(new Name("Ryan", "Bohn"));
+////        Person person = new Person(null);
+////        mapper.writeValue(System.out, Squiggly.builder().build().apply((JsonNode) mapper.valueToTree(person), filter));
+//
+//        String filter = "**";
+//        boolean usePropertyFilter = true;
+//        StaticFilterProvider contextProvider = new StaticFilterProvider(filter) {
+//            @Override
+//            public boolean isFilteringEnabled() {
+//                return usePropertyFilter;
+//            }
+//        };
+//        SquigglyJackson squiggly = SquigglyJackson.builder(contextProvider).build();
+//        Object input = person;
+//        FilterNode filterNode;
+//
+//        if (usePropertyFilter) {
+//            filterNode = squiggly.getParser().parsePropertyFilter(filter);
+//        } else {
+//            filterNode = squiggly.getParser().parseNodeFilter(filter);
 //        }
 //
-//        public Name getName() {
-//            return name;
+//        PrintStream out = System.out;
+//        PrintStream err = System.err;
+//
+//        out.println("================================================================================");
+//        out.println("Parse Tree");
+//        out.println("================================================================================");
+//        out.println(squiggly.apply(new ObjectMapper()).writeValueAsString(filterNode));
+//
+//        out.println();
+//        out.println("================================================================================");
+//        out.println("Result");
+//        out.println("================================================================================");
+//
+//        if (usePropertyFilter) {
+//            out.println(squiggly.apply(new ObjectMapper()).writeValueAsString(input));
+//        } else {
+//            out.println(squiggly.apply(new ObjectMapper()));
 //        }
+//        out.println();
 //    }
 //
-//    public static class Name {
-//        private String firstName;
-//        private String lastName;
-//
-//        public Name(String firstName, String lastName) {
-//            this.firstName = firstName;
-//            this.lastName = lastName;
-//        }
-//
-//        public String getFirstName() {
-//            return firstName;
-//        }
-//
-//        public String getLastName() {
-//            return lastName;
-//        }
-//    }
+////    public static class Person {
+////        private final Name name;
+////
+////        public Person(Name name) {
+////            this.name = name;
+////        }
+////
+////        public Name getName() {
+////            return name;
+////        }
+////    }
+////
+////    public static class Name {
+////        private String firstName;
+////        private String lastName;
+////
+////        public Name(String firstName, String lastName) {
+////            this.firstName = firstName;
+////            this.lastName = lastName;
+////        }
+////
+////        public String getFirstName() {
+////            return firstName;
+////        }
+////
+////        public String getLastName() {
+////            return lastName;
+////        }
+////    }
 
 
     public static class NickName implements Comparable<NickName> {

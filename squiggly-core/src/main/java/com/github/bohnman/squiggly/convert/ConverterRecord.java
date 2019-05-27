@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.convert;
 
 import java.util.function.Function;
 
-import static com.github.bohnman.core.lang.CoreAssert.notNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * A metadata class that hold information on how to convert between two types.
@@ -38,9 +38,9 @@ public class ConverterRecord implements Function<Object, Object>, Comparable<Con
      * @param order     the order
      */
     public ConverterRecord(Class<?> source, Class<?> target, Function<?, ?> converter, int order) {
-        this.source = notNull(source);
-        this.target = notNull(target);
-        this.converter = notNull(converter);
+        this.source = requireNonNull(source);
+        this.target = requireNonNull(target);
+        this.converter = requireNonNull(converter);
         this.order = order;
     }
 

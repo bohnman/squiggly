@@ -16,7 +16,7 @@ import com.github.bohnman.squiggly.cli.text.SyntaxHighlighter;
 import com.github.bohnman.squiggly.cli.text.SyntaxHighlightingJsonGenerator;
 import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.function.support.CoreJsonNodeFunctions;
-import com.github.bohnman.squiggly.jackson.Squiggly;
+import com.github.bohnman.squiggly.jackson.SquigglyJackson;
 import com.github.bohnman.squiggly.jackson.json.nodes.JacksonJsonNode;
 
 import java.io.*;
@@ -30,7 +30,7 @@ public class Runner implements Runnable {
 
     private final ObjectMapper mapper;
     private final RunnerConfig config;
-    private final Squiggly squiggly;
+    private final SquigglyJackson squiggly;
     private final SyntaxHighlighter syntaxHighlighter;
 
 
@@ -60,8 +60,8 @@ public class Runner implements Runnable {
         return mapper;
     }
 
-    private Squiggly buildSquiggly() {
-        Squiggly.Builder builder = Squiggly.builder();
+    private SquigglyJackson buildSquiggly() {
+        SquigglyJackson.Builder builder = SquigglyJackson.builder();
         config.getVariables().forEach(builder::variable);
         builder.config(new SquigglyConfig(config.getConfigSource()));
 

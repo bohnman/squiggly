@@ -39,7 +39,7 @@ public class IssueApplication extends Application<IssueConfiguration> {
 
         Squiggly.init(environment.getObjectMapper(), new RequestSquigglyContextProvider() {
             @Override
-            protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
+            protected String customizeFilter(String filter, HttpServletRequest request, Class<?> beanClass) {
 
                 // OPTIONAL: automatically wrap filter expressions in items{} when the object is a ListResponse
                 if (filter != null && ListResponse.class.isAssignableFrom(beanClass)) {

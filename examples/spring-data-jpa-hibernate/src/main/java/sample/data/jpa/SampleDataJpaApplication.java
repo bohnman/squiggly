@@ -69,7 +69,7 @@ public class SampleDataJpaApplication {
             }
 
             @Override
-            protected String customizeFilter(String filter, HttpServletRequest request, Class beanClass) {
+            protected String customizeFilter(String filter, HttpServletRequest request, Class<?> beanClass) {
 
                 if (filter != null && Page.class.isAssignableFrom(beanClass)) {
                     filter = "**,content[" + filter + "]";

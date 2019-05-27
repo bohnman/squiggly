@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.function.support;
 
 import com.github.bohnman.squiggly.function.FunctionExecutionRequest;
-import com.github.bohnman.squiggly.function.SquigglyParameter;
+import com.github.bohnman.squiggly.function.SquigglyFunctionParameter;
 import com.github.bohnman.squiggly.function.SquigglyFunctionMethod;
 
 import java.lang.reflect.Method;
@@ -85,7 +85,7 @@ public class MethodFunction extends AbstractSquigglyFunction<Object> {
         }
     }
 
-    private static SquigglyParameter toParameter(Parameter parameter) {
-        return new SquigglyParameter(parameter.getType(), parameter.isVarArgs());
+    private static SquigglyFunctionParameter toParameter(Parameter parameter) {
+        return new SquigglyFunctionParameter(parameter.getType(), parameter.isVarArgs());
     }
 }

@@ -4,10 +4,9 @@ import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.function.FunctionPredicateBridge;
 import com.github.bohnman.core.json.node.CoreJsonNode;
-import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.engine.SquigglyEngine;
 import com.github.bohnman.squiggly.convert.ConverterRecord;
+import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.function.FunctionMatchResult.Score;
 
 import java.util.ArrayList;
@@ -22,15 +21,11 @@ import static java.util.stream.Collectors.toList;
  */
 public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, FunctionMatchResult> {
 
-    private final SquigglyEngine squiggly;
 
-    /**
-     * Constructor.
-     *
-     * @param squiggly squiggly
-     */
-    public SquigglyFunctionMatcher(SquigglyEngine squiggly) {
-        this.squiggly = CoreAssert.notNull(squiggly);
+    private final SquigglyConversionService conversionService;
+
+    public SquigglyFunctionMatcher(SquigglyConversionService conversionService) {
+        this.conversionService = conversionService;
     }
 
     /**
@@ -69,7 +64,7 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
         }
 
         for (int i = 0; i < function.getParameters().size(); i++) {
-            SquigglyParameter configuredParameter = function.getParameters().get(i);
+            SquigglyFunctionParameter configuredParameter = function.getParameters().get(i);
 
             if (isLambdaType(configuredParameter.getType())) {
                 return true;
@@ -135,7 +130,7 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
         }
 
         if (varargsIndex > -1) {
-            SquigglyParameter varargParameter = function.getParameters().get(varargsIndex);
+            SquigglyFunctionParameter varargParameter = function.getParameters().get(varargsIndex);
             Class<?> varargType = CoreObjects.firstNonNull(varargParameter.getType().getComponentType(), varargParameter.getType());
 
             for (int i = varargsIndex; i < result.getParameters().size(); i++) {
@@ -188,7 +183,7 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
             return score;
         }
 
-        ConverterRecord record = squiggly.getConversionService().findRecord(requestedType, configuredType);
+        ConverterRecord record = conversionService.findRecord(requestedType, configuredType);
 
         if (record == null) {
             return Score.EMPTY;
@@ -253,7 +248,7 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
     }
 
     private boolean meetsRequiredNumberOfArguments(FunctionMatchRequest request, SquigglyFunction<Object> function) {
-        List<SquigglyParameter> configuredParameters = function.getParameters();
+        List<SquigglyFunctionParameter> configuredParameters = function.getParameters();
 
         int configuredParametersSize = configuredParameters.size();
 
@@ -275,8 +270,10 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
         return requestedParametersSize >= minLength && requestedParametersSize <= maxLength;
     }
 
-    private boolean isSquiggly(SquigglyParameter parameter) {
-        return !parameter.isVarArgs() && parameter.getType().isAssignableFrom(squiggly.getClass()) && SquigglyEngine.class.isAssignableFrom(parameter.getType());
+    private boolean isSquiggly(SquigglyFunctionParameter parameter) {
+        return false;
+        // TODO: FIX ME
+//        return !parameter.isVarArgs() && parameter.getType().isAssignableFrom(squiggly.getClass()) && SquigglyEngine.class.isAssignableFrom(parameter.getType());
     }
 
 }

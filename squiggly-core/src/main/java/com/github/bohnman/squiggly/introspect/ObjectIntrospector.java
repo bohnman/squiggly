@@ -39,11 +39,11 @@ public class ObjectIntrospector {
     }
 
 
-    public ObjectDescriptor introspect(Class objectClass) {
+    public ObjectDescriptor introspect(Class<?> objectClass) {
         return cache.computeIfAbsent(objectClass, this::introspectClass);
     }
 
-    private ObjectDescriptor introspectClass(Class objectClass) {
+    private ObjectDescriptor introspectClass(Class<?> objectClass) {
 
         Map<String, Set<String>> viewToPropertyNames = new HashMap<>();
         Set<String> resolved = new HashSet<>();
@@ -118,7 +118,7 @@ public class ObjectIntrospector {
         return Collections.unmodifiableMap(map);
     }
 
-    private static PropertyDescriptor[] getPropertyDescriptors(Class beanClass) {
+    private static PropertyDescriptor[] getPropertyDescriptors(Class<?> beanClass) {
         try {
             return Introspector.getBeanInfo(beanClass).getPropertyDescriptors();
         } catch (IntrospectionException e) {

@@ -36,7 +36,7 @@ public interface SquigglyFunction<T> extends Function<FunctionExecutionRequest, 
      *
      * @return params
      */
-    List<SquigglyParameter> getParameters();
+    List<SquigglyFunctionParameter> getParameters();
 
     /**
      * Indicates how the function is registered.

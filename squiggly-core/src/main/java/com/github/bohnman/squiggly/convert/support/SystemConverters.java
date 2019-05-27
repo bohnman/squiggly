@@ -2,7 +2,6 @@ package com.github.bohnman.squiggly.convert.support;
 
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
-import com.github.bohnman.core.library.CoreLibraries;
 import com.github.bohnman.squiggly.convert.ConverterRecord;
 import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
 
@@ -196,10 +195,6 @@ public class SystemConverters {
         registry.add(Date.class, LocalDateTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
         registry.add(Date.class, LocalDate.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         registry.add(Date.class, LocalTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalTime());
-
-        if (CoreLibraries.isJodaTimePresent()) {
-            JodaConverters.add(registry);
-        }
 
         // Object
         registry.add(Object.class, String.class, CoreConversions::safeToString, ConverterRecord.MAX_ORDER);

@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.filter;
 
-import com.github.bohnman.squiggly.parse.support.FilterNode;
+import com.github.bohnman.squiggly.node.support.FilterNode;
 
 /**
  * A squiggly context provides parsing and filtering information for parsing.
@@ -12,7 +12,7 @@ public interface SquigglyFilterContext {
      *
      * @return nodes
      */
-    FilterNode getParsedFilter();
+    FilterNode getFilterNode();
 
     /**
      * Get the filter expression.

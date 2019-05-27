@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.function;
 
-import com.github.bohnman.squiggly.parse.support.FunctionNode;
+import com.github.bohnman.squiggly.node.support.FunctionNode;
 
 import java.util.List;
 

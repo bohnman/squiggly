@@ -9,8 +9,8 @@ import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.engine.SquigglyEngine;
 import com.github.bohnman.squiggly.function.SquigglyFunctionMethod;
+import com.github.bohnman.squiggly.function.SquigglyFunctionSecurity;
 import com.github.bohnman.squiggly.function.ValueHandler;
 
 import java.util.*;
@@ -1043,10 +1043,10 @@ public class CollectionFunctions {
      * Convert the value to a map.
      *
      * @param squiggly base squiggly
-     * @param value collection-like object
+     * @param value    collection-like object
      * @return map
      */
-    public static Map<?, ?> toMap(SquigglyEngine squiggly, Object value) {
+    public static Map<?, ?> toMap(SquigglyFunctionSecurity functionSecurity, Object value) {
         return new ValueHandler<Map<?, ?>>() {
             @Override
             protected Map<?, ?> handleNull() {
@@ -1074,7 +1074,7 @@ public class CollectionFunctions {
 
             @Override
             protected Map<?, ?> handleObject(Object value) {
-                return MixedFunctions.toMap(squiggly, value);
+                return MixedFunctions.toMap(functionSecurity, value);
             }
         }.handle(value);
     }

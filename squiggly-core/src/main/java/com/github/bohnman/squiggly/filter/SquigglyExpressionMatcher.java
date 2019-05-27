@@ -2,22 +2,22 @@ package com.github.bohnman.squiggly.filter;
 
 import com.github.bohnman.core.cache.CoreCache;
 import com.github.bohnman.core.cache.CoreCacheBuilder;
-import com.github.bohnman.core.json.path.CoreJsonPath;
-import com.github.bohnman.core.json.path.CoreJsonPathElement;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.engine.SquigglyEngine;
+import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.introspect.ObjectDescriptor;
+import com.github.bohnman.squiggly.introspect.ObjectIntrospector;
 import com.github.bohnman.squiggly.metric.support.CoreCacheMetricsSource;
+import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
 import com.github.bohnman.squiggly.name.support.AnyDeepName;
 import com.github.bohnman.squiggly.name.support.ExactName;
-import com.github.bohnman.squiggly.parse.support.ExpressionNode;
-import com.github.bohnman.squiggly.parse.support.StatementNode;
+import com.github.bohnman.squiggly.node.support.ExpressionNode;
+import com.github.bohnman.squiggly.node.support.StatementNode;
+import com.github.bohnman.squiggly.path.SquigglyObjectPath;
+import com.github.bohnman.squiggly.path.SquigglyObjectPathElement;
 import com.github.bohnman.squiggly.view.PropertyView;
 
 import javax.annotation.Nullable;
 import java.util.*;
-
-import static com.github.bohnman.core.lang.CoreAssert.notNull;
 
 /**
  * Encapsulates the filter node matching logic.
@@ -36,19 +36,24 @@ public class SquigglyExpressionMatcher {
 
     private static final List<ExpressionNode> BASE_VIEW_NODES = Collections.singletonList(ExpressionNode.createNamedNested(new ExactName(PropertyView.BASE_VIEW)));
 
-    private final CoreCache<CorePair<CoreJsonPath, String>, ExpressionNode> matchCache;
-    private final SquigglyEngine squiggly;
-
+    private final SquigglyConfig config;
+    private final CoreCache<CorePair<SquigglyObjectPath, String>, ExpressionNode> matchCache;
+    private final ObjectIntrospector introspector;
 
     /**
      * Constructor.
      *
      * @param squiggly configurator
      */
-    public SquigglyExpressionMatcher(SquigglyEngine squiggly) {
-        this.squiggly = notNull(squiggly);
-        this.matchCache = CoreCacheBuilder.from(squiggly.getConfig().getFilterPathCacheSpec()).build();
-        squiggly.getMetrics().add(new CoreCacheMetricsSource("squiggly.filter.path-cache.", matchCache));
+    public SquigglyExpressionMatcher(
+            SquigglyConfig config,
+            ObjectIntrospector introspector,
+            SquigglyMetrics metrics) {
+
+        this.config = config;
+        this.matchCache = CoreCacheBuilder.from(config.getFilterPathCacheSpec()).build();
+        this.introspector = introspector;
+        metrics.add(new CoreCacheMetricsSource("squiggly.filter.path-cache.", matchCache));
     }
 
     /**
@@ -58,7 +63,7 @@ public class SquigglyExpressionMatcher {
      * @param context the context holding the root node
      * @return matched node or {@link #ALWAYS_MATCH} or {@link #NEVER_MATCH}
      */
-    public ExpressionNode match(CoreJsonPath path, String filter, StatementNode statement) {
+    public ExpressionNode match(SquigglyObjectPath path, String filter, StatementNode statement) {
         return match(path, filter, statement.getRoot());
     }
 
@@ -70,14 +75,14 @@ public class SquigglyExpressionMatcher {
      * @param node   the root node
      * @return matched node or {@link #ALWAYS_MATCH} or {@link #NEVER_MATCH}
      */
-    public ExpressionNode match(CoreJsonPath path, String filter, ExpressionNode node) {
+    public ExpressionNode match(SquigglyObjectPath path, String filter, ExpressionNode node) {
         if (AnyDeepName.ID.equals(filter)) {
             return ALWAYS_MATCH;
         }
 
         if (path.isCachable()) {
             // cache the match result using the path and filter expression
-            CorePair<CoreJsonPath, String> pair = CorePair.of(path, filter);
+            CorePair<SquigglyObjectPath, String> pair = CorePair.of(path, filter);
             ExpressionNode match = matchCache.get(pair);
 
             if (match == null) {
@@ -91,7 +96,7 @@ public class SquigglyExpressionMatcher {
         return matchInternal(path, node);
     }
 
-    private ExpressionNode matchInternal(CoreJsonPath path, ExpressionNode parent) {
+    private ExpressionNode matchInternal(SquigglyObjectPath path, ExpressionNode parent) {
         MatchContext context = new MatchContext(path, parent);
         ExpressionNode match = null;
 
@@ -99,7 +104,7 @@ public class SquigglyExpressionMatcher {
         int lastIdx = pathSize - 1;
 
         for (int i = 0; i < pathSize; i++) {
-            CoreJsonPathElement element = path.getElements().get(i);
+            SquigglyObjectPathElement element = path.getElements().get(i);
 
             if (context.viewNode != null && !context.viewNode.isNested()) {
                 ExpressionNode viewMatch = matchPropertyName(context, element);
@@ -149,7 +154,7 @@ public class SquigglyExpressionMatcher {
         return match;
     }
 
-    private ExpressionNode findBestNode(MatchContext context, CoreJsonPathElement element, int pathSize) {
+    private ExpressionNode findBestNode(MatchContext context, SquigglyObjectPathElement element, int pathSize) {
         ExpressionNode match = findBestSimpleNode(context, element);
 
         if (match == null) {
@@ -159,8 +164,8 @@ public class SquigglyExpressionMatcher {
         return match;
     }
 
-    private ExpressionNode matchPropertyName(MatchContext context, CoreJsonPathElement element) {
-        Class beanClass = element.getBeanClass();
+    private ExpressionNode matchPropertyName(MatchContext context, SquigglyObjectPathElement element) {
+        Class<?> beanClass = element.getObjectClass();
 
         if (beanClass != null && !Map.class.isAssignableFrom(beanClass)) {
             Set<String> propertyNames = getPropertyNamesFromViewStack(element, context.viewStack);
@@ -174,12 +179,12 @@ public class SquigglyExpressionMatcher {
     }
 
 
-    private boolean isJsonUnwrapped(CoreJsonPathElement element) {
-        ObjectDescriptor info = squiggly.getObjectIntrospector().introspect(element.getBeanClass());
+    private boolean isJsonUnwrapped(SquigglyObjectPathElement element) {
+        ObjectDescriptor info = introspector.introspect(element.getObjectClass());
         return info.isUnwrapped(element.getName());
     }
 
-    private Set<String> getPropertyNamesFromViewStack(CoreJsonPathElement element, Set<String> viewStack) {
+    private Set<String> getPropertyNamesFromViewStack(SquigglyObjectPathElement element, Set<String> viewStack) {
         if (viewStack == null) {
             return getPropertyNames(element, PropertyView.BASE_VIEW);
         }
@@ -189,7 +194,7 @@ public class SquigglyExpressionMatcher {
         for (String viewName : viewStack) {
             Set<String> names = getPropertyNames(element, viewName);
 
-            if (names.isEmpty() && squiggly.getConfig().isFilterImplicitlyIncludeBaseFields()) {
+            if (names.isEmpty() && config.isFilterImplicitlyIncludeBaseFields()) {
                 names = getPropertyNames(element, PropertyView.BASE_VIEW);
             }
 
@@ -199,10 +204,10 @@ public class SquigglyExpressionMatcher {
         return propertyNames;
     }
 
-    private ExpressionNode findBestViewNode(MatchContext context, CoreJsonPathElement element) {
+    private ExpressionNode findBestViewNode(MatchContext context, SquigglyObjectPathElement element) {
         ExpressionNode match = null;
 
-        if (Map.class.isAssignableFrom(element.getBeanClass())) {
+        if (Map.class.isAssignableFrom(element.getObjectClass())) {
             for (ExpressionNode node : context.nodes) {
                 if (PropertyView.BASE_VIEW.equals(node.getName())) {
                     match = node;
@@ -229,7 +234,7 @@ public class SquigglyExpressionMatcher {
         return match;
     }
 
-    private ExpressionNode findBestSimpleNode(MatchContext context, CoreJsonPathElement element) {
+    private ExpressionNode findBestSimpleNode(MatchContext context, SquigglyObjectPathElement element) {
         ExpressionNode match = null;
 
         for (ExpressionNode node : context.nodes) {
@@ -247,7 +252,7 @@ public class SquigglyExpressionMatcher {
     }
 
     private void addToViewStack(MatchContext context) {
-        if (!squiggly.getConfig().isFilterPropagateViewToNestedFilters()) {
+        if (!config.isFilterPropagateViewToNestedFilters()) {
             return;
         }
 
@@ -258,20 +263,20 @@ public class SquigglyExpressionMatcher {
         context.viewStack.add(context.viewNode.getName());
     }
 
-    private Set<String> getPropertyNames(CoreJsonPathElement element, String viewName) {
-        Class beanClass = element.getBeanClass();
+    private Set<String> getPropertyNames(SquigglyObjectPathElement element, String viewName) {
+        Class<?> beanClass = element.getObjectClass();
 
         if (beanClass == null) {
             return Collections.emptySet();
         }
 
-        return squiggly.getObjectIntrospector().introspect(beanClass).getPropertyNamesForView(viewName);
+        return introspector.introspect(beanClass).getPropertyNamesForView(viewName);
     }
 
     private class MatchContext {
         private int depth = 0;
         private int lastIndex;
-        private CoreJsonPath path;
+        private SquigglyObjectPath path;
 
         @Nullable
         private Set<String> viewStack;
@@ -281,7 +286,7 @@ public class SquigglyExpressionMatcher {
         private ExpressionNode viewNode;
         private List<ExpressionNode> nodes;
 
-        public MatchContext(CoreJsonPath path, ExpressionNode parent) {
+        public MatchContext(SquigglyObjectPath path, ExpressionNode parent) {
             this.path = path;
             this.nodes = Collections.emptyList();
             this.parent = null;
@@ -335,7 +340,7 @@ public class SquigglyExpressionMatcher {
                 return false;
             }
 
-            return squiggly.getConfig().isFilterImplicitlyIncludeBaseFields();
+            return config.isFilterImplicitlyIncludeBaseFields();
         }
 
         private List<ExpressionNode> descendNodes(ExpressionNode parent, int newDepth) {

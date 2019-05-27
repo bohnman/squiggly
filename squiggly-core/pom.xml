@@ -87,7 +87,7 @@
                     <packages>
                         <package>
                             <pattern>**</pattern>
-                            <template>${project.basedir}/src/main/java/com/github/bohnman/squiggly/core/package-info.java</template>
+                            <template>${project.basedir}/src/main/java/com/github/bohnman/squiggly/package-info.java</template>
                         </package>
                     </packages>
                 </configuration>

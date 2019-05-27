@@ -356,10 +356,6 @@ public class ObjectFunctions {
             return false;
         }
 
-        if (isDate(value)) {
-            return false;
-        }
-
         if (value instanceof Character) {
             return false;
         }
@@ -479,32 +475,4 @@ public class ObjectFunctions {
             }
         }.handle(o);
     }
-
-    private static class InternalJodaFunctions {
-
-        public boolean isDate(Object value) {
-            if (value instanceof org.joda.time.DateTime) {
-                return true;
-            }
-
-            if (value instanceof org.joda.time.Instant) {
-                return true;
-            }
-
-            if (value instanceof org.joda.time.LocalDateTime) {
-                return true;
-            }
-
-            if (value instanceof org.joda.time.LocalDate) {
-                return true;
-            }
-
-            if (value instanceof org.joda.time.LocalTime) {
-                return true;
-            }
-
-            return false;
-        }
-    }
-
 }

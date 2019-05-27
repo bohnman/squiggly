@@ -7,8 +7,8 @@ import com.beust.jcommander.ParameterException;
 import com.github.bohnman.core.encoding.CoreCharsets;
 import com.github.bohnman.core.io.CoreIo;
 import com.github.bohnman.core.vcs.GitInfo;
-import com.github.bohnman.squiggly.config.support.PropertiesConfigSource;
-import com.github.bohnman.squiggly.config.SquigglyConfigSource;
+import com.github.bohnman.squiggly.property.SquigglyPropertySource;
+import com.github.bohnman.squiggly.property.support.PropertiesPropertySource;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,7 +52,7 @@ public class RunnerConfig {
     @Parameter(names = {"-E", "--expand"}, description = "expand arrays into separate output")
     private boolean expand = false;
 
-    private SquigglyConfigSource configSource;
+    private SquigglyPropertySource configSource;
 
     /**
      * The files containing json input.
@@ -235,7 +235,7 @@ public class RunnerConfig {
             }
         }
 
-        configSource = new PropertiesConfigSource(propsFile.getAbsolutePath(), properties);
+        configSource = new PropertiesPropertySource(propsFile.getAbsolutePath(), properties);
 
     }
 
@@ -338,7 +338,7 @@ public class RunnerConfig {
         return nullInput;
     }
 
-    public SquigglyConfigSource getConfigSource() {
+    public SquigglyPropertySource getConfigSource() {
         return configSource;
     }
 
