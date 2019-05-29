@@ -1,3 +1,7 @@
+# 1.3.18 (2019-05-29)
+
+* Added ThreadLocalContextProvider
+
 # 1.3.17 (2019-04-21)
 
 * RequestSquigglyContextProvider: adding hook method to get the response status code
