@@ -2,6 +2,7 @@ package com.github.bohnman.squiggly.variable;
 
 import javax.annotation.Nullable;
 
+@FunctionalInterface
 public interface SquigglyVariableSource {
 
     @Nullable

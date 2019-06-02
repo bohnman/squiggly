@@ -15,7 +15,7 @@ public interface SquigglyConversionService {
      * @return converter record or null
      */
     @Nullable
-    ConverterRecord findRecord(Class<?> source, Class<?> target);
+    ConverterDescriptor findRecord(Class<?> source, Class<?> target);
 
     /**
      * Determines if the service an convert between the source and target types.

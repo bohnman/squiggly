@@ -8,13 +8,14 @@ import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.std.MapProperty;
+import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.filter.SquigglyFilterContext;
 import com.github.bohnman.squiggly.function.SquigglyFunctionInvoker;
-import com.github.bohnman.squiggly.jackson.SquigglyJackson;
+import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
 import com.github.bohnman.squiggly.node.support.ExpressionNode;
 import com.github.bohnman.squiggly.node.support.FilterNode;
 import com.github.bohnman.squiggly.node.support.StatementNode;
-import com.github.bohnman.squiggly.path.SquigglyObjectPath;
+import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
 import com.github.bohnman.squiggly.path.SquigglyObjectPathElement;
 
 import javax.annotation.Nullable;
@@ -25,9 +26,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.github.bohnman.core.lang.CoreAssert.notNull;
-import static com.github.bohnman.squiggly.filter.SquigglyExpressionMatcher.ALWAYS_MATCH;
-import static com.github.bohnman.squiggly.filter.SquigglyExpressionMatcher.NEVER_MATCH;
+import static com.github.bohnman.squiggly.match.SquigglyExpressionMatcher.ALWAYS_MATCH;
+import static com.github.bohnman.squiggly.match.SquigglyExpressionMatcher.NEVER_MATCH;
 
 
 /**
@@ -69,16 +69,25 @@ import static com.github.bohnman.squiggly.filter.SquigglyExpressionMatcher.NEVER
 @SuppressWarnings("unchecked")
 @ThreadSafe
 public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
-
     public static final String FILTER_ID = "squigglyFilter";
+
+    private final SquigglyExpressionMatcher expressionMatcher;
+    private final SquigglyFunctionInvoker functionInvoker;
+    private final SquigglyJacksonSerializer serializer;
 
     /**
      * Constructor.
      *
      * @param squiggly squiggly
      */
-    public SquigglyPropertyFilter(SquigglyJackson squiggly) {
-        this.squiggly = notNull(squiggly);
+    public SquigglyPropertyFilter(
+            SquigglyExpressionMatcher expressionMatcher,
+            SquigglyFunctionInvoker functionInvoker,
+            SquigglyJacksonSerializer serializer
+    ) {
+        this.expressionMatcher = expressionMatcher;
+        this.functionInvoker = functionInvoker;
+        this.serializer = serializer;
     }
 
     @Override
@@ -92,14 +101,8 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
         throw new UnsupportedOperationException("Cannot call include without JsonGenerator");
     }
 
-    private class JsonGeneratorWrapper extends JsonGeneratorDelegate {
 
-        public JsonGeneratorWrapper(JsonGenerator d) {
-            super(d);
-        }
-    }
-
-
+    @SuppressWarnings("Duplicates")
     @Override
     public void serializeAsField(final Object pojo, JsonGenerator jgen, final SerializerProvider provider,
                                  final PropertyWriter writer) throws Exception {
@@ -113,27 +116,25 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
 
         ExpressionNode match = match(writer, jgen);
 
-        SquigglyFunctionInvoker functionInvoker = squiggly.getFunctionInvoker();
-
         if (match != null && match != NEVER_MATCH) {
             if (match.getKeyFunctions().isEmpty() && match.getValueFunctions().isEmpty()) {
-                squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
+                serializer.serializeAsIncludedField(pojo, jgen, provider, writer);
             } else if (writer instanceof BeanPropertyWriter) {
                 BeanPropertyWriter beanPropertyWriter = (BeanPropertyWriter) writer;
                 String name = "" + functionInvoker.invoke(writer.getName(), writer.getName(), pojo, match.getKeyFunctions());
                 Object beanValue = beanPropertyWriter.get(pojo);
                 Object value = functionInvoker.invoke(beanValue, beanValue, pojo, match.getValueFunctions());
-                squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
+                serializer.serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
             } else if (writer instanceof MapProperty) {
                 MapProperty mapProperty = (MapProperty) writer;
                 String name = "" + functionInvoker.invoke(writer.getName(), writer.getName(), pojo, match.getKeyFunctions());
                 Object value = functionInvoker.invoke(pojo, pojo, pojo, match.getValueFunctions());
-                squiggly.getSerializer().serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
+                serializer.serializeAsConvertedField(pojo, jgen, provider, writer, name, value);
             } else {
-                squiggly.getSerializer().serializeAsIncludedField(pojo, jgen, provider, writer);
+                serializer.serializeAsIncludedField(pojo, jgen, provider, writer);
             }
         } else if (!jgen.canOmitFields()) {
-            squiggly.getSerializer().serializeAsExcludedField(pojo, jgen, provider, writer);
+            serializer.serializeAsExcludedField(pojo, jgen, provider, writer);
         }
     }
 
@@ -148,8 +149,7 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             return ALWAYS_MATCH;
         }
 
-        SquigglyObjectPath path = getPath(writer, streamContext);
-//        System.out.println("PATH: " + path);
+        DefaultObjectPath path = getPath(writer, streamContext);
         SquigglyFilterContext context = squiggly.getContextProvider().getContext(path.getFirst().getObjectClass(), squiggly.getFilterRepository(), squiggly.getParser());
 
         String filter = context.getFilter();
@@ -164,10 +164,10 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             throw new IllegalArgumentException("Currently, only a single statement is supported for property filters.");
         }
 
-        return squiggly.getExpressionMatcher().match(path, filter, statements.get(0));
+        return expressionMatcher.match(path, filter, statements.get(0));
     }
 
-    private SquigglyObjectPath getPath(PropertyWriter writer, JsonStreamContext sc) {
+    private DefaultObjectPath getPath(PropertyWriter writer, JsonStreamContext sc) {
         LinkedList<SquigglyObjectPathElement> elements = new LinkedList<>();
 
         if (sc != null) {
@@ -182,11 +182,18 @@ public class SquigglyPropertyFilter extends SimpleBeanPropertyFilter {
             sc = sc.getParent();
         }
 
-        return new SquigglyObjectPath(elements);
+        return new DefaultObjectPath(elements);
     }
 
     private JsonStreamContext getStreamContext(JsonGenerator jgen) {
         return jgen.getOutputContext();
+    }
+
+    private class ExecutionAwareGenerator extends JsonGeneratorDelegate {
+
+        public ExecutionAwareGenerator(JsonGenerator generator) {
+            super(generator);
+        }
     }
 
 //    public static void main(String[] args) throws IOException {

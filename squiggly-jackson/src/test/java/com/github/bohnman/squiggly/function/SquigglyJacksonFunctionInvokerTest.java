@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.function;
 
 import com.github.bohnman.core.function.CoreLambda;
-import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
 import com.github.bohnman.squiggly.convert.support.DefaultConversionService;
@@ -11,8 +11,8 @@ import com.github.bohnman.squiggly.parse.SquigglyParseContext;
 import com.github.bohnman.squiggly.node.support.ArgumentNode;
 import com.github.bohnman.squiggly.node.support.ArgumentNodeType;
 import com.github.bohnman.squiggly.node.support.FunctionNode;
-import com.github.bohnman.squiggly.variable.support.MapVariableSource;
 import com.github.bohnman.squiggly.variable.SquigglyVariableSource;
+import com.github.bohnman.squiggly.variable.SquigglyVariables;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
@@ -24,8 +24,8 @@ import static org.junit.Assert.assertEquals;
 public class SquigglyJacksonFunctionInvokerTest {
 
 
-    private final SquigglyVariableSource variableResolver = new MapVariableSource();
-    private final SquigglyConfig config = new SquigglyConfig();
+    private final SquigglyVariableSource variableResolver = new SquigglyVariables.MapVariableSource();
+    private final SquigglyEnvironment config = new SquigglyEnvironment();
     private final SquigglyConverterRegistry converterRegistry = SquigglyConverterRegistries.create(SystemConverters::add);
     private final SquigglyConversionService conversionService = new DefaultConversionService(config, converterRegistry);
     private final SquigglyParseContext parseContext = new SquigglyParseContext(1, 1);

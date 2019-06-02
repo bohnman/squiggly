@@ -7,20 +7,19 @@ import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.function.FunctionPredicateBridge;
-import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreAssert;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.config.SquigglyConfig;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
+import com.github.bohnman.squiggly.json.node.SquigglyJsonNode;
 import com.github.bohnman.squiggly.node.support.*;
 import com.github.bohnman.squiggly.parse.SquigglyParseContext;
 import com.github.bohnman.squiggly.parse.SquigglyParseException;
 import com.github.bohnman.squiggly.parse.SquigglyParser;
 import com.github.bohnman.squiggly.variable.SquigglyVariableSource;
-import com.github.bohnman.squiggly.variable.support.CompositeVariableSource;
-import com.github.bohnman.squiggly.variable.support.MapVariableSource;
+import com.github.bohnman.squiggly.variable.SquigglyVariables;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -36,27 +35,27 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 @SuppressWarnings("unchecked")
 public class SquigglyFunctionInvoker {
 
-    private final SquigglyConfig config;
+    private final SquigglyEnvironment config;
     private final SquigglyConversionService conversionService;
     private final SquigglyFunctionMatcher functionMatcher;
-    private final SquigglyVariableSource variableResolver;
+    private final SquigglyVariableSource variableSource;
     private final SquigglyFunctionSecurity functionSecurity;
-    private final SquigglyFunctionSource functionRepository;
+    private final SquigglyFunctionSource functionSource;
 
     public SquigglyFunctionInvoker(
-            SquigglyConfig config,
+            SquigglyEnvironment config,
             SquigglyConversionService conversionService,
             SquigglyFunctionMatcher functionMatcher,
-            SquigglyFunctionSource functionRepository,
             SquigglyFunctionSecurity functionSecurity,
-            SquigglyVariableSource variableResolver) {
+            SquigglyFunctionSource functionSource,
+            SquigglyVariableSource variableSource) {
 
         this.config = config;
         this.conversionService = conversionService;
         this.functionMatcher = functionMatcher;
-        this.functionRepository = functionRepository;
+        this.functionSource = functionSource;
         this.functionSecurity = functionSecurity;
-        this.variableResolver = notNull(variableResolver);
+        this.variableSource = notNull(variableSource);
     }
 
     /**
@@ -138,8 +137,8 @@ public class SquigglyFunctionInvoker {
             return true;
         }
 
-        if (value instanceof CoreJsonNode) {
-            return ((CoreJsonNode) value).isNull();
+        if (value instanceof SquigglyJsonNode) {
+            return ((SquigglyJsonNode) value).isNull();
         }
 
         return false;
@@ -147,7 +146,7 @@ public class SquigglyFunctionInvoker {
 
     private Object invokeNormalFunction(Object input, Object child, Object parent, FunctionNode functionNode) {
 
-        List<SquigglyFunction<Object>> functions = functionRepository.findByName(functionNode.getName());
+        List<SquigglyFunction<Object>> functions = functionSource.findByName(functionNode.getName());
 
         if (functions.isEmpty()) {
             throw new SquigglyParseException(functionNode.getContext(), "Unrecognized function [%s]", functionNode.getName());
@@ -215,8 +214,8 @@ public class SquigglyFunctionInvoker {
             return null;
         }
 
-        if (object instanceof CoreJsonNode) {
-            object = ((CoreJsonNode) object).getValue();
+        if (object instanceof SquigglyJsonNode) {
+            object = ((SquigglyJsonNode) object).getValue();
         }
 
         if (key instanceof Function) {
@@ -231,8 +230,8 @@ public class SquigglyFunctionInvoker {
     }
 
     private Object unwrapJsonNode(Object input) {
-        if (input instanceof CoreJsonNode) {
-            return ((CoreJsonNode) input).getValue();
+        if (input instanceof SquigglyJsonNode) {
+            return ((SquigglyJsonNode) input).getValue();
         }
 
         return input;
@@ -285,8 +284,8 @@ public class SquigglyFunctionInvoker {
     }
 
     private Object convertParameter(FunctionMatchRequest request, Object source, Class<?> targetType) {
-        if ((source instanceof CoreJsonNode) && !CoreJsonNode.class.isAssignableFrom(targetType)) {
-            source = ((CoreJsonNode) source).getValue();
+        if ((source instanceof SquigglyJsonNode) && !SquigglyJsonNode.class.isAssignableFrom(targetType)) {
+            source = ((SquigglyJsonNode) source).getValue();
         }
 
         if (source == null) {
@@ -332,7 +331,7 @@ public class SquigglyFunctionInvoker {
             case OBJECT_DECLARATION:
                 return buildObjectDeclaration(input, child, parent, (List<CorePair<ArgumentNode, ArgumentNode>>) argumentNode.getValue());
             case VARIABLE:
-                return variableResolver.findVariableByName(argumentNode.getValue().toString());
+                return variableSource.findVariableByName(argumentNode.getValue().toString());
             default:
                 return unwrapJsonNode(argumentNode.getValue());
         }
@@ -457,12 +456,12 @@ public class SquigglyFunctionInvoker {
 
             Map<String, Object> varMap = Collections.unmodifiableMap(varBuilder);
 
-            SquigglyVariableSource variableResolver = new CompositeVariableSource(new MapVariableSource(varMap), this.variableResolver);
+            SquigglyVariableSource variableResolver = SquigglyVariables.CompositeVariableSource.create(new SquigglyVariables.MapVariableSource(varMap), this.variableSource);
             SquigglyFunctionInvoker invoker = new SquigglyFunctionInvoker(
                     config,
                     conversionService,
                     functionMatcher,
-                    functionRepository,
+                    functionSource,
                     functionSecurity,
                     variableResolver);
             return invoker.invoke(input, input, input, lambdaNode.getBody());

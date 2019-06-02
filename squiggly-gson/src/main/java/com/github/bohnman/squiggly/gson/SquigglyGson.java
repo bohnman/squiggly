@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.gson;
 
-import com.github.bohnman.squiggly.extend.SquigglyExtension;
+import com.github.bohnman.squiggly.extension.SquigglyExtension;
 import com.github.bohnman.squiggly.filter.support.StaticFilterProvider;
 import com.github.bohnman.squiggly.json.SquigglyJson;
 import com.github.bohnman.squiggly.runtime.SquigglyRuntime;

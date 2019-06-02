@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.jackson
 
 import com.github.bohnman.squiggly.filter.support.StaticFilterProvider
-import com.github.bohnman.squiggly.convert.ConverterRecord
+import com.github.bohnman.squiggly.convert.ConverterDescriptor
 import com.github.bohnman.squiggly.function.FunctionExecutionRequest
 import com.github.bohnman.squiggly.function.SquigglyFunction
 import com.github.bohnman.squiggly.function.SquigglyFunctionParameter
@@ -59,7 +59,7 @@ fun squigglyBuilder(init: SquigglyJackson.Builder.() -> Unit): SquigglyJackson.B
  * @param function converter function
  */
 fun <S : Any, T: Any> SquigglyJackson.Builder.converter(source: KClass<S>, target: KClass<T>, function: (S) -> T): SquigglyJackson.Builder {
-    return converter(source.java, target.java, function)
+    return addConverter(source.java, target.java, function)
 }
 
 /**
@@ -68,7 +68,7 @@ fun <S : Any, T: Any> SquigglyJackson.Builder.converter(source: KClass<S>, targe
  * @param function converter function
  */
 inline fun <reified S : Any, reified T: Any> SquigglyJackson.Builder.converter(noinline function: (S) -> T): SquigglyJackson.Builder {
-    return converter(S::class.java, T::class.java, function)
+    return addConverter(S::class.java, T::class.java, function)
 }
 
 /**
@@ -82,7 +82,7 @@ fun SquigglyJackson.Builder.converter(callable: KCallable<*>): SquigglyJackson.B
 
     val sourceType = inferJavaClass(callable.valueParameters[0].type)
     val targetType = inferJavaClass(callable.returnType)
-    val record = ConverterRecord(sourceType, targetType) { callable.call(it) }
+    val record = ConverterDescriptor(sourceType, targetType) { callable.call(it) }
 
     return converter(record)
 }
@@ -113,7 +113,7 @@ fun SquigglyJackson.Builder.functions(vararg callables: KCallable<*>): SquigglyJ
  * @param owner owner object
  */
 fun SquigglyJackson.Builder.function(callable: KCallable<*>, owner: Any?): SquigglyJackson.Builder {
-    return function(CallableSquigglyFunction(callable, owner))
+    return addFunction(CallableSquigglyFunction(callable, owner))
 }
 
 /**

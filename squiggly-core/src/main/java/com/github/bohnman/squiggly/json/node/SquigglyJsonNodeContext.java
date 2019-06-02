@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.json.node;
 
-import com.github.bohnman.squiggly.path.SquigglyObjectPath;
+import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
 import com.github.bohnman.squiggly.path.SquigglyObjectPathElement;
 
 public class SquigglyJsonNodeContext<T> {
@@ -9,15 +9,15 @@ public class SquigglyJsonNodeContext<T> {
 
     private final int depth;
     private Object key;
-    private final SquigglyObjectPath objectPath;
-    private final SquigglyObjectPath absolutePath;
+    private final DefaultObjectPath objectPath;
+    private final DefaultObjectPath absolutePath;
     private final SquigglyJsonNode<T> parentNode;
 
     public SquigglyJsonNodeContext() {
-        this(0, ROOT_KEY, null, SquigglyObjectPath.empty(), SquigglyObjectPath.empty());
+        this(0, ROOT_KEY, null, DefaultObjectPath.empty(), DefaultObjectPath.empty());
     }
 
-    private SquigglyJsonNodeContext(int depth, Object key, SquigglyJsonNode<T> parentNode, SquigglyObjectPath absolutePath, SquigglyObjectPath objectPath) {
+    private SquigglyJsonNodeContext(int depth, Object key, SquigglyJsonNode<T> parentNode, DefaultObjectPath absolutePath, DefaultObjectPath objectPath) {
         this.depth = depth;
         this.key = key;
         this.absolutePath = absolutePath;
@@ -37,7 +37,7 @@ public class SquigglyJsonNodeContext<T> {
         this.key = key;
     }
 
-    public SquigglyObjectPath getObjectPath() {
+    public DefaultObjectPath getObjectPath() {
         return objectPath;
     }
 
@@ -46,8 +46,8 @@ public class SquigglyJsonNodeContext<T> {
     }
 
     public SquigglyJsonNodeContext<T> descend(Object key, SquigglyJsonNode<T> parent, SquigglyObjectPathElement absolutePathElement, SquigglyObjectPathElement objectPathElement) {
-        SquigglyObjectPath absolutePath = (absolutePathElement == null) ? this.absolutePath : this.absolutePath.append(absolutePathElement);
-        SquigglyObjectPath objectPath = (objectPathElement == null) ? this.objectPath : this.objectPath.append(objectPathElement);
+        DefaultObjectPath absolutePath = (absolutePathElement == null) ? this.absolutePath : this.absolutePath.append(absolutePathElement);
+        DefaultObjectPath objectPath = (objectPathElement == null) ? this.objectPath : this.objectPath.append(objectPathElement);
         return new SquigglyJsonNodeContext<>(depth + 1, key, parent, absolutePath, objectPath);
     }
 }

@@ -4,8 +4,8 @@ import com.github.bohnman.core.cache.CoreCache;
 import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.lang.CoreClasses;
 import com.github.bohnman.core.lang.Null;
-import com.github.bohnman.squiggly.config.SquigglyConfig;
-import com.github.bohnman.squiggly.convert.ConverterRecord;
+import com.github.bohnman.squiggly.convert.ConverterDescriptor;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
 
@@ -19,11 +19,11 @@ import java.util.function.Function;
  */
 public class DefaultConversionService implements SquigglyConversionService {
 
-    private static final ConverterRecord IDENTITY = new ConverterRecord(Object.class, Object.class, Function.identity());
-    private static final ConverterRecord NO_MATCH = new ConverterRecord(Object.class, Object.class, Function.identity());
+    private static final ConverterDescriptor IDENTITY = new ConverterDescriptor(Object.class, Object.class, Function.identity());
+    private static final ConverterDescriptor NO_MATCH = new ConverterDescriptor(Object.class, Object.class, Function.identity());
 
-    private final CoreCache<Key, ConverterRecord> cache;
-    private final Map<Key, ConverterRecord> registeredConverters;
+    private final CoreCache<ConverterDescriptor, ConverterDescriptor> cache;
+    private final Map<ConverterDescriptor, ConverterDescriptor> registeredConverters;
 
     /**
      * Constructor.
@@ -31,14 +31,13 @@ public class DefaultConversionService implements SquigglyConversionService {
      * @param config            the config
      * @param converterRegistry the registry
      */
-    public DefaultConversionService(SquigglyConfig config, SquigglyConverterRegistry converterRegistry) {
+    public DefaultConversionService(SquigglyEnvironment config, SquigglyConverterRegistry converterRegistry) {
         this.cache = CoreCacheBuilder.from(config.getConvertCacheSpec()).build();
 
-        List<ConverterRecord> records = converterRegistry.findAll();
-        Map<Key, ConverterRecord> map = new HashMap<>(records.size());
+        Map<Key, ConverterDescriptor> map = new HashMap<>(descriptors.size());
 
-        for (ConverterRecord record : records) {
-            map.putIfAbsent(new Key(record.getSource(), record.getTarget(), record.getOrder()), record);
+        for (ConverterDescriptor descriptor : descriptors) {
+            map.putIfAbsent(new Key(descriptor.getSource(), descriptor.getTarget(), descriptor.getOrder()), descriptor);
         }
 
         this.registeredConverters = Collections.unmodifiableMap(map);
@@ -47,7 +46,7 @@ public class DefaultConversionService implements SquigglyConversionService {
 
     @Override
     public boolean canConvert(Class<?> source, Class<?> target) {
-        ConverterRecord record = getRecord(source, target);
+        ConverterDescriptor record = getRecord(source, target);
 
         if (record == NO_MATCH) {
             return false;
@@ -67,7 +66,7 @@ public class DefaultConversionService implements SquigglyConversionService {
             sourceClass = source.getClass();
         }
 
-        ConverterRecord record = getRecord(sourceClass, target);
+        ConverterDescriptor record = getRecord(sourceClass, target);
 
         if (record == NO_MATCH && source == null) {
             record = IDENTITY;
@@ -89,17 +88,17 @@ public class DefaultConversionService implements SquigglyConversionService {
 
     @Nullable
     @Override
-    public ConverterRecord findRecord(Class<?> source, Class<?> target) {
-        ConverterRecord record = getRecord(source, target);
+    public ConverterDescriptor findRecord(Class<?> source, Class<?> target) {
+        ConverterDescriptor record = getRecord(source, target);
         return record == NO_MATCH ? null : record;
     }
 
-    private ConverterRecord getRecord(Class<?> sourceType, Class<?> targetType) {
+    private ConverterDescriptor getRecord(Class<?> sourceType, Class<?> targetType) {
         return cache.computeIfAbsent(new Key(sourceType, targetType), this::load);
     }
 
-    private ConverterRecord load(Key key) {
-        ConverterRecord converter = find(key.source, key.target);
+    private ConverterDescriptor load(Key key) {
+        ConverterDescriptor converter = find(key.source, key.target);
 
         if (converter == null) {
             converter = (key.target.isAssignableFrom(key.source) ? IDENTITY : null);
@@ -108,8 +107,8 @@ public class DefaultConversionService implements SquigglyConversionService {
         return (converter == null) ? NO_MATCH : converter;
     }
 
-    private ConverterRecord find(Class<?> sourceType, Class<?> targetType) {
-        ConverterRecord converter = getRegisteredConverter(new Key(sourceType, targetType));
+    private ConverterDescriptor find(Class<?> sourceType, Class<?> targetType) {
+        ConverterDescriptor converter = getRegisteredConverter(new Key(sourceType, targetType));
 
         if (converter != null) {
             return converter;
@@ -117,7 +116,7 @@ public class DefaultConversionService implements SquigglyConversionService {
 
         List<Class<?>> sourceCandidates = getClassHierarchy(sourceType);
         List<Class<?>> targetCandidates = getClassHierarchy(targetType);
-        ConverterRecord softMatch = null;
+        ConverterDescriptor softMatch = null;
 
         for (Class<?> sourceCandidate : sourceCandidates) {
             for (Class<?> targetCandidate : targetCandidates) {
@@ -140,7 +139,7 @@ public class DefaultConversionService implements SquigglyConversionService {
         return softMatch;
     }
 
-    private ConverterRecord getRegisteredConverter(Key convertiblePair) {
+    private ConverterDescriptor getRegisteredConverter(Key convertiblePair) {
         return registeredConverters.get(convertiblePair);
     }
 
@@ -207,7 +206,7 @@ public class DefaultConversionService implements SquigglyConversionService {
             this.order = order;
         }
 
-        public static Key from(ConverterRecord record) {
+        public static Key from(ConverterDescriptor record) {
             return new Key(record.getSource(), record.getTarget());
         }
 

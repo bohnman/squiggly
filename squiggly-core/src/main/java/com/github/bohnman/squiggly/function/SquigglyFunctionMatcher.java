@@ -5,7 +5,7 @@ import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.function.FunctionPredicateBridge;
 import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.convert.ConverterRecord;
+import com.github.bohnman.squiggly.convert.ConverterDescriptor;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.function.FunctionMatchResult.Score;
 
@@ -183,13 +183,19 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
             return score;
         }
 
-        ConverterRecord record = conversionService.findRecord(requestedType, configuredType);
 
-        if (record == null) {
+        if (!conversionService.canConvert(requestedType, configuredType)) {
             return Score.EMPTY;
         }
 
-        return score.convertible(record.getOrder());
+//        ConverterDescriptor record = conversionService.findRecord(requestedType, configuredType);
+//
+//        if (record == null) {
+//            return Score.EMPTY;
+//        }
+
+//        return score.convertible(record.getOrder());
+        return score.convertible(1);
     }
 
 

@@ -7,8 +7,8 @@ import com.beust.jcommander.ParameterException;
 import com.github.bohnman.core.encoding.CoreCharsets;
 import com.github.bohnman.core.io.CoreIo;
 import com.github.bohnman.core.vcs.GitInfo;
+import com.github.bohnman.squiggly.property.SquigglyProperties;
 import com.github.bohnman.squiggly.property.SquigglyPropertySource;
-import com.github.bohnman.squiggly.property.support.PropertiesPropertySource;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -235,7 +235,7 @@ public class RunnerConfig {
             }
         }
 
-        configSource = new PropertiesPropertySource(propsFile.getAbsolutePath(), properties);
+        configSource = new SquigglyProperties.PropertiesPropertySource(propsFile.getAbsolutePath(), properties);
 
     }
 

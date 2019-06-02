@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.runtime;
 
-import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
-import com.github.bohnman.squiggly.filter.SquigglyExpressionMatcher;
+import com.github.bohnman.squiggly.match.support.DefaultExpressionMatcher;
 import com.github.bohnman.squiggly.filter.SquigglyFilterContextProvider;
 import com.github.bohnman.squiggly.filter.SquigglyFilterSource;
 import com.github.bohnman.squiggly.function.SquigglyFunctionInvoker;
@@ -18,7 +18,7 @@ public interface SquigglyRuntime {
 
     ObjectIntrospector getObjectIntrospector();
 
-    SquigglyConfig getConfig();
+    SquigglyEnvironment getConfig();
 
     SquigglyConversionService getConversionService();
 
@@ -26,7 +26,7 @@ public interface SquigglyRuntime {
 
     SquigglyFilterSource getFilterRepository();
 
-    SquigglyExpressionMatcher getExpressionMatcher();
+    DefaultExpressionMatcher getExpressionMatcher();
 
     SquigglyFunctionInvoker getFunctionInvoker();
 

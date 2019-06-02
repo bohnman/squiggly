@@ -5,7 +5,10 @@ import javax.annotation.Nullable;
 /**
  * A filter repository stores filters by a name.
  */
+@FunctionalInterface
 public interface SquigglyFilterSource {
+
+    String CONTEXT_NAME = "__CONTEXT__";
 
     /**
      * Retrieve a filter matching the supplied name or null if not found.
@@ -15,4 +18,5 @@ public interface SquigglyFilterSource {
      */
     @Nullable
     String findFilterByName(String name);
+
 }

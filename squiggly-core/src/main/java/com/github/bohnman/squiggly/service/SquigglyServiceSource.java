@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 public interface SquigglyServiceSource {
 
+    @Nullable
     <T> T findServiceByType(Class<T> type);
 
     @SuppressWarnings("unchecked")

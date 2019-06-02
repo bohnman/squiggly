@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.convert.support;
 
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
-import com.github.bohnman.squiggly.convert.ConverterRecord;
+import com.github.bohnman.squiggly.convert.ConverterDescriptor;
 import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
 
 import java.math.BigDecimal;
@@ -28,179 +28,179 @@ public class SystemConverters {
     public static void add(SquigglyConverterRegistry registry) {
 
         // Byte
-        registry.add(Byte.class, Integer.class, Byte::intValue);
-        registry.add(Byte.class, Short.class, Byte::shortValue);
-        registry.add(Byte.class, Long.class, Byte::longValue);
-        registry.add(Byte.class, Float.class, Byte::floatValue);
-        registry.add(Byte.class, Double.class, Byte::doubleValue);
-        registry.add(Byte.class, BigInteger.class, (Function<Byte, BigInteger>) BigInteger::valueOf);
-        registry.add(Byte.class, BigDecimal.class, BigDecimal::valueOf);
+        registry.addConverter(Byte.class, Integer.class, Byte::intValue);
+        registry.addConverter(Byte.class, Short.class, Byte::shortValue);
+        registry.addConverter(Byte.class, Long.class, Byte::longValue);
+        registry.addConverter(Byte.class, Float.class, Byte::floatValue);
+        registry.addConverter(Byte.class, Double.class, Byte::doubleValue);
+        registry.addConverter(Byte.class, BigInteger.class, (Function<Byte, BigInteger>) BigInteger::valueOf);
+        registry.addConverter(Byte.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Integer
-        registry.add(Integer.class, Byte.class, Integer::byteValue);
-        registry.add(Integer.class, Short.class, Integer::shortValue);
-        registry.add(Integer.class, Long.class, Integer::longValue);
-        registry.add(Integer.class, Float.class, Integer::floatValue);
-        registry.add(Integer.class, Double.class, Integer::doubleValue);
-        registry.add(Integer.class, BigInteger.class, (Function<Integer, BigInteger>) BigInteger::valueOf);
-        registry.add(Integer.class, BigDecimal.class, BigDecimal::valueOf);
+        registry.addConverter(Integer.class, Byte.class, Integer::byteValue);
+        registry.addConverter(Integer.class, Short.class, Integer::shortValue);
+        registry.addConverter(Integer.class, Long.class, Integer::longValue);
+        registry.addConverter(Integer.class, Float.class, Integer::floatValue);
+        registry.addConverter(Integer.class, Double.class, Integer::doubleValue);
+        registry.addConverter(Integer.class, BigInteger.class, (Function<Integer, BigInteger>) BigInteger::valueOf);
+        registry.addConverter(Integer.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Short
-        registry.add(Short.class, Byte.class, Short::byteValue);
-        registry.add(Short.class, Integer.class, Short::intValue);
-        registry.add(Short.class, Long.class, Short::longValue);
-        registry.add(Short.class, Float.class, Short::floatValue);
-        registry.add(Short.class, Double.class, Short::doubleValue);
-        registry.add(Short.class, BigInteger.class, (Function<Short, BigInteger>) BigInteger::valueOf);
-        registry.add(Short.class, BigDecimal.class, BigDecimal::valueOf);
+        registry.addConverter(Short.class, Byte.class, Short::byteValue);
+        registry.addConverter(Short.class, Integer.class, Short::intValue);
+        registry.addConverter(Short.class, Long.class, Short::longValue);
+        registry.addConverter(Short.class, Float.class, Short::floatValue);
+        registry.addConverter(Short.class, Double.class, Short::doubleValue);
+        registry.addConverter(Short.class, BigInteger.class, (Function<Short, BigInteger>) BigInteger::valueOf);
+        registry.addConverter(Short.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Long
-        registry.add(Long.class, Byte.class, Long::byteValue);
-        registry.add(Long.class, Integer.class, Long::intValue);
-        registry.add(Long.class, Short.class, Long::shortValue);
-        registry.add(Long.class, Float.class, Long::floatValue);
-        registry.add(Long.class, Double.class, Long::doubleValue);
-        registry.add(Long.class, BigInteger.class, BigInteger::valueOf);
-        registry.add(Long.class, BigDecimal.class, BigDecimal::valueOf);
+        registry.addConverter(Long.class, Byte.class, Long::byteValue);
+        registry.addConverter(Long.class, Integer.class, Long::intValue);
+        registry.addConverter(Long.class, Short.class, Long::shortValue);
+        registry.addConverter(Long.class, Float.class, Long::floatValue);
+        registry.addConverter(Long.class, Double.class, Long::doubleValue);
+        registry.addConverter(Long.class, BigInteger.class, BigInteger::valueOf);
+        registry.addConverter(Long.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Float
-        registry.add(Float.class, Byte.class, Float::byteValue);
-        registry.add(Float.class, Integer.class, Float::intValue);
-        registry.add(Float.class, Long.class, Float::longValue);
-        registry.add(Float.class, Short.class, Float::shortValue);
-        registry.add(Float.class, Double.class, Float::doubleValue);
-        registry.add(Float.class, BigInteger.class, f -> BigInteger.valueOf(f.longValue()));
-        registry.add(Float.class, BigDecimal.class, BigDecimal::valueOf);
+        registry.addConverter(Float.class, Byte.class, Float::byteValue);
+        registry.addConverter(Float.class, Integer.class, Float::intValue);
+        registry.addConverter(Float.class, Long.class, Float::longValue);
+        registry.addConverter(Float.class, Short.class, Float::shortValue);
+        registry.addConverter(Float.class, Double.class, Float::doubleValue);
+        registry.addConverter(Float.class, BigInteger.class, f -> BigInteger.valueOf(f.longValue()));
+        registry.addConverter(Float.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Double
-        registry.add(Double.class, Byte.class, Double::byteValue);
-        registry.add(Double.class, Integer.class, Double::intValue);
-        registry.add(Double.class, Long.class, Double::longValue);
-        registry.add(Double.class, Float.class, Double::floatValue);
-        registry.add(Double.class, Short.class, Double::shortValue);
-        registry.add(Double.class, BigInteger.class, d -> BigInteger.valueOf(d.longValue()));
-        registry.add(Double.class, BigDecimal.class, BigDecimal::valueOf);
+        registry.addConverter(Double.class, Byte.class, Double::byteValue);
+        registry.addConverter(Double.class, Integer.class, Double::intValue);
+        registry.addConverter(Double.class, Long.class, Double::longValue);
+        registry.addConverter(Double.class, Float.class, Double::floatValue);
+        registry.addConverter(Double.class, Short.class, Double::shortValue);
+        registry.addConverter(Double.class, BigInteger.class, d -> BigInteger.valueOf(d.longValue()));
+        registry.addConverter(Double.class, BigDecimal.class, BigDecimal::valueOf);
 
         // Big Integer
-        registry.add(BigInteger.class, Byte.class, Number::byteValue);
-        registry.add(BigInteger.class, Integer.class, Number::intValue);
-        registry.add(BigInteger.class, Long.class, Number::longValue);
-        registry.add(BigInteger.class, Float.class, Number::floatValue);
-        registry.add(BigInteger.class, Short.class, Number::shortValue);
-        registry.add(BigInteger.class, Double.class, Number::doubleValue);
-        registry.add(BigInteger.class, BigDecimal.class, BigDecimal::new);
+        registry.addConverter(BigInteger.class, Byte.class, Number::byteValue);
+        registry.addConverter(BigInteger.class, Integer.class, Number::intValue);
+        registry.addConverter(BigInteger.class, Long.class, Number::longValue);
+        registry.addConverter(BigInteger.class, Float.class, Number::floatValue);
+        registry.addConverter(BigInteger.class, Short.class, Number::shortValue);
+        registry.addConverter(BigInteger.class, Double.class, Number::doubleValue);
+        registry.addConverter(BigInteger.class, BigDecimal.class, BigDecimal::new);
 
         // Big Decimal
-        registry.add(BigDecimal.class, Byte.class, Number::byteValue);
-        registry.add(BigDecimal.class, Integer.class, Number::intValue);
-        registry.add(BigDecimal.class, Long.class, Number::longValue);
-        registry.add(BigDecimal.class, Float.class, Number::floatValue);
-        registry.add(BigDecimal.class, Short.class, Number::shortValue);
-        registry.add(BigDecimal.class, Double.class, Number::doubleValue);
-        registry.add(BigDecimal.class, BigInteger.class, BigDecimal::toBigInteger);
+        registry.addConverter(BigDecimal.class, Byte.class, Number::byteValue);
+        registry.addConverter(BigDecimal.class, Integer.class, Number::intValue);
+        registry.addConverter(BigDecimal.class, Long.class, Number::longValue);
+        registry.addConverter(BigDecimal.class, Float.class, Number::floatValue);
+        registry.addConverter(BigDecimal.class, Short.class, Number::shortValue);
+        registry.addConverter(BigDecimal.class, Double.class, Number::doubleValue);
+        registry.addConverter(BigDecimal.class, BigInteger.class, BigDecimal::toBigInteger);
 
         // String
-        registry.add(String.class, Boolean.class, Boolean::valueOf);
-        registry.add(String.class, Byte.class, Byte::parseByte);
-        registry.add(String.class, Integer.class, Integer::parseInt);
-        registry.add(String.class, Long.class, Long::parseLong);
-        registry.add(String.class, Short.class, Short::parseShort);
-        registry.add(String.class, Float.class, Float::parseFloat);
-        registry.add(String.class, Double.class, Double::parseDouble);
-        registry.add(String.class, BigInteger.class, BigInteger::new);
-        registry.add(String.class, BigDecimal.class, BigDecimal::new);
+        registry.addConverter(String.class, Boolean.class, Boolean::valueOf);
+        registry.addConverter(String.class, Byte.class, Byte::parseByte);
+        registry.addConverter(String.class, Integer.class, Integer::parseInt);
+        registry.addConverter(String.class, Long.class, Long::parseLong);
+        registry.addConverter(String.class, Short.class, Short::parseShort);
+        registry.addConverter(String.class, Float.class, Float::parseFloat);
+        registry.addConverter(String.class, Double.class, Double::parseDouble);
+        registry.addConverter(String.class, BigInteger.class, BigInteger::new);
+        registry.addConverter(String.class, BigDecimal.class, BigDecimal::new);
 
         // TimeZone
-        registry.add(String.class, TimeZone.class, CoreConversions::toTimeZone);
-        registry.add(ZoneId.class, TimeZone.class, TimeZone::getTimeZone);
+        registry.addConverter(String.class, TimeZone.class, CoreConversions::toTimeZone);
+        registry.addConverter(ZoneId.class, TimeZone.class, TimeZone::getTimeZone);
 
         // Long to Date
-        registry.add(Long.class, OffsetDateTime.class, s -> Instant.ofEpochMilli(s).atZone(ZoneId.systemDefault()).toOffsetDateTime());
-        registry.add(Long.class, ZonedDateTime.class, s -> Instant.ofEpochMilli(s).atZone(ZoneId.systemDefault()));
-        registry.add(Long.class, Date.class, Date::new);
-        registry.add(Long.class, Instant.class, Instant::ofEpochMilli);
-        registry.add(Long.class, Calendar.class, s -> {
+        registry.addConverter(Long.class, OffsetDateTime.class, s -> Instant.ofEpochMilli(s).atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        registry.addConverter(Long.class, ZonedDateTime.class, s -> Instant.ofEpochMilli(s).atZone(ZoneId.systemDefault()));
+        registry.addConverter(Long.class, Date.class, Date::new);
+        registry.addConverter(Long.class, Instant.class, Instant::ofEpochMilli);
+        registry.addConverter(Long.class, Calendar.class, s -> {
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(s);
             return c;
         });
-        registry.add(Long.class, LocalDateTime.class, s -> Instant.ofEpochMilli(s).atZone(ZoneId.systemDefault()).toLocalDateTime());
-        registry.add(Long.class, LocalDate.class, s -> Instant.ofEpochMilli(s).atZone(ZoneId.systemDefault()).toLocalDate());
-        registry.add(Long.class, LocalTime.class, s -> Instant.ofEpochMilli(s).atZone(ZoneId.systemDefault()).toLocalTime());
+        registry.addConverter(Long.class, LocalDateTime.class, s -> Instant.ofEpochMilli(s).atZone(ZoneId.systemDefault()).toLocalDateTime());
+        registry.addConverter(Long.class, LocalDate.class, s -> Instant.ofEpochMilli(s).atZone(ZoneId.systemDefault()).toLocalDate());
+        registry.addConverter(Long.class, LocalTime.class, s -> Instant.ofEpochMilli(s).atZone(ZoneId.systemDefault()).toLocalTime());
 
         // Instant
-        registry.add(Instant.class, OffsetDateTime.class, s -> s.atZone(ZoneId.systemDefault()).toOffsetDateTime());
-        registry.add(Instant.class, ZonedDateTime.class, s -> s.atZone(ZoneId.systemDefault()));
-        registry.add(Instant.class, Date.class, Date::from);
-        registry.add(Instant.class, Long.class, Instant::toEpochMilli);
-        registry.add(Instant.class, Calendar.class, s -> {
+        registry.addConverter(Instant.class, OffsetDateTime.class, s -> s.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        registry.addConverter(Instant.class, ZonedDateTime.class, s -> s.atZone(ZoneId.systemDefault()));
+        registry.addConverter(Instant.class, Date.class, Date::from);
+        registry.addConverter(Instant.class, Long.class, Instant::toEpochMilli);
+        registry.addConverter(Instant.class, Calendar.class, s -> {
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(s.toEpochMilli());
             return c;
         });
-        registry.add(Instant.class, LocalDateTime.class, s -> s.atZone(ZoneId.systemDefault()).toLocalDateTime());
-        registry.add(Instant.class, LocalDate.class, s -> s.atZone(ZoneId.systemDefault()).toLocalDate());
-        registry.add(Instant.class, LocalTime.class, s -> s.atZone(ZoneId.systemDefault()).toLocalTime());
+        registry.addConverter(Instant.class, LocalDateTime.class, s -> s.atZone(ZoneId.systemDefault()).toLocalDateTime());
+        registry.addConverter(Instant.class, LocalDate.class, s -> s.atZone(ZoneId.systemDefault()).toLocalDate());
+        registry.addConverter(Instant.class, LocalTime.class, s -> s.atZone(ZoneId.systemDefault()).toLocalTime());
 
         // LocalDateTime
-        registry.add(LocalDateTime.class, OffsetDateTime.class, s -> s.atZone(ZoneId.systemDefault()).toOffsetDateTime());
-        registry.add(LocalDateTime.class, ZonedDateTime.class, s -> s.atZone(ZoneId.systemDefault()));
-        registry.add(LocalDateTime.class, Instant.class, s -> s.atZone(ZoneId.systemDefault()).toInstant());
-        registry.add(LocalDateTime.class, Calendar.class, s -> GregorianCalendar.from(s.atZone(ZoneId.systemDefault())));
-        registry.add(LocalDateTime.class, Date.class, s -> Date.from(s.atZone(ZoneId.systemDefault()).toInstant()));
-        registry.add(LocalDateTime.class, Long.class, s -> s.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        registry.add(LocalDateTime.class, LocalDate.class, LocalDateTime::toLocalDate);
-        registry.add(LocalDateTime.class, LocalTime.class, LocalDateTime::toLocalTime);
+        registry.addConverter(LocalDateTime.class, OffsetDateTime.class, s -> s.atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        registry.addConverter(LocalDateTime.class, ZonedDateTime.class, s -> s.atZone(ZoneId.systemDefault()));
+        registry.addConverter(LocalDateTime.class, Instant.class, s -> s.atZone(ZoneId.systemDefault()).toInstant());
+        registry.addConverter(LocalDateTime.class, Calendar.class, s -> GregorianCalendar.from(s.atZone(ZoneId.systemDefault())));
+        registry.addConverter(LocalDateTime.class, Date.class, s -> Date.from(s.atZone(ZoneId.systemDefault()).toInstant()));
+        registry.addConverter(LocalDateTime.class, Long.class, s -> s.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+        registry.addConverter(LocalDateTime.class, LocalDate.class, LocalDateTime::toLocalDate);
+        registry.addConverter(LocalDateTime.class, LocalTime.class, LocalDateTime::toLocalTime);
 
         // ZoneDateTime
-        registry.add(ZonedDateTime.class, OffsetDateTime.class, ZonedDateTime::toOffsetDateTime);
-        registry.add(ZonedDateTime.class, Instant.class, ZonedDateTime::toInstant);
-        registry.add(ZonedDateTime.class, Calendar.class, GregorianCalendar::from);
-        registry.add(ZonedDateTime.class, Date.class, s -> Date.from(s.toInstant()));
-        registry.add(ZonedDateTime.class, Long.class, s -> s.toInstant().toEpochMilli());
-        registry.add(ZonedDateTime.class, LocalDateTime.class, ZonedDateTime::toLocalDateTime);
-        registry.add(ZonedDateTime.class, LocalDate.class, ZonedDateTime::toLocalDate);
-        registry.add(ZonedDateTime.class, LocalTime.class, ZonedDateTime::toLocalTime);
+        registry.addConverter(ZonedDateTime.class, OffsetDateTime.class, ZonedDateTime::toOffsetDateTime);
+        registry.addConverter(ZonedDateTime.class, Instant.class, ZonedDateTime::toInstant);
+        registry.addConverter(ZonedDateTime.class, Calendar.class, GregorianCalendar::from);
+        registry.addConverter(ZonedDateTime.class, Date.class, s -> Date.from(s.toInstant()));
+        registry.addConverter(ZonedDateTime.class, Long.class, s -> s.toInstant().toEpochMilli());
+        registry.addConverter(ZonedDateTime.class, LocalDateTime.class, ZonedDateTime::toLocalDateTime);
+        registry.addConverter(ZonedDateTime.class, LocalDate.class, ZonedDateTime::toLocalDate);
+        registry.addConverter(ZonedDateTime.class, LocalTime.class, ZonedDateTime::toLocalTime);
 
         // OffsetDateTime
-        registry.add(OffsetDateTime.class, ZonedDateTime.class, OffsetDateTime::toZonedDateTime);
-        registry.add(OffsetDateTime.class, Instant.class, OffsetDateTime::toInstant);
-        registry.add(OffsetDateTime.class, Calendar.class, s -> GregorianCalendar.from(s.toZonedDateTime()));
-        registry.add(OffsetDateTime.class, Date.class, s -> Date.from(s.toInstant()));
-        registry.add(OffsetDateTime.class, Long.class, s -> s.toInstant().toEpochMilli());
-        registry.add(OffsetDateTime.class, LocalDateTime.class, OffsetDateTime::toLocalDateTime);
-        registry.add(OffsetDateTime.class, LocalDate.class, OffsetDateTime::toLocalDate);
-        registry.add(OffsetDateTime.class, LocalTime.class, OffsetDateTime::toLocalTime);
+        registry.addConverter(OffsetDateTime.class, ZonedDateTime.class, OffsetDateTime::toZonedDateTime);
+        registry.addConverter(OffsetDateTime.class, Instant.class, OffsetDateTime::toInstant);
+        registry.addConverter(OffsetDateTime.class, Calendar.class, s -> GregorianCalendar.from(s.toZonedDateTime()));
+        registry.addConverter(OffsetDateTime.class, Date.class, s -> Date.from(s.toInstant()));
+        registry.addConverter(OffsetDateTime.class, Long.class, s -> s.toInstant().toEpochMilli());
+        registry.addConverter(OffsetDateTime.class, LocalDateTime.class, OffsetDateTime::toLocalDateTime);
+        registry.addConverter(OffsetDateTime.class, LocalDate.class, OffsetDateTime::toLocalDate);
+        registry.addConverter(OffsetDateTime.class, LocalTime.class, OffsetDateTime::toLocalTime);
 
         // Calendar
-        registry.add(Calendar.class, Instant.class, Calendar::toInstant);
-        registry.add(Calendar.class, Date.class, Calendar::getTime);
-        registry.add(Calendar.class, Long.class, Calendar::getTimeInMillis);
-        registry.add(Calendar.class, ZonedDateTime.class, SystemConverters::calendarToZonedDateTime);
-        registry.add(Calendar.class, OffsetDateTime.class, s -> calendarToZonedDateTime(s).toOffsetDateTime());
-        registry.add(Calendar.class, LocalDateTime.class, s -> calendarToZonedDateTime(s).toLocalDateTime());
-        registry.add(Calendar.class, LocalDate.class, s -> calendarToZonedDateTime(s).toLocalDate());
-        registry.add(Calendar.class, LocalTime.class, s -> calendarToZonedDateTime(s).toLocalTime());
+        registry.addConverter(Calendar.class, Instant.class, Calendar::toInstant);
+        registry.addConverter(Calendar.class, Date.class, Calendar::getTime);
+        registry.addConverter(Calendar.class, Long.class, Calendar::getTimeInMillis);
+        registry.addConverter(Calendar.class, ZonedDateTime.class, SystemConverters::calendarToZonedDateTime);
+        registry.addConverter(Calendar.class, OffsetDateTime.class, s -> calendarToZonedDateTime(s).toOffsetDateTime());
+        registry.addConverter(Calendar.class, LocalDateTime.class, s -> calendarToZonedDateTime(s).toLocalDateTime());
+        registry.addConverter(Calendar.class, LocalDate.class, s -> calendarToZonedDateTime(s).toLocalDate());
+        registry.addConverter(Calendar.class, LocalTime.class, s -> calendarToZonedDateTime(s).toLocalTime());
 
         // Date
-        registry.add(Date.class, ZonedDateTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()));
-        registry.add(Date.class, Instant.class, Date::toInstant);
-        registry.add(Date.class, OffsetDateTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime());
-        registry.add(Date.class, Long.class, Date::getTime);
-        registry.add(Date.class, Calendar.class, s -> {
+        registry.addConverter(Date.class, ZonedDateTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()));
+        registry.addConverter(Date.class, Instant.class, Date::toInstant);
+        registry.addConverter(Date.class, OffsetDateTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime());
+        registry.addConverter(Date.class, Long.class, Date::getTime);
+        registry.addConverter(Date.class, Calendar.class, s -> {
             Calendar c = Calendar.getInstance();
             c.setTime(s);
             return c;
         });
-        registry.add(Date.class, LocalDateTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-        registry.add(Date.class, LocalDate.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-        registry.add(Date.class, LocalTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalTime());
+        registry.addConverter(Date.class, LocalDateTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+        registry.addConverter(Date.class, LocalDate.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        registry.addConverter(Date.class, LocalTime.class, s -> s.toInstant().atZone(ZoneId.systemDefault()).toLocalTime());
 
         // Object
-        registry.add(Object.class, String.class, CoreConversions::safeToString, ConverterRecord.MAX_ORDER);
-        registry.add(Object.class, Function.class, CoreConversions::toFunction, ConverterRecord.MAX_ORDER);
-        registry.add(Object.class, Predicate.class, CoreConversions::toPredicate, ConverterRecord.MAX_ORDER);
-        registry.add(Object.class, CoreLambda.class, CoreConversions::toLambda, ConverterRecord.MAX_ORDER);
+        registry.addConverter(Object.class, String.class, ConverterDescriptor.Order.MAX, CoreConversions::safeToString);
+        registry.addConverter(Object.class, Function.class, ConverterDescriptor.Order.MAX, CoreConversions::toFunction);
+        registry.addConverter(Object.class, Predicate.class, ConverterDescriptor.Order.MAX, CoreConversions::toPredicate);
+        registry.addConverter(Object.class, CoreLambda.class, ConverterDescriptor.Order.MAX, CoreConversions::toLambda);
 
     }
 

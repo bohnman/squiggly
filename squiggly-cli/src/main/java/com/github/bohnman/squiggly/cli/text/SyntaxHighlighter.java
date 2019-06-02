@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.cli.text;
 
-import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -17,7 +17,7 @@ public class SyntaxHighlighter {
     private final String numberColor;
     private final String stringColor;
 
-    public SyntaxHighlighter(SquigglyConfig config) {
+    public SyntaxHighlighter(SquigglyEnvironment config) {
         this.booleanColor = parseColor(config, "boolean");
         this.fieldNameColor = parseColor(config, "field-name");
         this.nullColor = parseColor(config, "null");
@@ -79,7 +79,7 @@ public class SyntaxHighlighter {
         return Ansi.RESET.getCode();
     }
 
-    private static String parseColor(SquigglyConfig config, String name) {
+    private static String parseColor(SquigglyEnvironment config, String name) {
         String value = config.getString("squiggly.cli.color." + name, "");
         return parseColor(value);
     }

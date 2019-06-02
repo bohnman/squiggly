@@ -1,9 +1,9 @@
 package com.github.bohnman.squiggly.node.support;
 
-import com.github.bohnman.squiggly.name.support.AnyDeepName;
-import com.github.bohnman.squiggly.name.support.AnyShallowName;
-import com.github.bohnman.squiggly.name.support.DeepInheritName;
 import com.github.bohnman.squiggly.name.SquigglyName;
+import com.github.bohnman.squiggly.name.AnyDeepName;
+import com.github.bohnman.squiggly.name.AnyShallowName;
+import com.github.bohnman.squiggly.name.DeepInheritName;
 import com.github.bohnman.squiggly.parse.SquigglyParseContext;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -47,7 +47,8 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
             int modifiers,
             List<ExpressionNode> children,
             int depth,
-            List<FunctionNode> keyFunctions, List<FunctionNode> valueFunctions,
+            List<FunctionNode> keyFunctions,
+            List<FunctionNode> valueFunctions,
             Integer minDepth,
             Integer maxDepth) {
         super(context);

@@ -51,6 +51,7 @@
         <!--<module>examples/spring-boot-non-web</module>-->
         <!--<module>examples/spring-boot-webflux-annotation-example</module>-->
         <!--<module>examples/spring-boot-webflux-functional-example</module>-->
+        <module>extensions/squiggly-extension-servlet</module>
         <module>squiggly-cli</module>
         <module>squiggly-core</module>
         <module>squiggly-gson</module>

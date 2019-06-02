@@ -3,7 +3,7 @@ package com.github.bohnman.squiggly.introspect;
 import com.github.bohnman.core.cache.CoreCache;
 import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.lang.CoreFields;
-import com.github.bohnman.squiggly.config.SquigglyConfig;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
 import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
 import com.github.bohnman.squiggly.metric.support.CoreCacheMetricsSource;
 import com.github.bohnman.squiggly.view.PropertyView;
@@ -30,9 +30,9 @@ public class ObjectIntrospector {
      * Caches bean class to a map of views to property views.
      */
     private final CoreCache<Class, ObjectDescriptor> cache;
-    private final SquigglyConfig config;
+    private final SquigglyEnvironment config;
 
-    public ObjectIntrospector(SquigglyConfig config, SquigglyMetrics metrics) {
+    public ObjectIntrospector(SquigglyEnvironment config, SquigglyMetrics metrics) {
         this.config = notNull(config);
         cache = CoreCacheBuilder.from(config.getPropertyDescriptorCacheSpec()).build();
         metrics.add(new CoreCacheMetricsSource("squiggly.property.descriptor-cache.", cache));
