@@ -37,7 +37,7 @@ public class SquigglyProperties {
             return sources[0];
         }
 
-        return new CompositePropertySource(Collections.unmodifiableList(Arrays.asList(sources)));
+        return new CompositePropertySource(Arrays.asList(sources));
     }
 
     public static SquigglyPropertySource compositeSource(List<SquigglyPropertySource> sources) {
@@ -49,7 +49,7 @@ public class SquigglyProperties {
             return sources.get(0);
         }
 
-        return new CompositePropertySource(Collections.unmodifiableList(new ArrayList<>(sources)));
+        return new CompositePropertySource(sources);
     }
 
     public static SquigglyPropertySource mapSource(Map<String, String> map) {
@@ -66,15 +66,15 @@ public class SquigglyProperties {
             return new MapPropertySource(origin, Collections.singletonMap(entry.getKey(), entry.getValue()));
         }
 
-        return new MapPropertySource(origin, Collections.unmodifiableMap(new HashMap<>(map)));
+        return new MapPropertySource(origin, map);
     }
 
     public static PropertiesPropertySource propertiesSource(Properties properties) {
-        return new PropertiesPropertySource("properties", new Properties(properties));
+        return new PropertiesPropertySource("properties", properties);
     }
 
     public static PropertiesPropertySource propertiesSource(String origin, Properties properties) {
-        return new PropertiesPropertySource(origin, new Properties(properties));
+        return new PropertiesPropertySource(origin, properties);
     }
 
     public static PropertiesPropertySource propertiesSource(URL url) {
@@ -153,14 +153,6 @@ public class SquigglyProperties {
         @Override
         public String findOriginByName(String name) {
             return origin;
-        }
-
-        public static MapPropertySource create(Map<String, String> map) {
-            return new MapPropertySource("map", map);
-        }
-
-        public static MapPropertySource create(String origin, Map<String, String> map) {
-            return new MapPropertySource(origin, map);
         }
     }
 

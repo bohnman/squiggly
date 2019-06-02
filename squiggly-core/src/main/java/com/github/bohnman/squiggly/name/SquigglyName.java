@@ -6,11 +6,11 @@ package com.github.bohnman.squiggly.name;
 public interface SquigglyName {
 
     /**
-     * Gets the name of the node.
+     * Gets the token of the name.
      *
      * @return name
      */
-    String getName();
+    String getToken();
 
     /**
      * Indicates how specific the name is.  The higher the value, the more specific.
@@ -20,10 +20,10 @@ public interface SquigglyName {
     int getSpecificity();
 
     /**
-     * Determines if the supplied name matches the current name.
+     * Determines if the supplied token matches the current token.
      *
-     * @param name a name
+     * @param token a token
      * @return true if matches, false otherwise
      */
-    boolean matches(String name);
+    boolean matches(String token);
 }

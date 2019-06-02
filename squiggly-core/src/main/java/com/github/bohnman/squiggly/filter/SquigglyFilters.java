@@ -21,7 +21,7 @@ public class SquigglyFilters {
             return sources[0];
         }
 
-        return new CompositeFilterSource(Collections.unmodifiableList(Arrays.asList(sources)));
+        return new CompositeFilterSource(Arrays.asList(sources));
     }
 
     public static SquigglyFilterSource compositeSource(List<SquigglyFilterSource> sources) {
@@ -33,10 +33,19 @@ public class SquigglyFilters {
             return sources.get(0);
         }
 
-        return new CompositeFilterSource(Collections.unmodifiableList(new ArrayList<>(sources)));
+        return new CompositeFilterSource(sources);
     }
 
     public static SquigglyFilterSource mapSource(Map<String, String> map) {
+        if (map.isEmpty()) {
+            return MapFilterSource.EMPTY;
+        }
+
+        if (map.size() == 1) {
+            Map.Entry<String, String> entry = map.entrySet().iterator().next();
+            return new MapFilterSource(Collections.singletonMap(entry.getKey(), entry.getValue()));
+        }
+
         return new MapFilterSource(map);
     }
 
@@ -89,6 +98,8 @@ public class SquigglyFilters {
      */
     private static class MapFilterSource implements SquigglyFilterSource {
 
+        private static final SquigglyFilterSource EMPTY = new MapFilterSource(Collections.emptyMap());
+
         private final Map<String, String> map;
 
         /**
@@ -104,10 +115,6 @@ public class SquigglyFilters {
         @Override
         public String findFilterByName(String name) {
             return map.get(name);
-        }
-
-        public static MapFilterSource create(Map<String, String> map) {
-            return new MapFilterSource(Collections.unmodifiableMap(map));
         }
     }
 

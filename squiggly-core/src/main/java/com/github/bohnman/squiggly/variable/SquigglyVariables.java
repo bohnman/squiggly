@@ -3,8 +3,6 @@ package com.github.bohnman.squiggly.variable;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static java.util.Objects.requireNonNull;
-
 public class SquigglyVariables {
 
     private static final SquigglyVariableSource EMPTY_SOURCE = name -> null;
@@ -21,7 +19,7 @@ public class SquigglyVariables {
             return sources[0];
         }
 
-        return new CompositeVariableSource(Collections.unmodifiableList(Arrays.asList(sources)));
+        return new CompositeVariableSource(Arrays.asList(sources));
     }
 
     public static SquigglyVariableSource compositeSource(List<SquigglyVariableSource> sources) {
@@ -33,7 +31,7 @@ public class SquigglyVariables {
             return sources.get(0);
         }
 
-        return new CompositeVariableSource(Collections.unmodifiableList(new ArrayList<>(sources)));
+        return new CompositeVariableSource(sources);
     }
 
     public static SquigglyVariableSource mapSource(Map<String, Object> map) {
@@ -46,7 +44,7 @@ public class SquigglyVariables {
             return new MapVariableSource(Collections.singletonMap(entry.getKey(), entry.getValue()));
         }
 
-        return new MapVariableSource(Collections.unmodifiableMap(new HashMap<>(map)));
+        return new MapVariableSource(map);
     }
 
     private static class CompositeVariableSource implements SquigglyVariableSource {
@@ -72,10 +70,6 @@ public class SquigglyVariables {
 
             return value;
         }
-
-        public static CompositeVariableSource create(List<SquigglyVariableSource> sources) {
-            return new CompositeVariableSource(Collections.unmodifiableList(sources));
-        }
     }
 
     private static class MapVariableSource implements SquigglyVariableSource {
@@ -84,22 +78,14 @@ public class SquigglyVariables {
 
         private final Map<String, Object> variables;
 
-        private MapVariableSource() {
-            this.variables = requireNonNull(Collections.emptyMap());
-        }
-
         public MapVariableSource(Map<String, Object> variables) {
-            this.variables = Collections.unmodifiableMap(variables);
+            this.variables = variables;
         }
 
         @Nullable
         @Override
         public Object findVariableByName(String name) {
             return variables.get(name);
-        }
-
-        public static MapVariableSource create(Map<String, Object> variables) {
-            return new MapVariableSource(Collections.unmodifiableMap(variables));
         }
     }
 

@@ -61,7 +61,7 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
 
 
     protected DefaultSquigglyRuntime(Builder builder) {
-        this.objectIntrospector = requireNonNull(builder.builtObjectIntrospector)
+        this.objectIntrospector = requireNonNull(builder.builtObjectIntrospector);
         this.config = requireNonNull(builder.builtConfig);
         this.conversionService = requireNonNull(builder.builtConversionService);
         this.contextProvider = requireNonNull(builder.builtContextProvider);

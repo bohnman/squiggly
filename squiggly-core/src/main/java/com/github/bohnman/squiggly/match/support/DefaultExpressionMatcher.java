@@ -9,8 +9,7 @@ import com.github.bohnman.squiggly.introspect.ObjectIntrospector;
 import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.metric.support.CoreCacheMetricsSource;
 import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
-import com.github.bohnman.squiggly.name.AnyDeepName;
-import com.github.bohnman.squiggly.name.ExactName;
+import com.github.bohnman.squiggly.name.SquigglyNames;
 import com.github.bohnman.squiggly.node.support.ExpressionNode;
 import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
 import com.github.bohnman.squiggly.path.SquigglyObjectPath;
@@ -27,7 +26,7 @@ import static java.util.Objects.requireNonNull;
  */
 public class DefaultExpressionMatcher implements SquigglyExpressionMatcher {
 
-    private static final List<ExpressionNode> BASE_VIEW_NODES = Collections.singletonList(ExpressionNode.createNamedNested(new ExactName(PropertyView.BASE_VIEW)));
+    private static final List<ExpressionNode> BASE_VIEW_NODES = Collections.singletonList(ExpressionNode.createNamedNested(new SquigglyNames.ExactName(PropertyView.BASE_VIEW)));
 
     private final SquigglyEnvironment config;
     private final CoreCache<CorePair<SquigglyObjectPath, String>, ExpressionNode> matchCache;
@@ -59,7 +58,7 @@ public class DefaultExpressionMatcher implements SquigglyExpressionMatcher {
      * @return matched node or {@link #ALWAYS_MATCH} or {@link #NEVER_MATCH}
      */
     public ExpressionNode match(DefaultObjectPath path, String filter, ExpressionNode expression) {
-        if (AnyDeepName.ID.equals(filter)) {
+        if (SquigglyNames.AnyDeepName.ANY_DEEP_SYMBOL.equals(filter)) {
             return ALWAYS_MATCH;
         }
 

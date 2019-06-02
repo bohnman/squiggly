@@ -1,9 +1,6 @@
 package com.github.bohnman.squiggly.node.support;
 
-import com.github.bohnman.squiggly.name.SquigglyName;
-import com.github.bohnman.squiggly.name.AnyDeepName;
-import com.github.bohnman.squiggly.name.AnyShallowName;
-import com.github.bohnman.squiggly.name.DeepInheritName;
+import com.github.bohnman.squiggly.name.*;
 import com.github.bohnman.squiggly.parse.SquigglyParseContext;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -104,7 +101,7 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @return name
      */
     public String getName() {
-        return name.getName();
+        return name.getToken();
     }
 
     /**
@@ -156,12 +153,12 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @return true if **, false if not
      */
     public boolean isAnyDeep() {
-        return AnyDeepName.ID.equals(name.getName());
+        return SquigglyNames.AnyDeepName.ANY_DEEP_SYMBOL.equals(name.getToken());
     }
 
 
     public boolean isDeepInherit() {
-        return DeepInheritName.ID.equals(name.getName());
+        return SquigglyNames.DeepInheritName.DEEP_INHERIT_SYMBOL.equals(name.getToken());
     }
 
     /**
@@ -170,7 +167,7 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @return true if *, false if not
      */
     public boolean isAnyShallow() {
-        return AnyShallowName.ID.equals(name.getName());
+        return SquigglyNames.AnyShallowName.ANY_SHALLOW_SYMNBOL.equals(name.getToken());
     }
 
     /**

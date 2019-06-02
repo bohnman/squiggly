@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.extension.servlet.support;
 
 import com.github.bohnman.squiggly.filter.BaseFilterProvider;
-import com.github.bohnman.squiggly.name.AnyDeepName;
+import com.github.bohnman.squiggly.name.SquigglyNames;
 
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -60,7 +60,7 @@ public class RequestParameterFilterProvider extends BaseFilterProvider {
 
         String filter = getFilter(request);
 
-        if (AnyDeepName.ID.equals(filter)) {
+        if (SquigglyNames.AnyDeepName.ANY_DEEP_SYMBOL.equals(filter)) {
             return false;
         }
 

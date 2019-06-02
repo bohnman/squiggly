@@ -33,7 +33,7 @@ public class SquigglyServices {
             return sources[0];
         }
 
-        return new CompositeServiceSource(Collections.unmodifiableList(Arrays.asList(sources)));
+        return new CompositeServiceSource(Arrays.asList(sources));
     }
 
     public SquigglyServiceSource compositeSource(List<SquigglyServiceSource> sources) {
@@ -45,20 +45,20 @@ public class SquigglyServices {
             return sources.get(0);
         }
 
-        return new CompositeServiceSource(Collections.unmodifiableList(new ArrayList<>(sources)));
+        return new CompositeServiceSource(sources);
     }
 
-    public SquigglyServiceSource mapSource(Map<String, Object> map) {
+    public SquigglyServiceSource mapSource(Map<Object, Object> map) {
         if (map.isEmpty()) {
             return MapServiceSource.EMPTY;
         }
 
         if (map.size() == 1) {
-            Map.Entry<String, Object> entry = map.entrySet().iterator().next();
+            Map.Entry<Object, Object> entry = map.entrySet().iterator().next();
             return new MapServiceSource(Collections.singletonMap(entry.getKey(), entry.getValue()));
         }
 
-        return new MapServiceSource(Collections.unmodifiableMap(new HashMap<>(map)));
+        return new MapServiceSource(map);
     }
 
     private static class CompositeServiceSource implements SquigglyServiceSource {

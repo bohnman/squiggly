@@ -272,7 +272,7 @@ public class AntlrSquigglyParser implements SquigglyParser {
             }
 
             if (deepArgs.isEmpty()) {
-                ExpressionNodeBuilder node = expressionBuilder(ctx, AnyDeepName.get(), parent)
+                ExpressionNodeBuilder node = expressionBuilder(ctx, SquigglyNames.AnyDeepName.get(), parent)
                         .deep(true);
 
                 if (minDepth != null) {
@@ -293,7 +293,7 @@ public class AntlrSquigglyParser implements SquigglyParser {
         }
 
         private void handleDeepInheritExpression(SquigglyGrammarParser.DeepInheritExpressionContext ctx, ExpressionNodeBuilder parent) {
-            expressionBuilder(ctx, DeepInheritName.get() , parent);
+            expressionBuilder(ctx, SquigglyNames.DeepInheritName.get() , parent);
         }
 
         private List<ExpressionNodeBuilder> handleDeepArg(SquigglyGrammarParser.DeepArgContext ctx, ExpressionNodeBuilder parent) {
@@ -1033,18 +1033,18 @@ public class AntlrSquigglyParser implements SquigglyParser {
             SquigglyName name;
 
             if (ctx.StringLiteral() != null) {
-                name = new ExactName(unescapeString(ctx.StringLiteral().getText()));
+                name = new SquigglyNames.ExactName(unescapeString(ctx.StringLiteral().getText()));
             } else if (ctx.exactField() != null) {
-                name = new ExactName(ctx.exactField().getText());
+                name = new SquigglyNames.ExactName(ctx.exactField().getText());
             } else if (ctx.wildcardField() != null) {
                 if ("*".equals(ctx.wildcardField().getText())) {
-                    name = AnyShallowName.get();
+                    name = SquigglyNames.AnyShallowName.get();
                 } else {
-                    name = new WildcardName(ctx.wildcardField().getText());
+                    name = new SquigglyNames.WildcardName(ctx.wildcardField().getText());
                 }
             } else if (ctx.RegexLiteral() != null) {
                 Pattern pattern = buildPattern(ctx.RegexLiteral().getText(), ctx);
-                name = new RegexName(pattern.pattern(), pattern);
+                name = new SquigglyNames.RegexName(pattern.pattern(), pattern);
             } else {
                 throw new SquigglyParseException(parseContext(ctx), "unhandled field [%s]", ctx.getText());
             }
@@ -1209,7 +1209,7 @@ public class AntlrSquigglyParser implements SquigglyParser {
         private final ExpressionNodeBuilder rootExpression;
 
         public StatementNodeBuilder(SquigglyParseContext context) {
-            this(context, new ExpressionNodeBuilder(context, AnyShallowName.get()));
+            this(context, new ExpressionNodeBuilder(context, SquigglyNames.AnyShallowName.get()));
         }
 
         public StatementNodeBuilder(SquigglyParseContext context, ExpressionNodeBuilder rootExpression) {
@@ -1342,7 +1342,7 @@ public class AntlrSquigglyParser implements SquigglyParser {
                 children = new LinkedHashMap<>();
             }
 
-            String name = childToAdd.name.getName();
+            String name = childToAdd.name.getToken();
             ExpressionNodeBuilder existingChild = children.get(name);
 
             if (existingChild == null) {
@@ -1376,7 +1376,7 @@ public class AntlrSquigglyParser implements SquigglyParser {
 
     }
 
-    private ExactName newBaseViewName() {
-        return new ExactName(PropertyView.BASE_VIEW);
+    private SquigglyNames.ExactName newBaseViewName() {
+        return new SquigglyNames.ExactName(PropertyView.BASE_VIEW);
     }
 }
