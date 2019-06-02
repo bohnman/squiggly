@@ -1,6 +1,4 @@
-package com.github.bohnman.squiggly.node.support;
-
-import com.github.bohnman.squiggly.parse.SquigglyParseContext;
+package com.github.bohnman.squiggly.node;
 
 import javax.annotation.Nullable;
 
@@ -10,22 +8,22 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 /**
  * Represents a function arguments.
  */
-public class ArgumentNode extends BaseSquigglyNode {
+public class ArgumentNode extends BaseNode {
     private final int index;
     private final Object value;
-    private final ArgumentNodeType argumentType;
+    private final Type argumentType;
 
 
     /**
      * Constructor.
      *
-     * @param context parse context
+     * @param origin parse origin
      * @param index   argument index
      * @param value   argument value
      * @param argumentType    argument type
      */
-    public ArgumentNode(SquigglyParseContext context, int index, Object value, ArgumentNodeType argumentType) {
-        super(context);
+    private ArgumentNode(SquigglyNodeOrigin origin, int index, Object value, Type argumentType) {
+        super(origin);
         isTrue(index >= 0, "index must be >= 0");
         this.index = index;
 
@@ -56,7 +54,7 @@ public class ArgumentNode extends BaseSquigglyNode {
      *
      * @return type
      */
-    public ArgumentNodeType getArgumentType() {
+    public Type getArgumentType() {
         return argumentType;
     }
 
@@ -69,40 +67,19 @@ public class ArgumentNode extends BaseSquigglyNode {
     }
 
     /**
-     * Create a new builder for easy construction.
-     *
-     * @return builder
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    /**
      * Builder for easy construction.
      */
-    public static class Builder {
-        @Nullable
-        private SquigglyParseContext context;
+    public static class Builder extends BaseNodeBuilder<ArgumentNode> {
         private int index = -1;
 
         @Nullable
         private Object value;
 
         @Nullable
-        private ArgumentNodeType type;
+        private Type type;
 
-        private Builder() {
-        }
-
-        /**
-         * Set the parse context
-         *
-         * @param context parse context
-         * @return builder
-         */
-        public Builder context(SquigglyParseContext context) {
-            this.context = context;
-            return this;
+        Builder(SquigglyNodeOrigin origin) {
+            super(origin);
         }
 
         /**
@@ -133,7 +110,7 @@ public class ArgumentNode extends BaseSquigglyNode {
          * @param type tu[e
          * @return builder
          */
-        public Builder type(ArgumentNodeType type) {
+        public Builder type(Type type) {
             this.type = type;
             return this;
         }
@@ -144,7 +121,28 @@ public class ArgumentNode extends BaseSquigglyNode {
          * @return node
          */
         public ArgumentNode build() {
-            return new ArgumentNode(context, index, value, type);
+            return new ArgumentNode(getOrigin(), index, value, type);
         }
+    }
+
+    /**
+     * Indicates what the an argument represents.
+     */
+    public enum Type {
+        ARRAY_DECLARATION,
+        ARRAY_RANGE_DECLARATION,
+        BOOLEAN,
+        FLOAT,
+        FUNCTION_CHAIN,
+        IF,
+        INPUT,
+        INT_RANGE,
+        INTEGER,
+        LAMBDA,
+        OBJECT_DECLARATION,
+        NULL,
+        REGEX,
+        STRING,
+        VARIABLE
     }
 }

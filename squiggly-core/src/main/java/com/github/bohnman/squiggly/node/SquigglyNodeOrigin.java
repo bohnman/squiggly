@@ -1,21 +1,14 @@
-package com.github.bohnman.squiggly.parse;
+package com.github.bohnman.squiggly.node;
 
 /**
  * Holds positional information when parsing nodes.
  */
-public class SquigglyParseContext {
+public class SquigglyNodeOrigin {
 
-    public static final SquigglyParseContext EMPTY = new SquigglyParseContext();
+    private static final SquigglyNodeOrigin START = new SquigglyNodeOrigin(1, 1);
 
     private final int line;
     private final int column;
-
-    /**
-     * Construct with position 1:1.
-     */
-    public SquigglyParseContext() {
-        this(1, 1);
-    }
 
     /**
      * Construct with given position.
@@ -23,7 +16,7 @@ public class SquigglyParseContext {
      * @param line   line number
      * @param column column number
      */
-    public SquigglyParseContext(int line, int column) {
+    private SquigglyNodeOrigin(int line, int column) {
         this.line = line;
         this.column = column;
     }
@@ -49,5 +42,13 @@ public class SquigglyParseContext {
     @Override
     public String toString() {
         return "[" + line + ':' + column + ']';
+    }
+
+    public static SquigglyNodeOrigin create() {
+        return START;
+    }
+
+    public static SquigglyNodeOrigin create(int line, int column) {
+        return new SquigglyNodeOrigin(line, column);
     }
 }

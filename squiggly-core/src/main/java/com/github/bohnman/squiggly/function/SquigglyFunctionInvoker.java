@@ -12,12 +12,10 @@ import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.range.CoreIntRange;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
-import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.json.node.SquigglyJsonNode;
-import com.github.bohnman.squiggly.node.support.*;
-import com.github.bohnman.squiggly.parse.SquigglyParseContext;
-import com.github.bohnman.squiggly.parse.SquigglyParseException;
-import com.github.bohnman.squiggly.parse.SquigglyParser;
+import com.github.bohnman.squiggly.node.*;
+import com.github.bohnman.squiggly.parse.*;
 import com.github.bohnman.squiggly.variable.SquigglyVariableSource;
 import com.github.bohnman.squiggly.variable.SquigglyVariables;
 
@@ -35,7 +33,7 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 @SuppressWarnings("unchecked")
 public class SquigglyFunctionInvoker {
 
-    private final SquigglyEnvironment config;
+    private final SquigglyEnvironmentOld config;
     private final SquigglyConversionService conversionService;
     private final SquigglyFunctionMatcher functionMatcher;
     private final SquigglyVariableSource variableSource;
@@ -43,7 +41,7 @@ public class SquigglyFunctionInvoker {
     private final SquigglyFunctionSource functionSource;
 
     public SquigglyFunctionInvoker(
-            SquigglyEnvironment config,
+            SquigglyEnvironmentOld config,
             SquigglyConversionService conversionService,
             SquigglyFunctionMatcher functionMatcher,
             SquigglyFunctionSecurity functionSecurity,
@@ -120,11 +118,11 @@ public class SquigglyFunctionInvoker {
         child = unwrapJsonNode(child);
         parent = unwrapJsonNode(parent);
 
-        if (functionNode.getFunctionType().equals(FunctionNodeType.PROPERTY)) {
+        if (functionNode.getFunctionType().equals(FunctionNode.Type.PROPERTY)) {
             return invokeProperty(input, child, parent, functionNode);
         }
 
-        if (functionNode.getFunctionType().equals(FunctionNodeType.ASSIGNMENT)) {
+        if (functionNode.getFunctionType().equals(FunctionNode.Type.ASSIGNMENT)) {
             return invokeAssignment(input, child, parent, functionNode);
         }
 
@@ -149,7 +147,7 @@ public class SquigglyFunctionInvoker {
         List<SquigglyFunction<Object>> functions = functionSource.findByName(functionNode.getName());
 
         if (functions.isEmpty()) {
-            throw new SquigglyParseException(functionNode.getContext(), "Unrecognized function [%s]", functionNode.getName());
+            throw new SquigglyParseException(functionNode.getOrigin(), "Unrecognized function [%s]", functionNode.getName());
         }
 
         List<Object> parameters = toParameters(functionNode, input, child, parent);
@@ -160,7 +158,7 @@ public class SquigglyFunctionInvoker {
         SquigglyFunction<Object> winner = result.getWinner();
 
         if (winner == null) {
-            throw new SquigglyParseException(functionNode.getContext(), "Unable to match function [%s] with parameters %s.",
+            throw new SquigglyParseException(functionNode.getOrigin(), "Unable to match function [%s] with parameters %s.",
                     functionNode.getName(),
                     parameters.stream()
                             .map(p -> String.format("{type=%s, value=%s}", (p == null ? "null" : p.getClass()), p)).collect(Collectors.toList()));
@@ -183,7 +181,7 @@ public class SquigglyFunctionInvoker {
         ArgumentNode lastArg = argumentNodes.get(1);
 
         if (SystemFunctionName.ASSIGN.getFunctionName().equals(functionNode.getName())) {
-            if (lastArg.getArgumentType() == ArgumentNodeType.FUNCTION_CHAIN) {
+            if (lastArg.getArgumentType() == ArgumentNode.Type.FUNCTION_CHAIN) {
                 return invoke(input, child, parent, (List<FunctionNode>) lastArg.getValue());
             } else {
                 return getValue(lastArg, input, child, parent);
@@ -317,7 +315,7 @@ public class SquigglyFunctionInvoker {
             case ARRAY_DECLARATION:
                 return buildArrayDeclaration(input, child, parent, (List<ArgumentNode>) argumentNode.getValue());
             case ARRAY_RANGE_DECLARATION:
-                return buildArrayRangeDeclartion(input, child, parent, (IntRangeNode) argumentNode.getValue(), argumentNode.getContext());
+                return buildArrayRangeDeclartion(input, child, parent, (IntRangeNode) argumentNode.getValue(), argumentNode.getOrigin());
             case FUNCTION_CHAIN:
                 return buildFunctionChain(child, parent, (List<FunctionNode>) argumentNode.getValue());
             case LAMBDA:
@@ -378,7 +376,7 @@ public class SquigglyFunctionInvoker {
         return elements.stream().map(arg -> invokeAndGetValue(arg, input, child, parent)).collect(Collectors.toList());
     }
 
-    private Object buildArrayRangeDeclartion(Object input, Object child, Object parent, IntRangeNode rangeNode, SquigglyParseContext context) {
+    private Object buildArrayRangeDeclartion(Object input, Object child, Object parent, IntRangeNode rangeNode, SquigglyNodeOrigin origin) {
         CoreIntRange range = buildIntRange(input, child, parent, rangeNode);
 
         Integer start = range.getStart();
@@ -399,7 +397,7 @@ public class SquigglyFunctionInvoker {
         int length = end - start;
 
         if (length > config.getMaxArrayRangeDeclarationLength()) {
-            throw new SquigglyParseException(context, "Array range declaration cannot exceed a length of %s.", config.getMaxArrayRangeDeclarationLength());
+            throw new SquigglyParseException(origin, "Array range declaration cannot exceed a length of %s.", config.getMaxArrayRangeDeclarationLength());
         }
 
         List<Integer> list = new ArrayList<>(length);
@@ -419,7 +417,7 @@ public class SquigglyFunctionInvoker {
         Function function;
         FunctionNode firstFunctionNode = functionNodes.get(0);
 
-        if (firstFunctionNode.getFunctionType() == FunctionNodeType.PROPERTY) {
+        if (firstFunctionNode.getFunctionType() == FunctionNode.Type.PROPERTY) {
             function = new Property(child, parent, firstFunctionNode.isAscending(), functionNodes);
         } else {
             function = new FunctionChain(child, parent, functionNodes);

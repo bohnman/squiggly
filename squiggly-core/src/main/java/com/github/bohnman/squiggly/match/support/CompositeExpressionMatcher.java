@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.match.support;
 
 import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
-import com.github.bohnman.squiggly.node.support.ExpressionNode;
+import com.github.bohnman.squiggly.node.ExpressionNode;
 import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
 
 import java.util.List;

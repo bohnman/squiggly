@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.json.filter;
 
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.match.support.DefaultExpressionMatcher;
 import com.github.bohnman.squiggly.filter.SquigglyFilterContext;
@@ -9,9 +9,9 @@ import com.github.bohnman.squiggly.filter.SquigglyFilterSource;
 import com.github.bohnman.squiggly.function.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.json.node.SquigglyJsonNode;
 import com.github.bohnman.squiggly.parse.SquigglyParser;
-import com.github.bohnman.squiggly.node.support.ExpressionNode;
-import com.github.bohnman.squiggly.node.support.FilterNode;
-import com.github.bohnman.squiggly.node.support.StatementNode;
+import com.github.bohnman.squiggly.node.ExpressionNode;
+import com.github.bohnman.squiggly.node.FilterNode;
+import com.github.bohnman.squiggly.node.StatementNode;
 
 import java.util.Objects;
 
@@ -21,13 +21,13 @@ import java.util.Objects;
 @SuppressWarnings("unchecked")
 public class SquigglyJsonNodeFilter {
 
-    private final SquigglyEnvironment config;
+    private final SquigglyEnvironmentOld config;
     private final DefaultExpressionMatcher expressionMatcher;
     private final SquigglyFunctionInvoker functionInvoker;
     private final SquigglyParser parser;
 
     public SquigglyJsonNodeFilter(
-            SquigglyEnvironment config,
+            SquigglyEnvironmentOld config,
             DefaultExpressionMatcher expressionMatcher,
             SquigglyFilterContextProvider filterContextProvider,
             SquigglyFilterSource filterSource,

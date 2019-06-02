@@ -3,7 +3,7 @@ package com.github.bohnman.squiggly.jackson.object.introspectors;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.github.bohnman.core.lang.CoreStrings;
-import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.introspect.ObjectIntrospector;
 import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
 
@@ -16,7 +16,7 @@ import java.lang.reflect.Method;
 
 public class JacksonObjectIntrospector extends ObjectIntrospector {
 
-    public JacksonObjectIntrospector(SquigglyEnvironment config, SquigglyMetrics metrics) {
+    public JacksonObjectIntrospector(SquigglyEnvironmentOld config, SquigglyMetrics metrics) {
         super(config, metrics);
     }
 

@@ -12,9 +12,9 @@ import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.filter.SquigglyFilterContext;
 import com.github.bohnman.squiggly.function.SquigglyFunctionInvoker;
 import com.github.bohnman.squiggly.jackson.serialize.SquigglyJacksonSerializer;
-import com.github.bohnman.squiggly.node.support.ExpressionNode;
-import com.github.bohnman.squiggly.node.support.FilterNode;
-import com.github.bohnman.squiggly.node.support.StatementNode;
+import com.github.bohnman.squiggly.node.ExpressionNode;
+import com.github.bohnman.squiggly.node.FilterNode;
+import com.github.bohnman.squiggly.node.StatementNode;
 import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
 import com.github.bohnman.squiggly.path.SquigglyObjectPathElement;
 

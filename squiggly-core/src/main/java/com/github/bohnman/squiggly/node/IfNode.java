@@ -1,13 +1,12 @@
-package com.github.bohnman.squiggly.node.support;
+package com.github.bohnman.squiggly.node;
 
-import com.github.bohnman.squiggly.parse.SquigglyParseContext;
-
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * Represents an if statement
  */
-public class IfNode extends BaseSquigglyNode {
+public class IfNode extends BaseNode {
 
     private final List<IfClause> ifClauses;
     private final ArgumentNode elseClause;
@@ -18,8 +17,8 @@ public class IfNode extends BaseSquigglyNode {
      * @param ifClauses  test conditions
      * @param elseClause else logic
      */
-    public IfNode(SquigglyParseContext parseContext, List<IfClause> ifClauses, ArgumentNode elseClause) {
-        super(parseContext);
+    IfNode(SquigglyNodeOrigin origin, @Nullable ArgumentNode elseClause, List<IfClause> ifClauses) {
+        super(origin);
         this.ifClauses = ifClauses;
         this.elseClause = elseClause;
     }
@@ -38,6 +37,7 @@ public class IfNode extends BaseSquigglyNode {
      *
      * @return else clause
      */
+    @Nullable
     public ArgumentNode getElseClause() {
         return elseClause;
     }
@@ -55,7 +55,7 @@ public class IfNode extends BaseSquigglyNode {
          * @param condition test condition
          * @param value     logic to execute if argument is true
          */
-        public IfClause(ArgumentNode condition, ArgumentNode value) {
+        IfClause(ArgumentNode condition, ArgumentNode value) {
             this.condition = condition;
             this.value = value;
         }

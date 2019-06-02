@@ -1,8 +1,8 @@
 package com.github.bohnman.squiggly.match;
 
 import com.github.bohnman.squiggly.name.SquigglyNames;
-import com.github.bohnman.squiggly.node.support.ExpressionNode;
-import com.github.bohnman.squiggly.node.support.StatementNode;
+import com.github.bohnman.squiggly.node.ExpressionNode;
+import com.github.bohnman.squiggly.node.StatementNode;
 import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
 
 public interface SquigglyExpressionMatcher {

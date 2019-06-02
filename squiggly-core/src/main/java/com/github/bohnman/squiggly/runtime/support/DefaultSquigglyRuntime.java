@@ -1,7 +1,7 @@
 package com.github.bohnman.squiggly.runtime.support;
 
 import com.github.bohnman.squiggly.convert.ConverterDescriptor;
-import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
 import com.github.bohnman.squiggly.convert.support.DefaultConversionService;
@@ -24,7 +24,7 @@ import com.github.bohnman.squiggly.introspect.ObjectIntrospector;
 import com.github.bohnman.squiggly.match.support.SquigglyExpressionMatchers;
 import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
 import com.github.bohnman.squiggly.parse.SquigglyParser;
-import com.github.bohnman.squiggly.parse.antlr.AntlrSquigglyParser;
+import com.github.bohnman.squiggly.parse.AntlrSquigglyParser;
 import com.github.bohnman.squiggly.property.*;
 import com.github.bohnman.squiggly.runtime.SquigglyRuntime;
 import com.github.bohnman.squiggly.runtime.SquigglyRuntimeBuilder;
@@ -45,7 +45,7 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
 
 
     private final ObjectIntrospector objectIntrospector;
-    private final SquigglyEnvironment config;
+    private final SquigglyEnvironmentOld config;
     private final SquigglyConversionService conversionService;
     private final SquigglyFilterContextProvider contextProvider;
     private final SquigglyFilterSource filterRepository;
@@ -94,7 +94,7 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
      * @return config
      */
     @Override
-    public SquigglyEnvironment getConfig() {
+    public SquigglyEnvironmentOld getConfig() {
         return config;
     }
 
@@ -266,7 +266,7 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
 
         // Built Properties
         @Nullable
-        protected SquigglyEnvironment builtConfig;
+        protected SquigglyEnvironmentOld builtConfig;
 
         @Nullable
         protected SquigglyFilterContextProvider builtContextProvider;
@@ -443,7 +443,7 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
         @Override
         public DefaultSquigglyRuntime build() {
             this.builtPropertySource = buildPropertySource();
-            this.builtConfig = new SquigglyEnvironment(this.builtPropertySource);
+            this.builtConfig = new SquigglyEnvironmentOld(this.builtPropertySource);
             this.builtContextProvider = buildContextProvider();
             this.builtConversionService = buildConversionService(builtConfig);
             this.builtFilterRepository = buildFilterSource();
@@ -460,7 +460,7 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
         }
 
         @Nullable
-        public SquigglyEnvironment getBuiltConfig() {
+        public SquigglyEnvironmentOld getBuiltConfig() {
             return builtConfig;
         }
 
@@ -509,7 +509,7 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
             return contextProvider;
         }
 
-        protected SquigglyConversionService buildConversionService(SquigglyEnvironment config) {
+        protected SquigglyConversionService buildConversionService(SquigglyEnvironmentOld config) {
             SquigglyConverterRegistry registry = converterRegistry == null ? new ListConverterRegistry() : converterRegistry;
 
             registry.addAll(converterDescriptors);
@@ -525,7 +525,7 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
             return this.conversionService.apply(registry);
         }
 
-        protected SquigglyExpressionMatcher buildExpressionMatcher(SquigglyEnvironment environment, SquigglyMetrics metrics) {
+        protected SquigglyExpressionMatcher buildExpressionMatcher(SquigglyEnvironmentOld environment, SquigglyMetrics metrics) {
             List<SquigglyExpressionMatcher> matchers = new ArrayList<>(matcherInterceptors.size() + 1);
 
             if (this.matcher == null) {

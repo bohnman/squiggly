@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.parse;
 
-import com.github.bohnman.squiggly.node.support.FilterNode;
+import com.github.bohnman.squiggly.node.FilterNode;
 
 /**
  * The parser takes a filter expression and compiles it to an Abstract Syntax Tree (AST).  In this parser's case, the

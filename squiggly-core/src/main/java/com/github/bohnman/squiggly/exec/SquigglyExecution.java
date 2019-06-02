@@ -1,6 +1,6 @@
 package com.github.bohnman.squiggly.exec;
 
-import com.github.bohnman.squiggly.node.support.FilterNode;
+import com.github.bohnman.squiggly.node.FilterNode;
 import com.github.bohnman.squiggly.path.SquigglyObjectPath;
 
 public interface SquigglyExecution {

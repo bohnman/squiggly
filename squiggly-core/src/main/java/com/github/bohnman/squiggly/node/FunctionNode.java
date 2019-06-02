@@ -1,6 +1,4 @@
-package com.github.bohnman.squiggly.node.support;
-
-import com.github.bohnman.squiggly.parse.SquigglyParseContext;
+package com.github.bohnman.squiggly.node;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -12,19 +10,19 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
 /**
  * Represents a function call.
  */
-public class FunctionNode extends BaseSquigglyNode {
+public class FunctionNode extends BaseNode {
 
     private final String name;
     private final List<ArgumentNode> arguments;
     private final boolean ignoreNulls;
-    private final FunctionNodeType functionType;
+    private final Type functionType;
     private final boolean ascending;
     private final boolean initial;
 
     /**
      * Constuctor.
      *
-     * @param context     parse context
+     * @param origin     parse origin
      * @param name        name of the function
      * @param arguments   function arguments
      * @param ignoreNulls ignore function if input is null
@@ -32,15 +30,15 @@ public class FunctionNode extends BaseSquigglyNode {
      * @param ascending   is sorted ascending
      * @param initial     initial
      */
-    public FunctionNode(
-            SquigglyParseContext context,
+    private FunctionNode(
+            SquigglyNodeOrigin origin,
             String name,
             List<ArgumentNode> arguments,
             boolean ignoreNulls,
-            FunctionNodeType functionType,
+            Type functionType,
             boolean ascending,
             boolean initial) {
-        super(context);
+        super(origin);
         this.name = notNull(name);
         this.arguments = Collections.unmodifiableList(notNull(arguments));
         this.ignoreNulls = ignoreNulls;
@@ -81,7 +79,7 @@ public class FunctionNode extends BaseSquigglyNode {
      *
      * @return type
      */
-    public FunctionNodeType getFunctionType() {
+    public Type getFunctionType() {
         return functionType;
     }
 
@@ -98,15 +96,6 @@ public class FunctionNode extends BaseSquigglyNode {
         return initial;
     }
 
-    /**
-     * Create a new builder to help with construction.
-     *
-     * @return builder
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
     @Override
     public String toString() {
         return String.format("%s(%s)", name, arguments);
@@ -115,10 +104,7 @@ public class FunctionNode extends BaseSquigglyNode {
     /**
      * Assists with construction of the function node.
      */
-    public static class Builder {
-
-        @Nullable
-        private SquigglyParseContext context;
+    public static class Builder extends BaseNodeBuilder<FunctionNode> {
 
         @Nullable
         private String name;
@@ -126,23 +112,14 @@ public class FunctionNode extends BaseSquigglyNode {
         private List<ArgumentNode> arguments = new ArrayList<>();
         private boolean ignoreNulls;
 
-        private FunctionNodeType type = FunctionNodeType.FUNCTION;
+        private Type type = Type.FUNCTION;
         private boolean ascending = true;
         private boolean initial;
 
-        private Builder() {
+        Builder(SquigglyNodeOrigin origin) {
+            super(origin);
         }
 
-        /**
-         * Sets the parse context.
-         *
-         * @param context parse context
-         * @return builder
-         */
-        public Builder context(SquigglyParseContext context) {
-            this.context = context;
-            return this;
-        }
 
         /**
          * Sets the function name
@@ -184,7 +161,7 @@ public class FunctionNode extends BaseSquigglyNode {
          * @param type function type
          * @return builder
          */
-        public Builder type(FunctionNodeType type) {
+        public Builder type(Type type) {
             this.type = type;
             return this;
         }
@@ -217,7 +194,28 @@ public class FunctionNode extends BaseSquigglyNode {
          * @return node
          */
         public FunctionNode build() {
-            return new FunctionNode(context, name, arguments, ignoreNulls, type, ascending, initial);
+            return new FunctionNode(getOrigin(), name, arguments, ignoreNulls, type, ascending, initial);
         }
+    }
+
+    /**
+     * Indicates the category of the function node.
+     */
+    public enum Type {
+
+        /**
+         * A function that performs an assignment.  Eg. foo=bar
+         */
+        ASSIGNMENT,
+
+        /**
+         * A regular function.
+         */
+        FUNCTION,
+
+        /**
+         * A property retrieving function.
+         */
+        PROPERTY,
     }
 }

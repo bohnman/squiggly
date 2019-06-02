@@ -1,16 +1,15 @@
 package com.github.bohnman.squiggly.function;
 
 import com.github.bohnman.core.function.CoreLambda;
-import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
 import com.github.bohnman.squiggly.convert.support.DefaultConversionService;
 import com.github.bohnman.squiggly.convert.support.SystemConverters;
 import com.github.bohnman.squiggly.convert.support.SquigglyConverterRegistries;
-import com.github.bohnman.squiggly.parse.SquigglyParseContext;
-import com.github.bohnman.squiggly.node.support.ArgumentNode;
-import com.github.bohnman.squiggly.node.support.ArgumentNodeType;
-import com.github.bohnman.squiggly.node.support.FunctionNode;
+import com.github.bohnman.squiggly.node.SquigglyNodeOrigin;
+import com.github.bohnman.squiggly.node.ArgumentNode;
+import com.github.bohnman.squiggly.node.FunctionNode;
 import com.github.bohnman.squiggly.variable.SquigglyVariableSource;
 import com.github.bohnman.squiggly.variable.SquigglyVariables;
 import org.junit.Test;
@@ -25,10 +24,10 @@ public class SquigglyJacksonFunctionInvokerTest {
 
 
     private final SquigglyVariableSource variableResolver = new SquigglyVariables.MapVariableSource();
-    private final SquigglyEnvironment config = new SquigglyEnvironment();
+    private final SquigglyEnvironmentOld config = new SquigglyEnvironmentOld();
     private final SquigglyConverterRegistry converterRegistry = SquigglyConverterRegistries.create(SystemConverters::add);
     private final SquigglyConversionService conversionService = new DefaultConversionService(config, converterRegistry);
-    private final SquigglyParseContext parseContext = new SquigglyParseContext(1, 1);
+    private final SquigglyNodeOrigin origin = new SquigglyNodeOrigin(1, 1);
 
 
 //    @Test
@@ -83,7 +82,7 @@ public class SquigglyJacksonFunctionInvokerTest {
     private FunctionNode.Builder functionBuilder(String name, ArgumentNode.Builder... args) {
         FunctionNode.Builder builder = FunctionNode.builder()
                 .name(name)
-                .context(parseContext);
+                .context(origin);
 
         for (ArgumentNode.Builder arg : args) {
             builder.argument(arg);
@@ -93,13 +92,13 @@ public class SquigglyJacksonFunctionInvokerTest {
     }
 
     private ArgumentNode.Builder input() {
-        return arg(ArgumentNodeType.INPUT, ArgumentNodeType.INPUT);
+        return arg(ArgumentNode.Type.INPUT, ArgumentNode.Type.INPUT);
     }
 
 
-    private ArgumentNode.Builder arg(ArgumentNodeType type, Object value) {
+    private ArgumentNode.Builder arg(ArgumentNode.Type type, Object value) {
         return ArgumentNode.builder()
-                .context(parseContext)
+                .context(origin)
                 .type(type)
                 .value(value);
     }

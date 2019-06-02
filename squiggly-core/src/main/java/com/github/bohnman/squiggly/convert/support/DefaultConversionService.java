@@ -5,7 +5,7 @@ import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.lang.CoreClasses;
 import com.github.bohnman.core.lang.Null;
 import com.github.bohnman.squiggly.convert.ConverterDescriptor;
-import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
 
@@ -31,7 +31,7 @@ public class DefaultConversionService implements SquigglyConversionService {
      * @param config            the config
      * @param converterRegistry the registry
      */
-    public DefaultConversionService(SquigglyEnvironment config, SquigglyConverterRegistry converterRegistry) {
+    public DefaultConversionService(SquigglyEnvironmentOld config, SquigglyConverterRegistry converterRegistry) {
         this.cache = CoreCacheBuilder.from(config.getConvertCacheSpec()).build();
 
         Map<Key, ConverterDescriptor> map = new HashMap<>(descriptors.size());

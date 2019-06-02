@@ -1,6 +1,4 @@
-package com.github.bohnman.squiggly.node.support;
-
-import com.github.bohnman.squiggly.parse.SquigglyParseContext;
+package com.github.bohnman.squiggly.node;
 
 import java.util.Collections;
 import java.util.List;
@@ -8,7 +6,7 @@ import java.util.List;
 /**
  * Represents a lambda call.
  */
-public class LambdaNode extends BaseSquigglyNode {
+public class LambdaNode extends BaseNode {
 
     private final List<String> arguments;
     private final FunctionNode body;
@@ -16,12 +14,12 @@ public class LambdaNode extends BaseSquigglyNode {
     /**
      * Constructor.
      *
-     * @param context   parse context
-     * @param arguments lambda arguments
+     * @param origin   parse origin
      * @param body      execution logic
+     * @param arguments lambda arguments
      */
-    public LambdaNode(SquigglyParseContext context, List<String> arguments, FunctionNode body) {
-        super(context);
+    LambdaNode(SquigglyNodeOrigin origin, FunctionNode body, List<String> arguments) {
+        super(origin);
         this.arguments = Collections.unmodifiableList(arguments);
         this.body = body;
     }

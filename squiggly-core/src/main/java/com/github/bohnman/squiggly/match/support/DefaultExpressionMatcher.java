@@ -3,14 +3,14 @@ package com.github.bohnman.squiggly.match.support;
 import com.github.bohnman.core.cache.CoreCache;
 import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.tuple.CorePair;
-import com.github.bohnman.squiggly.environment.SquigglyEnvironment;
+import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.introspect.ObjectDescriptor;
 import com.github.bohnman.squiggly.introspect.ObjectIntrospector;
 import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.metric.support.CoreCacheMetricsSource;
 import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
 import com.github.bohnman.squiggly.name.SquigglyNames;
-import com.github.bohnman.squiggly.node.support.ExpressionNode;
+import com.github.bohnman.squiggly.node.ExpressionNode;
 import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
 import com.github.bohnman.squiggly.path.SquigglyObjectPath;
 import com.github.bohnman.squiggly.path.SquigglyObjectPathElement;
@@ -28,7 +28,7 @@ public class DefaultExpressionMatcher implements SquigglyExpressionMatcher {
 
     private static final List<ExpressionNode> BASE_VIEW_NODES = Collections.singletonList(ExpressionNode.createNamedNested(new SquigglyNames.ExactName(PropertyView.BASE_VIEW)));
 
-    private final SquigglyEnvironment config;
+    private final SquigglyEnvironmentOld config;
     private final CoreCache<CorePair<SquigglyObjectPath, String>, ExpressionNode> matchCache;
     private final ObjectIntrospector introspector;
 
@@ -38,7 +38,7 @@ public class DefaultExpressionMatcher implements SquigglyExpressionMatcher {
      * @param squiggly configurator
      */
     public DefaultExpressionMatcher(
-            SquigglyEnvironment environment,
+            SquigglyEnvironmentOld environment,
             ObjectIntrospector introspector,
             SquigglyMetrics metrics) {
 

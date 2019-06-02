@@ -3,7 +3,7 @@ package com.github.bohnman.squiggly.exec.support;
 import com.github.bohnman.core.collect.CoreLists;
 import com.github.bohnman.squiggly.exec.SquigglyExecution;
 import com.github.bohnman.squiggly.exec.SquigglyExecutionInterceptor;
-import com.github.bohnman.squiggly.node.support.FilterNode;
+import com.github.bohnman.squiggly.node.FilterNode;
 
 import java.util.Arrays;
 import java.util.Collections;

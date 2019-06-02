@@ -25,27 +25,31 @@ public class SquigglyNames {
     public static SquigglyName anyDeep() {
         return ANY_DEEP;
     }
-    
+
     public static SquigglyName anyShallow() {
         return ANY_SHALLOW;
     }
-    
+
     public static SquigglyName deepInherit() {
         return DEEP_INHERIT;
     }
-    
+
     public static SquigglyName exact(String name) {
         return new ExactName(name);
     }
-    
+
     public static SquigglyName neverMatch() {
         return NEVER_MATCH;
     }
-    
+
     public static SquigglyName regex(String regex) {
         return new RegexName(regex, Pattern.compile(regex));
     }
-    
+
+    public static SquigglyName regex(String regex, Pattern pattern) {
+        return new RegexName(regex, pattern);
+    }
+
     public static SquigglyName wildcard(String wildcard) {
         return new WildcardName(wildcard);
     }
@@ -55,20 +59,20 @@ public class SquigglyNames {
      * Indicates that the node name matches any node at any nesting level.
      */
     private static class AnyDeepName extends BaseSquigglyName {
-    
+
         private AnyDeepName() {
         }
-    
+
         @Override
         public String getToken() {
             return ANY_DEEP_TOKEN;
         }
-    
+
         @Override
         public int getSpecificity() {
             return 0;
         }
-    
+
         @Override
         public boolean matches(String token) {
             return true;
@@ -79,20 +83,20 @@ public class SquigglyNames {
      * Represent a name that matches any node at the current nesting level.
      */
     private static class AnyShallowName extends BaseSquigglyName {
-    
+
         private AnyShallowName() {
         }
-    
+
         @Override
         public String getToken() {
             return ANY_SHALLOW_TOKEN;
         }
-    
+
         @Override
         public int getSpecificity() {
             return 1;
         }
-    
+
         @Override
         public boolean matches(String token) {
             return true;
@@ -100,20 +104,20 @@ public class SquigglyNames {
     }
 
     private static class DeepInheritName extends BaseSquigglyName {
-    
+
         private DeepInheritName() {
         }
-    
+
         @Override
         public String getToken() {
             return DEEP_INHERIT_TOKEN;
         }
-    
+
         @Override
         public int getSpecificity() {
             return 0;
         }
-    
+
         @Override
         public boolean matches(String token) {
             return false;
@@ -124,9 +128,9 @@ public class SquigglyNames {
      * Represents an exact name match.
      */
     public static class ExactName extends BaseSquigglyName {
-    
+
         private final String token;
-    
+
         /**
          * Constructor.
          *
@@ -135,17 +139,17 @@ public class SquigglyNames {
         ExactName(String token) {
             this.token = requireNonNull(token);
         }
-    
+
         @Override
         public String getToken() {
             return token;
         }
-    
+
         @Override
         public int getSpecificity() {
             return Integer.MAX_VALUE;
         }
-    
+
         @Override
         public boolean matches(String token) {
             return this.token.equals(token);
@@ -156,17 +160,17 @@ public class SquigglyNames {
      * Indicates that the node name matches any node at any nesting level.
      */
     public static class NeverMatchName extends BaseSquigglyName {
-    
+
         @Override
         public String getToken() {
             return NEVER_MATCH_TOKEN;
         }
-    
+
         @Override
         public int getSpecificity() {
             return 0;
         }
-    
+
         @Override
         public boolean matches(String token) {
             return false;
@@ -177,15 +181,15 @@ public class SquigglyNames {
      * Represents a regex name match.
      */
     public static class RegexName extends BaseSquigglyName {
-    
+
         private final String token;
         private final String rawName;
         private final Pattern pattern;
-    
+
         /**
          * Constructor.
          *
-         * @param token    the raw pattern string
+         * @param token   the raw pattern string
          * @param pattern the compiled regex
          */
         public RegexName(String token, Pattern pattern) {
@@ -193,17 +197,17 @@ public class SquigglyNames {
             this.rawName = token;
             this.pattern = pattern;
         }
-    
+
         @Override
         public String getToken() {
             return token;
         }
-    
+
         @Override
         public int getSpecificity() {
             return rawName.length() + 2;
         }
-    
+
         @Override
         public boolean matches(String token) {
             return pattern.matcher(token).matches();
@@ -214,11 +218,11 @@ public class SquigglyNames {
      * Represents a wildcard match.  For example: foo*
      */
     public static class WildcardName extends BaseSquigglyName {
-    
+
         private final String token;
         private final String rawName;
         private final Pattern pattern;
-    
+
         /**
          * Constructor.
          *
@@ -229,24 +233,24 @@ public class SquigglyNames {
             this.rawName = CoreStrings.remove(this.token, "*");
             this.pattern = buildPattern();
         }
-    
+
         private Pattern buildPattern() {
             String[] search = {"*", "?"};
             String[] replace = {".*", ".?"};
-    
+
             return Pattern.compile("^" + CoreStrings.replaceEach(token, search, replace) + "$");
         }
-    
+
         @Override
         public String getToken() {
             return token;
         }
-    
+
         @Override
         public int getSpecificity() {
             return rawName.length() + 2;
         }
-    
+
         @Override
         public boolean matches(String token) {
             return pattern.matcher(token).matches();

@@ -1,17 +1,17 @@
-package com.github.bohnman.squiggly.node.support;
+package com.github.bohnman.squiggly.node;
 
 import com.github.bohnman.squiggly.name.*;
-import com.github.bohnman.squiggly.parse.SquigglyParseContext;
+import com.github.bohnman.squiggly.parse.SquigglyParseException;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * A squiggly node represents a component of a filter expression.
  */
 @ThreadSafe
-public class ExpressionNode extends BaseSquigglyNode implements Comparable<ExpressionNode> {
+public class ExpressionNode extends BaseNode implements Comparable<ExpressionNode> {
 
     private final SquigglyName name;
     private final int modifiers;
@@ -25,7 +25,7 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
     /**
      * Constructor.
      *
-     * @param context        parser context
+     * @param origin        parser origin
      * @param name           name of the node
      * @param children       child nodes
      * @param keyFunctions   key functions
@@ -38,8 +38,8 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @param maxDepth       max depth
      * @see #isNested()
      */
-    public ExpressionNode(
-            SquigglyParseContext context,
+    private ExpressionNode(
+            SquigglyNodeOrigin origin,
             SquigglyName name,
             int modifiers,
             List<ExpressionNode> children,
@@ -48,7 +48,7 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
             List<FunctionNode> valueFunctions,
             Integer minDepth,
             Integer maxDepth) {
-        super(context);
+        super(origin);
         this.name = name;
         this.modifiers = modifiers;
         this.children = Collections.unmodifiableList(children);
@@ -153,12 +153,12 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @return true if **, false if not
      */
     public boolean isAnyDeep() {
-        return SquigglyNames.AnyDeepName.ANY_DEEP_SYMBOL.equals(name.getToken());
+        return SquigglyNames.ANY_DEEP_TOKEN.equals(name.getToken());
     }
 
 
     public boolean isDeepInherit() {
-        return SquigglyNames.DeepInheritName.DEEP_INHERIT_SYMBOL.equals(name.getToken());
+        return SquigglyNames.DEEP_INHERIT_TOKEN.equals(name.getToken());
     }
 
     /**
@@ -167,7 +167,7 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @return true if *, false if not
      */
     public boolean isAnyShallow() {
-        return SquigglyNames.AnyShallowName.ANY_SHALLOW_SYMNBOL.equals(name.getToken());
+        return SquigglyNames.ANY_SHALLOW_TOKEN.equals(name.getToken());
     }
 
     /**
@@ -249,7 +249,7 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @return ndoe
      */
     public ExpressionNode withName(SquigglyName newName) {
-        return new ExpressionNode(getContext(), newName, modifiers, children, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
+        return new ExpressionNode(getOrigin(), newName, modifiers, children, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
     }
 
     /**
@@ -259,15 +259,15 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
      * @return children
      */
     public ExpressionNode withChildren(List<ExpressionNode> newChildren) {
-        return new ExpressionNode(getContext(), name, modifiers, newChildren, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
+        return new ExpressionNode(getOrigin(), name, modifiers, newChildren, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
     }
 
     public static ExpressionNode createNamed(SquigglyName name) {
-        return new ExpressionNode(new SquigglyParseContext(1, 1), name, 0, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), null, null);
+        return new ExpressionNode(SquigglyNodeOrigin.create(), name, 0, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), null, null);
     }
 
     public static ExpressionNode createNamedNested(SquigglyName name) {
-        return new ExpressionNode(new SquigglyParseContext(1, 1), name, Modifier.NESTED, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), null, null);
+        return new ExpressionNode(SquigglyNodeOrigin.create(), name, Modifier.NESTED, Collections.emptyList(), 0, Collections.emptyList(), Collections.emptyList(), null, null);
     }
 
 
@@ -301,5 +301,181 @@ public class ExpressionNode extends BaseSquigglyNode implements Comparable<Expre
         public static int setNested(int mod, boolean flag) {
             return (flag) ? mod | NESTED : mod & ~NESTED;
         }
+    }
+
+    public static class Builder extends BaseNodeBuilder<ExpressionNode> {
+        private boolean negativeParent;
+
+        @Nullable
+        private SquigglyName name;
+        private int modifiers;
+        private int depth;
+        @Nullable
+        private Map<String, Builder> children;
+        private boolean dotPathed;
+        @Nullable
+        private Builder parent;
+        private List<FunctionNode> keyFunctions = new ArrayList<>();
+        private List<FunctionNode> valueFunctions = new ArrayList<>();
+
+        @Nullable
+        private Integer minDepth;
+
+        @Nullable
+        private Integer maxDepth;
+
+        Builder(SquigglyNodeOrigin origin) {
+            super(origin);
+        }
+
+        public Map<String, Builder> getChildren() {
+            if (children == null) {
+                return Collections.emptyMap();
+            }
+
+            return children;
+        }
+
+        public int getDepth() {
+            return depth;
+        }
+
+        public int getModifiers() {
+            return modifiers;
+        }
+
+        public boolean isDotPathed() {
+            return dotPathed;
+        }
+
+        public boolean isNegativeParent() {
+            return negativeParent;
+        }
+
+        public ExpressionNode build() {
+            if (name == null) {
+                throw new SquigglyParseException(getOrigin(), "no name specified.");
+            }
+
+            List<ExpressionNode> childNodes;
+
+            if (children == null || children.isEmpty()) {
+                childNodes = Collections.emptyList();
+            } else {
+                childNodes = new ArrayList<>(children.size());
+
+                for (Builder child : children.values()) {
+                    childNodes.add(child.build());
+                }
+            }
+
+            return new ExpressionNode(getOrigin(), name, modifiers, childNodes, depth, keyFunctions, valueFunctions, minDepth, maxDepth);
+        }
+
+        public Builder depth(int depth) {
+            this.depth = depth;
+            return this;
+        }
+
+        public Builder dotPathed(boolean dotPathed) {
+            this.dotPathed = dotPathed;
+            return this;
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        public Builder keyFunctions(List<FunctionNode> functions) {
+            functions.forEach(this::keyFunction);
+            return this;
+        }
+
+        public Builder keyFunction(FunctionNode function) {
+            keyFunctions.add(function);
+            return this;
+        }
+
+        @SuppressWarnings("UnusedReturnValue")
+        public Builder valueFunctions(List<FunctionNode> functions) {
+            functions.forEach(this::valueFunction);
+            return this;
+        }
+
+        public Builder valueFunction(FunctionNode function) {
+            valueFunctions.add(function);
+            return this;
+        }
+
+        public Builder name(SquigglyName name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder nested(boolean nested) {
+            modifiers = Modifier.setNested(modifiers, nested);
+            return this;
+        }
+
+        public Builder negated(boolean negated) {
+            modifiers = Modifier.setNegated(modifiers, negated);
+            return this;
+        }
+
+        public Builder deep(boolean deep) {
+            modifiers = Modifier.setDeep(modifiers, deep);
+            return this;
+        }
+
+        public Builder minDepth(Integer minDepth) {
+            this.minDepth = minDepth;
+            return this;
+        }
+
+        public Builder maxDepth(Integer maxDepth) {
+            this.maxDepth = maxDepth;
+            return this;
+        }
+
+        public Builder negativeParent(boolean negativeParent) {
+            this.negativeParent = negativeParent;
+            return null;
+        }
+
+        public Builder child(Builder childToAdd) {
+            if (children == null) {
+                children = new LinkedHashMap<>();
+            }
+
+            String name = childToAdd.name.getToken();
+            Builder existingChild = children.get(name);
+
+            if (existingChild == null) {
+                childToAdd.parent = this;
+                children.put(name, childToAdd);
+            } else {
+                if (childToAdd.children != null) {
+
+                    if (existingChild.children == null) {
+                        existingChild.children = childToAdd.children;
+                    } else {
+                        existingChild.children.putAll(childToAdd.children);
+                    }
+                }
+
+
+                existingChild.nested(Modifier.isNested(existingChild.modifiers) || Modifier.isNested(childToAdd.modifiers));
+                existingChild.dotPathed = existingChild.dotPathed && childToAdd.dotPathed;
+                existingChild.negativeParent = existingChild.negativeParent && childToAdd.negativeParent;
+                childToAdd = existingChild;
+            }
+
+            if (!childToAdd.dotPathed && dotPathed) {
+                dotPathed = false;
+            }
+
+            childToAdd.depth(depth + 1);
+
+            return childToAdd;
+        }
+
+
     }
 }
