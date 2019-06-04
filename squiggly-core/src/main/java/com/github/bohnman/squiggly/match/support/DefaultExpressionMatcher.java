@@ -7,7 +7,7 @@ import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.introspect.ObjectDescriptor;
 import com.github.bohnman.squiggly.introspect.ObjectIntrospector;
 import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
-import com.github.bohnman.squiggly.metric.support.CoreCacheMetricsSource;
+import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
 import com.github.bohnman.squiggly.name.SquigglyNames;
 import com.github.bohnman.squiggly.node.ExpressionNode;
@@ -45,7 +45,7 @@ public class DefaultExpressionMatcher implements SquigglyExpressionMatcher {
         this.config = requireNonNull(environment);
         this.matchCache = CoreCacheBuilder.from(environment.getFilterPathCacheSpec()).build();
         this.introspector = requireNonNull(introspector);
-        metrics.add(new CoreCacheMetricsSource("squiggly.filter.path-cache.", matchCache));
+        metrics.add(new SquigglyMetrics.CoreCacheMetricsSource("squiggly.filter.path-cache.", matchCache));
     }
 
 

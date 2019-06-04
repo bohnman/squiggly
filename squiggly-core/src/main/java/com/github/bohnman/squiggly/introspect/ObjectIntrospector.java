@@ -4,8 +4,8 @@ import com.github.bohnman.core.cache.CoreCache;
 import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.lang.CoreFields;
 import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
+import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
-import com.github.bohnman.squiggly.metric.support.CoreCacheMetricsSource;
 import com.github.bohnman.squiggly.view.PropertyView;
 
 import javax.annotation.Nonnull;
@@ -35,7 +35,7 @@ public class ObjectIntrospector {
     public ObjectIntrospector(SquigglyEnvironmentOld config, SquigglyMetrics metrics) {
         this.config = notNull(config);
         cache = CoreCacheBuilder.from(config.getPropertyDescriptorCacheSpec()).build();
-        metrics.add(new CoreCacheMetricsSource("squiggly.property.descriptor-cache.", cache));
+        metrics.add(new SquigglyMetrics.CoreCacheMetricsSource("squiggly.property.descriptor-cache.", cache));
     }
 
 

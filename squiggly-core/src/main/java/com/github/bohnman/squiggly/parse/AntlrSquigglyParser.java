@@ -7,7 +7,7 @@ import com.github.bohnman.core.lang.CoreStrings;
 import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.function.SystemFunctionName;
-import com.github.bohnman.squiggly.metric.support.CoreCacheMetricsSource;
+import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
 import com.github.bohnman.squiggly.name.SquigglyName;
 import com.github.bohnman.squiggly.name.SquigglyNames;
@@ -39,7 +39,7 @@ public class AntlrSquigglyParser implements SquigglyParser {
 
     public AntlrSquigglyParser(SquigglyEnvironmentOld config, SquigglyMetrics metrics) {
         cache = CoreCacheBuilder.from(config.getParserNodeCacheSpec()).build();
-        metrics.add(new CoreCacheMetricsSource("squiggly.parser.node-cache.", cache));
+        metrics.add(new SquigglyMetrics.CoreCacheMetricsSource("squiggly.parser.node-cache.", cache));
     }
 
     /**

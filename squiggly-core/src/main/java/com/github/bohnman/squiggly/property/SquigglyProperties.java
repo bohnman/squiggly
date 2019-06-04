@@ -69,15 +69,19 @@ public class SquigglyProperties {
         return new MapPropertySource(origin, map);
     }
 
-    public static PropertiesPropertySource propertiesSource(Properties properties) {
+    public static SquigglyPropertySource propertiesSource(Properties properties) {
         return new PropertiesPropertySource("properties", properties);
     }
 
-    public static PropertiesPropertySource propertiesSource(String origin, Properties properties) {
+    public static SquigglyPropertySource propertiesSource(String origin, Properties properties) {
         return new PropertiesPropertySource(origin, properties);
     }
 
-    public static PropertiesPropertySource propertiesSource(URL url) {
+    public static SquigglyPropertySource propertiesSource(ClassLoader classLoader, String name) {
+        return propertiesSource(classLoader.getResource(name));
+    }
+
+    public static SquigglyPropertySource propertiesSource(URL url) {
         Properties properties = new Properties();
 
         try (InputStream inputStream = url.openStream()) {
