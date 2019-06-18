@@ -7,7 +7,7 @@ import com.github.bohnman.squiggly.function.SquigglyFunctionClass;
  */
 @SquigglyFunctionClass(include = {
         CollectionFunctions.class,
-        CoreJsonNodeFunctions.class,
+        SquigglyJsonNodeFunctions.class,
         DateFunctions.class,
         NumberFunctions.class,
         MixedFunctions.class,

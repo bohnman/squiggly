@@ -1,7 +1,6 @@
 package com.github.bohnman.squiggly.json.node;
 
-import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
-import com.github.bohnman.squiggly.path.SquigglyObjectPathElement;
+import com.github.bohnman.squiggly.path.SquigglyObjectPath;
 
 public class SquigglyJsonNodeContext<T> {
 
@@ -14,7 +13,7 @@ public class SquigglyJsonNodeContext<T> {
     private final SquigglyJsonNode<T> parentNode;
 
     public SquigglyJsonNodeContext() {
-        this(0, ROOT_KEY, null, DefaultObjectPath.empty(), DefaultObjectPath.empty());
+        this(0, ROOT_KEY, null, SquigglyObjectPath.empty(), DefaultObjectPath.empty());
     }
 
     private SquigglyJsonNodeContext(int depth, Object key, SquigglyJsonNode<T> parentNode, DefaultObjectPath absolutePath, DefaultObjectPath objectPath) {

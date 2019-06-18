@@ -6,7 +6,7 @@ import java.util.List;
 
 public class FilterNode extends BaseNode {
 
-    public static final FilterNode EMPTY = new FilterNode(SquigglyNodeOrigin.EMPTY, Collections.emptyList());
+    public static final FilterNode EMPTY = new FilterNode(SquigglyNodeOrigin.create(), Collections.emptyList());
 
     private final List<StatementNode> statements;
 

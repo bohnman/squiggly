@@ -22,13 +22,13 @@ import java.util.Objects;
 public class SquigglyJsonNodeFilter {
 
     private final SquigglyEnvironmentOld config;
-    private final DefaultExpressionMatcher expressionMatcher;
+    private final SquigglyExpressionMatcher expressionMatcher;
     private final SquigglyFunctionInvoker functionInvoker;
     private final SquigglyParser parser;
 
     public SquigglyJsonNodeFilter(
             SquigglyEnvironmentOld config,
-            DefaultExpressionMatcher expressionMatcher,
+            SquigglyExpressionMatcher expressionMatcher,
             SquigglyFilterContextProvider filterContextProvider,
             SquigglyFilterSource filterSource,
             SquigglyFunctionInvoker functionInvoker,

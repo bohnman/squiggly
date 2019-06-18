@@ -8,10 +8,10 @@ import static java.util.Objects.requireNonNull;
 
 public class SquigglyNames {
 
-    public static final String ANY_DEEP_TOKEN = "**";
-    public static final String ANY_SHALLOW_TOKEN = "*";
-    public static final String DEEP_INHERIT_TOKEN = "...";
-    public static final String NEVER_MATCH_TOKEN = "__NEVER__";
+    private static final String ANY_DEEP_TOKEN = "**";
+    private static final String ANY_SHALLOW_TOKEN = "*";
+    private static final String DEEP_INHERIT_TOKEN = "...";
+    private static final String NEVER_MATCH_TOKEN = "__NEVER__";
 
 
     private static final AnyDeepName ANY_DEEP = new AnyDeepName();

@@ -179,7 +179,7 @@ public abstract class ValueHandler<T> {
      * @return type
      */
     protected T handleIterable(Iterable<Object> iterable) {
-        return handleList(CoreLists.of(iterable));
+        return handleList(CoreLists.create(iterable));
     }
 
     /**

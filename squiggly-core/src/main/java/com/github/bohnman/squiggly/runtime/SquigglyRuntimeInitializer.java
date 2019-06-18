@@ -3,8 +3,6 @@ package com.github.bohnman.squiggly.runtime;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
 import com.github.bohnman.squiggly.extension.SquigglyExtension;
-import com.github.bohnman.squiggly.filter.SquigglyFilterContextProvider;
-import com.github.bohnman.squiggly.filter.SquigglyFilterProvider;
 import com.github.bohnman.squiggly.filter.SquigglyFilterSource;
 import com.github.bohnman.squiggly.function.SquigglyFunction;
 import com.github.bohnman.squiggly.function.SquigglyFunctionSecurity;

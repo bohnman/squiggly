@@ -2,12 +2,12 @@ package com.github.bohnman.squiggly.function.support;
 
 import com.github.bohnman.core.convert.CoreConversions;
 import com.github.bohnman.core.function.CoreLambda;
-import com.github.bohnman.core.json.node.BaseCoreJsonNodeVisitor;
-import com.github.bohnman.core.json.node.CoreJsonNode;
-import com.github.bohnman.core.json.node.CoreJsonNodeType;
-import com.github.bohnman.core.json.node.CoreJsonNodeVisitorContext;
 import com.github.bohnman.core.lang.CoreObjects;
 import com.github.bohnman.core.tuple.CorePair;
+import com.github.bohnman.squiggly.json.node.SquigglyJsonNode;
+import com.github.bohnman.squiggly.json.node.SquigglyJsonNodeContext;
+import com.github.bohnman.squiggly.json.node.SquigglyJsonNodeType;
+import com.github.bohnman.squiggly.json.node.support.BaseJsonNodeVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +16,9 @@ import java.util.Map;
 /**
  * Functions that work with json node objects.
  */
-public class CoreJsonNodeFunctions {
+public class SquigglyJsonNodeFunctions {
 
-    private CoreJsonNodeFunctions() {
+    private SquigglyJsonNodeFunctions() {
     }
 
     /**
@@ -29,7 +29,7 @@ public class CoreJsonNodeFunctions {
      * @param <T>    type
      * @return matches
      */
-    public static <T> CoreJsonNode<T> findAll(CoreJsonNode<T> node, CoreLambda lambda) {
+    public static <T> SquigglyJsonNode<T> findAll(SquigglyJsonNode<T> node, CoreLambda lambda) {
         if (node == null) {
             return null;
         }
@@ -38,11 +38,11 @@ public class CoreJsonNodeFunctions {
             return node;
         }
 
-        List<CoreJsonNode<T>> matches = new ArrayList<>();
+        List<SquigglyJsonNode<T>> matches = new ArrayList<>();
 
-        new BaseCoreJsonNodeVisitor<T>() {
+        new BaseJsonNodeVisitor<T>() {
             @Override
-            protected CoreJsonNode<T> visitAtomNode(CoreJsonNodeVisitorContext<T> context, CoreJsonNode<T> node) {
+            protected SquigglyJsonNode<T> visitAtomNode(SquigglyJsonNodeContext<T> context, SquigglyJsonNode<T> node) {
                 Map.Entry entry = CorePair.of(context.getKey(), node.getValue());
 
                 boolean result = CoreConversions.toBoolean(lambda.invoke(entry, context.getDepth(), node, context));
@@ -67,7 +67,7 @@ public class CoreJsonNodeFunctions {
      * @param <T>              type
      * @return result
      */
-    public static <T> CoreJsonNode transform(CoreJsonNode<T> node, CoreLambda predicate, CoreLambda valueReplacement) {
+    public static <T> SquigglyJsonNode transform(SquigglyJsonNode<T> node, CoreLambda predicate, CoreLambda valueReplacement) {
         return transform(node, predicate, valueReplacement, CoreLambda.identity());
     }
 
@@ -82,7 +82,7 @@ public class CoreJsonNodeFunctions {
      * @return result
      */
     @SuppressWarnings("unchecked")
-    public static <T> CoreJsonNode transform(CoreJsonNode<T> node, CoreLambda predicate, CoreLambda valueReplacement, CoreLambda keyReplacement) {
+    public static <T> SquigglyJsonNode transform(SquigglyJsonNode<T> node, CoreLambda predicate, CoreLambda valueReplacement, CoreLambda keyReplacement) {
         if (node == null) {
             return null;
         }
@@ -103,8 +103,8 @@ public class CoreJsonNodeFunctions {
 
             Object result = valueReplacement.invoke(candidate.getValue(), context.getKey(), context.getDepth(), candidate, context);
 
-            if (result instanceof CoreJsonNode) {
-                return (CoreJsonNode) result;
+            if (result instanceof SquigglyJsonNode) {
+                return (SquigglyJsonNode) result;
             }
 
             return candidate.create(result);
@@ -118,7 +118,7 @@ public class CoreJsonNodeFunctions {
      * @param <T>  type
      * @return flattened nodes
      */
-    public static <T> CoreJsonNode<T> flatten(CoreJsonNode<T> node) {
+    public static <T> SquigglyJsonNode<T> flatten(SquigglyJsonNode<T> node) {
         return flatten(node, -1);
     }
 
@@ -129,12 +129,12 @@ public class CoreJsonNodeFunctions {
      * @param <T>  type
      * @return flattened nodes
      */
-    public static <T> CoreJsonNode<T> flatten(CoreJsonNode<T> node, Number maxDepth) {
+    public static <T> SquigglyJsonNode<T> flatten(SquigglyJsonNode<T> node, Number maxDepth) {
         if (node == null) {
             return null;
         }
 
-        if (node.getType() != CoreJsonNodeType.ARRAY) {
+        if (node.getType() != SquigglyJsonNodeType.ARRAY) {
             return node;
         }
 
@@ -145,13 +145,13 @@ public class CoreJsonNodeFunctions {
             return node;
         }
 
-        List<CoreJsonNode<T>> childNodes = new ArrayList<>();
+        List<SquigglyJsonNode<T>> childNodes = new ArrayList<>();
 
-        new BaseCoreJsonNodeVisitor<T>() {
+        new BaseJsonNodeVisitor<T>() {
 
             @Override
-            protected CoreJsonNode<T> visitArray(CoreJsonNodeVisitorContext<T> context, CoreJsonNode<T> node) {
-                for (CoreJsonNode<T> child : node.getArrayElements()) {
+            protected SquigglyJsonNode<T> visitArray(SquigglyJsonNodeContext<T> context, SquigglyJsonNode<T> node) {
+                for (SquigglyJsonNode<T> child : node.getArrayElements()) {
                     if (child.isArray() && (maxDepthInt < 0 || ((context.getDepth() + 1) <= maxDepthInt))) {
                         visitArray(context.descend(null, node, null, null), child);
                     } else {
@@ -163,7 +163,7 @@ public class CoreJsonNodeFunctions {
             }
 
             @Override
-            protected CoreJsonNode<T> visitChildren(CoreJsonNodeVisitorContext<T> context, CoreJsonNode<T> node) {
+            protected SquigglyJsonNode<T> visitChildren(SquigglyJsonNodeContext<T> context, SquigglyJsonNode<T> node) {
                 return node;
             }
         }.visit(node);

@@ -75,7 +75,7 @@ public abstract class AbstractSquigglyFunction<T> implements SquigglyFunction<T>
         }
 
         this.parameters = Collections.unmodifiableList(parameters);
-        this.aliases = Collections.unmodifiableList(CoreLists.of(aliases));
+        this.aliases = Collections.unmodifiableList(CoreLists.create(aliases));
     }
 
     @Override

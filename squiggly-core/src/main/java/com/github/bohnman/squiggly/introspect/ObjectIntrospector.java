@@ -5,7 +5,8 @@ import com.github.bohnman.core.cache.CoreCacheBuilder;
 import com.github.bohnman.core.lang.CoreFields;
 import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.metric.SquigglyMetrics;
-import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
+import com.github.bohnman.squiggly.metric.SquigglyMetricsProducer;
+import com.github.bohnman.squiggly.metric.SquigglyMetricsTarget;
 import com.github.bohnman.squiggly.view.PropertyView;
 
 import javax.annotation.Nonnull;
@@ -24,20 +25,25 @@ import static com.github.bohnman.core.lang.CoreAssert.notNull;
  * Introspects bean classes, looking for @{@link PropertyView} annotations on fields.
  */
 @ThreadSafe
-public class ObjectIntrospector {
+public class ObjectIntrospector implements SquigglyMetricsProducer {
 
     /**
      * Caches bean class to a map of views to property views.
      */
     private final CoreCache<Class, ObjectDescriptor> cache;
     private final SquigglyEnvironmentOld config;
+    private final SquigglyMetricsProducer metrics;
 
-    public ObjectIntrospector(SquigglyEnvironmentOld config, SquigglyMetrics metrics) {
+    public ObjectIntrospector(SquigglyEnvironmentOld config) {
         this.config = notNull(config);
-        cache = CoreCacheBuilder.from(config.getPropertyDescriptorCacheSpec()).build();
-        metrics.add(new SquigglyMetrics.CoreCacheMetricsSource("squiggly.property.descriptor-cache.", cache));
+        this.cache = CoreCacheBuilder.from(config.getPropertyDescriptorCacheSpec()).build();
+        this.metrics = SquigglyMetrics.coreCacheProducer("squiggly.property.descriptor-cache.", cache);
     }
 
+    @Override
+    public void sendMetrics(SquigglyMetricsTarget target) {
+        metrics.sendMetrics(target);
+    }
 
     public ObjectDescriptor introspect(Class<?> objectClass) {
         return cache.computeIfAbsent(objectClass, this::introspectClass);

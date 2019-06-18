@@ -2,8 +2,7 @@ package com.github.bohnman.squiggly.match.support;
 
 import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.node.ExpressionNode;
-import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
-import com.github.bohnman.squiggly.path.SquigglyObjectPathElement;
+import com.github.bohnman.squiggly.path.SquigglyObjectPath;
 
 import javax.annotation.Nullable;
 
@@ -20,14 +19,8 @@ public class ObjectClassExpressionMatcher implements SquigglyExpressionMatcher {
     }
 
     @Override
-    public ExpressionNode  match(DefaultObjectPath path, String filter, ExpressionNode expression) {
-        SquigglyObjectPathElement last = path.getLast();
-
-        if (last == null) {
-            return expression;
-        }
-
-        if (objectClass.equals(last.getObjectClass()) && (property == null || property.equals(last.getName()))) {
+    public ExpressionNode match(SquigglyObjectPath path, String filter, ExpressionNode expression) {
+        if (objectClass.equals(path.getType()) && (property == null || property.equals(path.getName()))) {
             return SquigglyExpressionMatcher.ALWAYS_MATCH;
         }
 

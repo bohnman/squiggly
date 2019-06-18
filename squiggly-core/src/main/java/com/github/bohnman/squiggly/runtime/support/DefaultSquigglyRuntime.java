@@ -11,10 +11,7 @@ import com.github.bohnman.squiggly.extension.SquigglyExtension;
 import com.github.bohnman.squiggly.filter.SquigglyFilters;
 import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.match.support.DefaultExpressionMatcher;
-import com.github.bohnman.squiggly.filter.SquigglyFilterContextProvider;
 import com.github.bohnman.squiggly.filter.SquigglyFilterSource;
-import com.github.bohnman.squiggly.filter.support.MapFilterSource;
-import com.github.bohnman.squiggly.filter.support.StaticFilterProvider;
 import com.github.bohnman.squiggly.function.*;
 import com.github.bohnman.squiggly.function.support.CompositeFunctionSource;
 import com.github.bohnman.squiggly.function.support.DefaultFunctions;
@@ -22,7 +19,7 @@ import com.github.bohnman.squiggly.function.support.MapFunctionSource;
 import com.github.bohnman.squiggly.function.support.SquigglyFunctions;
 import com.github.bohnman.squiggly.introspect.ObjectIntrospector;
 import com.github.bohnman.squiggly.match.support.SquigglyExpressionMatchers;
-import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
+import com.github.bohnman.squiggly.metric.SquigglyMetrics;
 import com.github.bohnman.squiggly.parse.SquigglyParser;
 import com.github.bohnman.squiggly.parse.AntlrSquigglyParser;
 import com.github.bohnman.squiggly.property.*;
@@ -47,7 +44,6 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
     private final ObjectIntrospector objectIntrospector;
     private final SquigglyEnvironmentOld config;
     private final SquigglyConversionService conversionService;
-    private final SquigglyFilterContextProvider contextProvider;
     private final SquigglyFilterSource filterRepository;
     private final SquigglyFunctionInvoker functionInvoker;
     private final SquigglyFunctionSource functionSource;
@@ -538,7 +534,7 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
         }
 
         protected SquigglyFilterSource buildFilterSource() {
-            SquigglyFilterSource source = MapFilterSource.create(filters);
+            SquigglyFilterSource source = SquigglyFilters.mapSource(filters);
 
             if (!filterSources.isEmpty()) {
                 List<SquigglyFilterSource> sources = new ArrayList<>(filterSources.size() + 1);
@@ -583,7 +579,7 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
 
         protected SquigglyPropertySource buildPropertySource() {
             List<SquigglyPropertySource> sources = new ArrayList<>(propertySources.size() + 3);
-            sources.add(SquigglyProperties.MapPropertySource.create(properties));
+            sources.add(SquigglyProperties.mapSource(properties));
             sources.addAll(propertySources);
 
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -591,39 +587,39 @@ public class DefaultSquigglyRuntime implements SquigglyRuntime {
             URL squigglyProps = classLoader.getResource("squiggly.properties");
 
             if (squigglyProps != null) {
-                sources.add(SquigglyProperties.PropertiesPropertySource.create(squigglyProps));
+                sources.add(SquigglyProperties.propertiesSource(squigglyProps));
             }
 
             URL squigglyDefaultProps = classLoader.getResource("squiggly.default.properties");
 
             if (squigglyDefaultProps != null) {
-                sources.add(SquigglyProperties.PropertiesPropertySource.create(squigglyDefaultProps));
+                sources.add(SquigglyProperties.propertiesSource(squigglyDefaultProps));
             }
 
-            return SquigglyProperties.CompositePropertySource.create(sources);
+            return SquigglyProperties.compositeSource(sources);
         }
 
         protected SquigglyServiceSource buildServiceSource() {
-            SquigglyServiceSource source = SquigglyServices.MapServiceSource.create(services);
+            SquigglyServiceSource source = SquigglyServices.mapSource(services);
 
             if (!serviceSources.isEmpty()) {
                 List<SquigglyServiceSource> sources = new ArrayList<>(serviceSources.size() + 1);
                 sources.add(source);
                 sources.addAll(serviceSources);
-                source = SquigglyServices.CompositeServiceSource.create(sources);
+                source = SquigglyServices.compositeSource(sources);
             }
 
             return source;
         }
 
         protected SquigglyVariableSource buildVariableSource() {
-            SquigglyVariableSource source = SquigglyVariables.MapVariableSource.create(variables);
+            SquigglyVariableSource source = SquigglyVariables.mapSource(variables);
 
             if (!variableSources.isEmpty()) {
                 List<SquigglyVariableSource> sources = new ArrayList<>(variableSources.size() + 1);
                 sources.add(source);
                 sources.addAll(variableSources);
-                source = SquigglyVariables.CompositeVariableSource.create(sources);
+                source = SquigglyVariables.compositeSource(sources);
             }
 
             return source;

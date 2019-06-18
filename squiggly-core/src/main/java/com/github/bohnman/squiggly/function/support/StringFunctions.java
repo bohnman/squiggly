@@ -121,7 +121,7 @@ public class StringFunctions {
         }
 
         if (value instanceof Iterable) {
-            List list = (value instanceof List) ? (List) value : CoreLists.of((Iterable) value);
+            List list = (value instanceof List) ? (List) value : CoreLists.create((Iterable) value);
             StringBuilder builder = new StringBuilder();
 
             for (int i = 0; i < list.size(); i++) {

@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.match.support;
 
 import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.node.ExpressionNode;
-import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
+import com.github.bohnman.squiggly.path.SquigglyObjectPath;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public class CompositeExpressionMatcher implements SquigglyExpressionMatcher {
     }
 
     @Override
-    public ExpressionNode match(DefaultObjectPath path, String filter, ExpressionNode expression) {
+    public ExpressionNode match(SquigglyObjectPath path, String filter, ExpressionNode expression) {
         for (SquigglyExpressionMatcher matcher : matchers) {
             expression = matcher.match(path, filter, expression);
 

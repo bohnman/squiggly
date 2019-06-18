@@ -24,7 +24,7 @@ public class SquigglyServices {
     private SquigglyServices() {
     }
 
-    public SquigglyServiceSource compositeSource(SquigglyServiceSource... sources) {
+    public static SquigglyServiceSource compositeSource(SquigglyServiceSource... sources) {
         if (sources.length == 0) {
             return EMPTY_SOURCE;
         }
@@ -36,7 +36,7 @@ public class SquigglyServices {
         return new CompositeServiceSource(Arrays.asList(sources));
     }
 
-    public SquigglyServiceSource compositeSource(List<SquigglyServiceSource> sources) {
+    public static SquigglyServiceSource compositeSource(List<SquigglyServiceSource> sources) {
         if (sources.isEmpty()) {
             return EMPTY_SOURCE;
         }
@@ -48,7 +48,7 @@ public class SquigglyServices {
         return new CompositeServiceSource(sources);
     }
 
-    public SquigglyServiceSource mapSource(Map<Object, Object> map) {
+    public static SquigglyServiceSource mapSource(Map<Object, Object> map) {
         if (map.isEmpty()) {
             return MapServiceSource.EMPTY;
         }

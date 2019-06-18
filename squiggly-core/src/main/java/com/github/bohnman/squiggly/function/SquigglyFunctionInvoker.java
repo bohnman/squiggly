@@ -454,13 +454,13 @@ public class SquigglyFunctionInvoker {
 
             Map<String, Object> varMap = Collections.unmodifiableMap(varBuilder);
 
-            SquigglyVariableSource variableResolver = SquigglyVariables.CompositeVariableSource.create(new SquigglyVariables.MapVariableSource(varMap), this.variableSource);
+            SquigglyVariableSource variableResolver = SquigglyVariables.compositeSource(SquigglyVariables.mapSource(varMap), this.variableSource);
             SquigglyFunctionInvoker invoker = new SquigglyFunctionInvoker(
                     config,
                     conversionService,
                     functionMatcher,
-                    functionSource,
                     functionSecurity,
+                    functionSource,
                     variableResolver);
             return invoker.invoke(input, input, input, lambdaNode.getBody());
         };

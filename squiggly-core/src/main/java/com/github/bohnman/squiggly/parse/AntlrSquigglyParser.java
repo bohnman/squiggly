@@ -8,7 +8,8 @@ import com.github.bohnman.core.tuple.CorePair;
 import com.github.bohnman.squiggly.environment.SquigglyEnvironmentOld;
 import com.github.bohnman.squiggly.function.SystemFunctionName;
 import com.github.bohnman.squiggly.metric.SquigglyMetrics;
-import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
+import com.github.bohnman.squiggly.metric.SquigglyMetricsProducer;
+import com.github.bohnman.squiggly.metric.SquigglyMetricsTarget;
 import com.github.bohnman.squiggly.name.SquigglyName;
 import com.github.bohnman.squiggly.name.SquigglyNames;
 import com.github.bohnman.squiggly.node.*;
@@ -32,14 +33,20 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.toList;
 
 @ThreadSafe
-public class AntlrSquigglyParser implements SquigglyParser {
+public class AntlrSquigglyParser implements SquigglyParser, SquigglyMetricsProducer {
 
     // Caches parsed filter expressions
     private final CoreCache<String, FilterNode> cache;
+    private final SquigglyMetricsProducer metrics;
 
     public AntlrSquigglyParser(SquigglyEnvironmentOld config, SquigglyMetrics metrics) {
         cache = CoreCacheBuilder.from(config.getParserNodeCacheSpec()).build();
-        metrics.add(new SquigglyMetrics.CoreCacheMetricsSource("squiggly.parser.node-cache.", cache));
+        this.metrics = SquigglyMetrics.coreCacheProducer("squiggly.parser.node-cache.", cache);
+    }
+
+    @Override
+    public void sendMetrics(SquigglyMetricsTarget target) {
+        this.metrics.sendMetrics(target);
     }
 
     /**
@@ -141,7 +148,7 @@ public class AntlrSquigglyParser implements SquigglyParser {
 
         private SquigglyNodeOrigin origin(ParserRuleContext ctx) {
             Token start = ctx.getStart();
-            return new SquigglyNodeOrigin(start.getLine(), start.getCharPositionInLine());
+            return SquigglyNodeOrigin.create(start.getLine(), start.getCharPositionInLine());
         }
 
         private void handleTopLevelExpression(SquigglyGrammarParser.TopLevelExpressionContext context, StatementNode.Builder statementNode) {

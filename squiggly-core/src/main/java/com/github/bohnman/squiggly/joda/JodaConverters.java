@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.joda.support;
+package com.github.bohnman.squiggly.joda;
 
 import com.github.bohnman.squiggly.convert.SquigglyConverterRegistry;
 import org.joda.time.DateTime;

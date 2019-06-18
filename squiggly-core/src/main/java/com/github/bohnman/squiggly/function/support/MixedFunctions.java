@@ -486,7 +486,7 @@ public class MixedFunctions {
 
             @Override
             protected Object handleIterable(Iterable<Object> iterable) {
-                List<Object> list = iterable instanceof List ? new ArrayList<>((List) iterable) : CoreLists.of(iterable);
+                List<Object> list = iterable instanceof List ? new ArrayList<>((List) iterable) : CoreLists.create(iterable);
                 Collections.reverse(list);
                 return list;
             }
@@ -715,7 +715,7 @@ public class MixedFunctions {
 
             @Override
             protected Object handleObject(Object value) {
-                return CoreLists.of(toMap(functionSecurity, value).values());
+                return CoreLists.create(toMap(functionSecurity, value).values());
             }
 
             @Override

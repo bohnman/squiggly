@@ -8,12 +8,11 @@ import com.github.bohnman.squiggly.introspect.ObjectDescriptor;
 import com.github.bohnman.squiggly.introspect.ObjectIntrospector;
 import com.github.bohnman.squiggly.match.SquigglyExpressionMatcher;
 import com.github.bohnman.squiggly.metric.SquigglyMetrics;
-import com.github.bohnman.squiggly.metric.support.SquigglyMetrics;
+import com.github.bohnman.squiggly.metric.SquigglyMetricsProducer;
+import com.github.bohnman.squiggly.metric.SquigglyMetricsTarget;
 import com.github.bohnman.squiggly.name.SquigglyNames;
 import com.github.bohnman.squiggly.node.ExpressionNode;
-import com.github.bohnman.squiggly.path.support.DefaultObjectPath;
 import com.github.bohnman.squiggly.path.SquigglyObjectPath;
-import com.github.bohnman.squiggly.path.SquigglyObjectPathElement;
 import com.github.bohnman.squiggly.view.PropertyView;
 
 import javax.annotation.Nullable;
@@ -24,13 +23,14 @@ import static java.util.Objects.requireNonNull;
 /**
  * Encapsulates the filter node matching logic.
  */
-public class DefaultExpressionMatcher implements SquigglyExpressionMatcher {
+public class DefaultExpressionMatcher implements SquigglyExpressionMatcher, SquigglyMetricsProducer {
 
     private static final List<ExpressionNode> BASE_VIEW_NODES = Collections.singletonList(ExpressionNode.createNamedNested(new SquigglyNames.ExactName(PropertyView.BASE_VIEW)));
 
     private final SquigglyEnvironmentOld config;
     private final CoreCache<CorePair<SquigglyObjectPath, String>, ExpressionNode> matchCache;
     private final ObjectIntrospector introspector;
+    private final SquigglyMetricsProducer metrics;
 
     /**
      * Constructor.
@@ -39,15 +39,18 @@ public class DefaultExpressionMatcher implements SquigglyExpressionMatcher {
      */
     public DefaultExpressionMatcher(
             SquigglyEnvironmentOld environment,
-            ObjectIntrospector introspector,
-            SquigglyMetrics metrics) {
+            ObjectIntrospector introspector) {
 
         this.config = requireNonNull(environment);
         this.matchCache = CoreCacheBuilder.from(environment.getFilterPathCacheSpec()).build();
         this.introspector = requireNonNull(introspector);
-        metrics.add(new SquigglyMetrics.CoreCacheMetricsSource("squiggly.filter.path-cache.", matchCache));
+        this.metrics = SquigglyMetrics.coreCacheProducer("squiggly.filter.path-cache.", matchCache);
     }
 
+    @Override
+    public void sendMetrics(SquigglyMetricsTarget target) {
+
+    }
 
     /**
      * Perform the matching using the given node.
@@ -57,8 +60,8 @@ public class DefaultExpressionMatcher implements SquigglyExpressionMatcher {
      * @param expression   the root node
      * @return matched node or {@link #ALWAYS_MATCH} or {@link #NEVER_MATCH}
      */
-    public ExpressionNode match(DefaultObjectPath path, String filter, ExpressionNode expression) {
-        if (SquigglyNames.AnyDeepName.ANY_DEEP_SYMBOL.equals(filter)) {
+    public ExpressionNode match(SquigglyObjectPath path, String filter, ExpressionNode expression) {
+        if (SquigglyNames.anyDeep().getToken().equals(filter)) {
             return ALWAYS_MATCH;
         }
 
@@ -79,13 +82,13 @@ public class DefaultExpressionMatcher implements SquigglyExpressionMatcher {
         return matchInternal(path, expression);
     }
 
-    private boolean isCacheable(DefaultObjectPath path) {
+    private boolean isCacheable(SquigglyObjectPath path) {
         SquigglyObjectPathElement last = path.getLast();
         Class<?> objectClass = last == null ? null : last.getObjectClass();
         return objectClass != null && !Map.class.isAssignableFrom(objectClass);
     }
 
-    private ExpressionNode matchInternal(DefaultObjectPath path, ExpressionNode parent) {
+    private ExpressionNode matchInternal(SquigglyObjectPath path, ExpressionNode parent) {
         MatchContext context = new MatchContext(path, parent);
         ExpressionNode match = null;
 
@@ -275,7 +278,7 @@ public class DefaultExpressionMatcher implements SquigglyExpressionMatcher {
         private ExpressionNode viewNode;
         private List<ExpressionNode> nodes;
 
-        public MatchContext(DefaultObjectPath path, ExpressionNode parent) {
+        public MatchContext(SquigglyObjectPath path, ExpressionNode parent) {
             this.path = path;
             this.nodes = Collections.emptyList();
             this.parent = null;

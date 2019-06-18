@@ -153,12 +153,12 @@ public class ExpressionNode extends BaseNode implements Comparable<ExpressionNod
      * @return true if **, false if not
      */
     public boolean isAnyDeep() {
-        return SquigglyNames.ANY_DEEP_TOKEN.equals(name.getToken());
+        return SquigglyNames.anyDeep().getToken().equals(name.getToken());
     }
 
 
     public boolean isDeepInherit() {
-        return SquigglyNames.DEEP_INHERIT_TOKEN.equals(name.getToken());
+        return SquigglyNames.deepInherit().getToken().equals(name.getToken());
     }
 
     /**
@@ -167,7 +167,7 @@ public class ExpressionNode extends BaseNode implements Comparable<ExpressionNod
      * @return true if *, false if not
      */
     public boolean isAnyShallow() {
-        return SquigglyNames.ANY_SHALLOW_TOKEN.equals(name.getToken());
+        return SquigglyNames.anyShallow().getToken().equals(name.getToken());
     }
 
     /**

@@ -3,11 +3,10 @@ package com.github.bohnman.squiggly.function;
 import com.github.bohnman.core.function.CoreLambda;
 import com.github.bohnman.core.function.CoreProperty;
 import com.github.bohnman.core.function.FunctionPredicateBridge;
-import com.github.bohnman.core.json.node.CoreJsonNode;
 import com.github.bohnman.core.lang.CoreObjects;
-import com.github.bohnman.squiggly.convert.ConverterDescriptor;
 import com.github.bohnman.squiggly.convert.SquigglyConversionService;
 import com.github.bohnman.squiggly.function.FunctionMatchResult.Score;
+import com.github.bohnman.squiggly.json.node.SquigglyJsonNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -174,8 +173,8 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
     }
 
     private Score applyNormalScore(Score score, FunctionMatchRequest request, FunctionMatchResult result, Class<?> configuredType, int index, Class<?> requestedType) {
-        if (CoreJsonNode.class.isAssignableFrom(requestedType) && !CoreJsonNode.class.isAssignableFrom(configuredType)) {
-            requestedType = ((CoreJsonNode) request.getParameters().get(index)).getValue().getClass();
+        if (SquigglyJsonNode.class.isAssignableFrom(requestedType) && !SquigglyJsonNode.class.isAssignableFrom(configuredType)) {
+            requestedType = ((SquigglyJsonNode) request.getParameters().get(index)).getValue().getClass();
         }
 
         if (configuredType.isAssignableFrom(requestedType)) {
@@ -221,7 +220,7 @@ public class SquigglyFunctionMatcher implements Function<FunctionMatchRequest, F
             return 0;
         }
 
-        if (targetClass.equals(CoreJsonNode.class)) {
+        if (targetClass.equals(SquigglyJsonNode.class)) {
             return 0;
         }
 
