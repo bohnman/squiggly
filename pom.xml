@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Squiggly Build POM</name>
+    <name>Squiggly POM</name>
     <url>https://github.com/bohnman/squiggly-java</url>
     <description>This is the build POM for squiggly-java</description>
     <groupId>com.github.bohnman.squiggly</groupId>
-    <artifactId>squiggly-build</artifactId>
+    <artifactId>squiggly</artifactId>
     <packaging>pom</packaging>
     <version>2.0.0-SNAPSHOT</version>
 
