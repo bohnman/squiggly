@@ -102,6 +102,36 @@
     <build>
         <plugins>
             <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-shade-plugin</artifactId>
+                  <version>3.2.4</version>
+                  <configuration>
+                           <minimizeJar>true</minimizeJar>
+                           <createDependencyReducedPom>true</createDependencyReducedPom>
+                           <relocations>
+                                    <relocation>
+                                             <pattern>org.antlr</pattern>
+                                             <shadedPattern>com.github.bohnman.squiggly.shaded.org.antlr</shadedPattern>
+                                    </relocation>
+                           </relocations>
+                  </configuration>
+                  <executions>
+                           <execution>
+                                    <phase>package</phase>
+                                    <goals>
+                                             <goal>shade</goal>
+                                    </goals>
+                                    <configuration>
+                                             <artifactSet>
+                                                      <includes>
+                                                               <include>org.antlr:antlr4-runtime</include>
+                                                      </includes>
+                                             </artifactSet>
+                                    </configuration>
+                           </execution>
+                  </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.0</version>
