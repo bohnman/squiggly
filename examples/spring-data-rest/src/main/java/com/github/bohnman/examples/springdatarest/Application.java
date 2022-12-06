@@ -15,8 +15,8 @@ import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
 import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurerAdapter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
-import javax.persistence.EntityManager;
-import javax.persistence.metamodel.Type;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.metamodel.Type;
 
 @SpringBootApplication
 public class Application {
