@@ -5,7 +5,7 @@ import com.github.bohnman.squiggly.Squiggly;
 import com.github.bohnman.squiggly.examples.servlet.web.ListResponse;
 import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class Jackson {
 

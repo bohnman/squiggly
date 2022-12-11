@@ -2,7 +2,7 @@ package com.github.bohnman.squiggly.web;
 
 import net.jcip.annotations.ThreadSafe;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Provides a thread-local for holding a servlet response.
