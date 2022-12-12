@@ -1,3 +1,7 @@
+## THIS PROJECT IS NO LONGER MAINTAINED
+
+Apologies to everyone. I just don't have any time to maintain this. Feel free to fork or let me know if you're interested in taking this over.
+
 ## Important Note
 
 As of version 1.3.2, the preferred way to specify nested filters is to use square brackets intead of braces.
