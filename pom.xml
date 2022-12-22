@@ -6,7 +6,9 @@
 
     <name>Squiggly Filter Jackson</name>
     <url>https://github.com/bohnman/squiggly-filter-jackson</url>
-    <description>The Squiggly Filter is a Jackson JSON PropertyFilter, which selects properties of an object/list/map using a subset of the Facebook Graph API filtering syntax.</description>
+    <description>The Squiggly Filter is a Jackson JSON PropertyFilter, which selects properties of an object/list/map
+        using a subset of the Facebook Graph API filtering syntax.
+    </description>
     <groupId>com.github.bohnman</groupId>
     <artifactId>squiggly-filter-jackson</artifactId>
     <version>1.3.19-SNAPSHOT</version>
@@ -50,7 +52,7 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>4.6</version>
+            <version>4.10.1</version>
         </dependency>
 
         <dependency>
@@ -62,7 +64,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>31.1-android</version>
+            <version>31.1-jre</version>
         </dependency>
 
         <dependency>
@@ -102,34 +104,34 @@
     <build>
         <plugins>
             <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-shade-plugin</artifactId>
-                  <version>3.2.4</version>
-                  <configuration>
-                           <minimizeJar>true</minimizeJar>
-                           <createDependencyReducedPom>true</createDependencyReducedPom>
-                           <relocations>
-                                    <relocation>
-                                             <pattern>org.antlr</pattern>
-                                             <shadedPattern>com.github.bohnman.squiggly.shaded.org.antlr</shadedPattern>
-                                    </relocation>
-                           </relocations>
-                  </configuration>
-                  <executions>
-                           <execution>
-                                    <phase>package</phase>
-                                    <goals>
-                                             <goal>shade</goal>
-                                    </goals>
-                                    <configuration>
-                                             <artifactSet>
-                                                      <includes>
-                                                               <include>org.antlr:antlr4-runtime</include>
-                                                      </includes>
-                                             </artifactSet>
-                                    </configuration>
-                           </execution>
-                  </executions>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <minimizeJar>true</minimizeJar>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <relocations>
+                        <relocation>
+                            <pattern>org.antlr</pattern>
+                            <shadedPattern>com.github.bohnman.squiggly.shaded.org.antlr</shadedPattern>
+                        </relocation>
+                    </relocations>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <include>org.antlr:antlr4-runtime</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -170,12 +172,12 @@
                     </execution>
                 </executions>
             </plugin>
-            
+
             <!-- Antlr 4 Plugin -->
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.6</version>
+                <version>4.10.1</version>
                 <configuration>
                     <outputDirectory>${basedir}/src/generated/java</outputDirectory>
                     <visitor>true</visitor>
@@ -247,6 +249,5 @@
             </plugin>
         </plugins>
     </build>
-
 
 </project>
