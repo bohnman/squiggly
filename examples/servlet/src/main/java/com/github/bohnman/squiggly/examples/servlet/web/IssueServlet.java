@@ -1,7 +1,7 @@
-package com.github.bohnman.squiggly.examples.servlet.web;
+package dev.nicklasw.squiggly.examples.servlet.web;
 
-import com.github.bohnman.squiggly.examples.servlet.model.Issue;
-import com.github.bohnman.squiggly.examples.servlet.util.Jackson;
+import dev.nicklasw.squiggly.examples.servlet.model.Issue;
+import dev.nicklasw.squiggly.examples.servlet.util.Jackson;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;

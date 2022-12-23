@@ -1,8 +1,8 @@
-package com.github.bohnman.squiggly.examples.springboot.web;
+package dev.nicklasw.squiggly.examples.springboot.web;
 
-import com.github.bohnman.squiggly.examples.springboot.exception.NotFoundException;
-import com.github.bohnman.squiggly.examples.springboot.model.ErrorResponse;
-import com.github.bohnman.squiggly.examples.springboot.model.Issue;
+import dev.nicklasw.squiggly.examples.springboot.exception.NotFoundException;
+import dev.nicklasw.squiggly.examples.springboot.model.ErrorResponse;
+import dev.nicklasw.squiggly.examples.springboot.model.Issue;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 

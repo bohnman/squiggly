@@ -1,6 +1,6 @@
-package com.github.bohnman.squiggly.examples.servlet.model;
+package dev.nicklasw.squiggly.examples.servlet.model;
 
-import com.github.bohnman.squiggly.view.FullView;
+import dev.nicklasw.squiggly.view.FullView;
 
 public class IssueAction extends BaseIssue {
 

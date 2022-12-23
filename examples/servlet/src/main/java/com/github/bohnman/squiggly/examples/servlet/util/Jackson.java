@@ -1,9 +1,9 @@
-package com.github.bohnman.squiggly.examples.servlet.util;
+package dev.nicklasw.squiggly.examples.servlet.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.squiggly.Squiggly;
-import com.github.bohnman.squiggly.examples.servlet.web.ListResponse;
-import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
+import dev.nicklasw.squiggly.Squiggly;
+import dev.nicklasw.squiggly.examples.servlet.web.ListResponse;
+import dev.nicklasw.squiggly.web.RequestSquigglyContextProvider;
 
 import jakarta.servlet.http.HttpServletRequest;
 

@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.examples.springboot.web;
+package dev.nicklasw.squiggly.examples.springboot.web;
 
 import java.util.List;
 

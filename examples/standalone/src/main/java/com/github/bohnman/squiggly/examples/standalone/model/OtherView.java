@@ -1,6 +1,6 @@
-package com.github.bohnman.squiggly.examples.standalone.model;
+package dev.nicklasw.squiggly.examples.standalone.model;
 
-import com.github.bohnman.squiggly.view.PropertyView;
+import dev.nicklasw.squiggly.view.PropertyView;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

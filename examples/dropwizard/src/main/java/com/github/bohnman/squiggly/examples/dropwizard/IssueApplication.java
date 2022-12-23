@@ -1,10 +1,10 @@
-package com.github.bohnman.squiggly.examples.dropwizard;
+package dev.nicklasw.squiggly.examples.dropwizard;
 
-import com.github.bohnman.squiggly.Squiggly;
-import com.github.bohnman.squiggly.examples.dropwizard.web.IssueResource;
-import com.github.bohnman.squiggly.examples.dropwizard.web.ListResponse;
-import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
-import com.github.bohnman.squiggly.web.SquigglyRequestFilter;
+import dev.nicklasw.squiggly.Squiggly;
+import dev.nicklasw.squiggly.examples.dropwizard.web.IssueResource;
+import dev.nicklasw.squiggly.examples.dropwizard.web.ListResponse;
+import dev.nicklasw.squiggly.web.RequestSquigglyContextProvider;
+import dev.nicklasw.squiggly.web.SquigglyRequestFilter;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.ResourceConfigurationSourceProvider;
 import io.dropwizard.setup.Bootstrap;

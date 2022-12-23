@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.examples.springboot.model;
+package dev.nicklasw.squiggly.examples.springboot.model;
 
 public class BaseIssue {
 

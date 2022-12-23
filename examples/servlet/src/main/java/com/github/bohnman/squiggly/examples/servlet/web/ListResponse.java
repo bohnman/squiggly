@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.examples.servlet.web;
+package dev.nicklasw.squiggly.examples.servlet.web;
 
 import java.util.List;
 

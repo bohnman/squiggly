@@ -1,4 +1,4 @@
-package com.github.bohnman.examples.springdatarest;
+package dev.nicklasw.examples.springdatarest;
 
 import jakarta.persistence.*;
 import java.util.List;

@@ -1,6 +1,6 @@
-package com.github.bohnman.squiggly.examples.dropwizard.web;
+package dev.nicklasw.squiggly.examples.dropwizard.web;
 
-import com.github.bohnman.squiggly.examples.dropwizard.model.Issue;
+import dev.nicklasw.squiggly.examples.dropwizard.model.Issue;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;

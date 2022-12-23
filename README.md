@@ -1,6 +1,6 @@
 ## Important Note
 
-As of version 1.3.2, the preferred way to specify nested filters is to use square brackets intead of braces.
+As of version 1.3.2, the preferred way to specify nested filters is to use square brackets instead of braces.
 
 Preferred: `assignee[firstName]`
 
@@ -48,7 +48,7 @@ Integrating Squiggly into your webapp is covered in [Custom Integration](#custom
 
 ## <a name="prerequisites"></a>Requirements
 
-- Java 7+
+- Java 17+
 - [ANTLR](http://www.antlr.org/)
 - [Commons Lang 3](https://commons.apache.org/proper/commons-lang/)
 - [Google Guava](https://github.com/google/guava)
@@ -60,9 +60,9 @@ Integrating Squiggly into your webapp is covered in [Custom Integration](#custom
 
 ```xml
 <dependency>
-    <groupId>com.github.bohnman</groupId>
+    <groupId>dev.nicklasw</groupId>
     <artifactId>squiggly-filter-jackson</artifactId>
-    <version>1.3.18</version>
+    <version>2.0.0</version>
 </dependency>
 ```
 

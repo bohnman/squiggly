@@ -1,9 +1,9 @@
-package com.github.bohnman.examples.springdatarest;
+package dev.nicklasw.examples.springdatarest;
 
-import com.github.bohnman.squiggly.Squiggly;
-import com.github.bohnman.squiggly.context.provider.SquigglyContextProvider;
-import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
-import com.github.bohnman.squiggly.web.SquigglyRequestFilter;
+import dev.nicklasw.squiggly.Squiggly;
+import dev.nicklasw.squiggly.context.provider.SquigglyContextProvider;
+import dev.nicklasw.squiggly.web.RequestSquigglyContextProvider;
+import dev.nicklasw.squiggly.web.SquigglyRequestFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

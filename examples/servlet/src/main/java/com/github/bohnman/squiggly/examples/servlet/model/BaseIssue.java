@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.examples.servlet.model;
+package dev.nicklasw.squiggly.examples.servlet.model;
 
 public class BaseIssue {
 

@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.examples.springboot.exception;
+package dev.nicklasw.squiggly.examples.springboot.exception;
 
 public class NotFoundException extends RuntimeException {
     public NotFoundException() {

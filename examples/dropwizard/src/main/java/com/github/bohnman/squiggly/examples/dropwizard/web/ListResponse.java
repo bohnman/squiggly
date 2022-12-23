@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.examples.dropwizard.web;
+package dev.nicklasw.squiggly.examples.dropwizard.web;
 
 import java.util.List;
 

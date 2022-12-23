@@ -8,7 +8,7 @@
 
     <filter>
         <filter-name>Squiggly</filter-name>
-        <filter-class>com.github.bohnman.squiggly.web.SquigglyRequestFilter</filter-class>
+        <filter-class>dev.nicklasw.squiggly.web.SquigglyRequestFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>Squiggly</filter-name>
@@ -17,7 +17,7 @@
 
     <servlet>
         <servlet-name>Issue</servlet-name>
-        <servlet-class>com.github.bohnman.squiggly.examples.servlet.web.IssueServlet</servlet-class>
+        <servlet-class>dev.nicklasw.squiggly.examples.servlet.web.IssueServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>Issue</servlet-name>

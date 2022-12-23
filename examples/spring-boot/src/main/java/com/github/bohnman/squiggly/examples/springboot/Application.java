@@ -1,11 +1,11 @@
-package com.github.bohnman.squiggly.examples.springboot;
+package dev.nicklasw.squiggly.examples.springboot;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.bohnman.squiggly.Squiggly;
-import com.github.bohnman.squiggly.examples.springboot.web.ListResponse;
-import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
-import com.github.bohnman.squiggly.web.SquigglyRequestFilter;
+import dev.nicklasw.squiggly.Squiggly;
+import dev.nicklasw.squiggly.examples.springboot.web.ListResponse;
+import dev.nicklasw.squiggly.web.RequestSquigglyContextProvider;
+import dev.nicklasw.squiggly.web.SquigglyRequestFilter;
 import com.google.common.collect.Iterables;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

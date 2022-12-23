@@ -1,3 +1,7 @@
+# 2.0.0 (2022-12-23)
+
+* Changed Group ID
+
 # 1.3.18 (2019-05-29)
 
 * Added ThreadLocalContextProvider

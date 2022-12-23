@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>Squiggly Filter Jackson Dropwizard Example</name>
-    <groupId>com.github.bohnman.squiggly.example</groupId>
+    <groupId>dev.nicklasw.squiggly.example</groupId>
     <artifactId>squiggly-filter-jackson-example-dropwizard</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -17,7 +17,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.bohnman</groupId>
+            <groupId>dev.nicklasw</groupId>
             <artifactId>squiggly-filter-jackson</artifactId>
             <version>1.3.18</version>
             <exclusions>
@@ -57,7 +57,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>com.github.bohnman.squiggly.examples.dropwizard.IssueApplication</mainClass>
+                    <mainClass>dev.nicklasw.squiggly.examples.dropwizard.IssueApplication</mainClass>
                 </configuration>
             </plugin>
             <plugin>
@@ -87,7 +87,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.github.bohnman.squiggly.examples.dropwizard.IssueApplication</mainClass>
+                                    <mainClass>dev.nicklasw.squiggly.examples.dropwizard.IssueApplication</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

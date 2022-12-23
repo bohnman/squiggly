@@ -1,7 +1,7 @@
-package com.github.bohnman.squiggly.examples.springboot.model;
+package dev.nicklasw.squiggly.examples.springboot.model;
 
-import com.github.bohnman.squiggly.view.FullView;
-import com.github.bohnman.squiggly.view.PropertyView;
+import dev.nicklasw.squiggly.view.FullView;
+import dev.nicklasw.squiggly.view.PropertyView;
 
 import java.util.Arrays;
 import java.util.Collections;

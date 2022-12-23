@@ -1,4 +1,4 @@
-package com.github.bohnman.squiggly.examples.standalone.model;
+package dev.nicklasw.squiggly.examples.standalone.model;
 
 public class BaseIssue {
 

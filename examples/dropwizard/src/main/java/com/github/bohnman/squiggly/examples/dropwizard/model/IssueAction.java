@@ -1,6 +1,6 @@
-package com.github.bohnman.squiggly.examples.dropwizard.model;
+package dev.nicklasw.squiggly.examples.dropwizard.model;
 
-import com.github.bohnman.squiggly.view.FullView;
+import dev.nicklasw.squiggly.view.FullView;
 
 public class IssueAction extends BaseIssue {
 
